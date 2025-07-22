@@ -9890,6 +9890,20 @@ function initFormBindings() {
                 });
 
                 console.log('Model filtered vehicles for ' + modelFilter + ':', modelFilteredVehicles.length);
+                
+                // Debug: Log the first few model-filtered vehicles to see what we're working with
+                if (modelFilteredVehicles.length > 0) {
+                    console.log('Sample model-filtered vehicles:', modelFilteredVehicles.slice(0, 3).map(function(v) {
+                        return {
+                            Model: v['Model'],
+                            Series: v['Series'],
+                            Year: v['Year']
+                        };
+                    }));
+                }
+                
+                // Debug: Log the trim levels we're trying to match
+                console.log('Trying to match trim levels:', trimLevels);
 
                 // Then filter by trim levels within the model-matched vehicles
                 var filteredVehicles = modelFilteredVehicles.filter(function(row) {
@@ -9932,7 +9946,15 @@ function initFormBindings() {
                 console.log('Filtered vehicles for ' + model + ' (Model: ' + modelFilter + '):', filteredVehicles.length);
 
                 if (filteredVehicles.length === 0) {
-                    alert('No vehicles found matching the selected trim levels and model (' + modelFilter + ') for ' + model + '.');
+                    // Create a more user-friendly model name for the error message
+                    var displayModelName = model;
+                    if (model === 'CT4 V-SERIES') {
+                        displayModelName = 'Cadillac CT4 V-Series';
+                    } else if (modelFilter === 'CT4') {
+                        displayModelName = 'Cadillac CT4';
+                    }
+                    
+                    alert('No vehicles found matching the selected trim levels for ' + displayModelName + '. The trim levels you selected (' + trimLevels.join(', ') + ') may not be available in current inventory.');
                     return;
                 }
 
@@ -10011,7 +10033,7 @@ function initFormBindings() {
                             </div>' +
                             tableHtml +
                         '</div>\
-                        <button type="button" class="trim-close-popup">Close</button>\
+                        <button type="button" class="trim-close-popup" style="margin: 10px; padding: 8px 16px; background: #007cba; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">Close</button>\
                     </div>\
                     <div id="trimLevelsOverlay"></div>';
 
@@ -10052,14 +10074,20 @@ function initFormBindings() {
                     }
                 });
 
-                popup.find('.trim-close-popup').on('click', function() {
-                                            console.log('🔴 Trim Levels close button clicked, closing popup');
-                                                    // Trim close button clicked
-                        checkForOverlays();
-                        $('#trimLevelsPopup, #trimLevelsOverlay').remove();
-                        setTimeout(function() {
+                // Add hover effects to close button
+                popup.find('.trim-close-popup').on('mouseenter', function() {
+                    $(this).css('background', '#005a8b');
+                }).on('mouseleave', function() {
+                    $(this).css('background', '#007cba');
+                });
+
+                popup.find('.trim-close-popup').on('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔴 Trim Levels close button clicked, closing popup');
+                    $('#trimLevelsPopup, #trimLevelsOverlay').remove();
+                    setTimeout(function() {
                             // Trim close button processed
-                            checkForOverlays();
                             
                             // Debug description objects after closing popup
                             console.log('📖 DESCRIPTIONS AFTER TRIM CLOSE BUTTON:');
