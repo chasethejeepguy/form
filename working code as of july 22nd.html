@@ -2866,6 +2866,16 @@ jQuery(document).ready(function($) {
              return;
          }
          
+         // Get the correct model filter from modelConfigs (crucial for CT4 V-SERIES)
+         var config = modelConfigs[modelName];
+         var correctModelFilter = config ? config.modelFilter : modelName;
+         
+         console.log('Model config lookup:', {
+             modelName: modelName,
+             configExists: !!config,
+             correctModelFilter: correctModelFilter
+         });
+         
          var buttonHtml = '<button id="viewTrimLevelsButton">View Trim Levels (' + trimLevels.length + ')</button>';
          trimLevelsButtonBlock.html(buttonHtml);
          
@@ -2873,7 +2883,7 @@ jQuery(document).ready(function($) {
              e.preventDefault();
              console.log('View Trim Levels button clicked for ' + modelName + ' with trim walk selection');
              console.log('Trim levels being passed:', trimLevels);
-             console.log('Model filter being passed:', modelName);
+             console.log('Model filter being passed:', correctModelFilter);
              
              if (!Array.isArray(trimLevels) || trimLevels.length === 0) {
                  console.warn('No trim levels available for ' + modelName);
@@ -2881,7 +2891,7 @@ jQuery(document).ready(function($) {
                  return;
              }
              
-             showTrimLevelsPopup(modelName, trimLevels, modelName);
+             showTrimLevelsPopup(modelName, trimLevels, correctModelFilter);
          });
          
          console.log('View Trim Levels button updated for ' + modelName + ' with trim walk selection');
