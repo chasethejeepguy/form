@@ -12478,6 +12478,51 @@ $(document).on('click', '.feature-info-icon', function(e) {
     }
     
     console.log('✅ Global handler showing description for:', feature, 'Model:', model);
+    console.log('📖 DESCRIPTION LOOKUP DEBUG:');
+    console.log('  - Looking up feature:', feature);
+    console.log('  - Feature uppercase:', feature.toUpperCase());
+    console.log('  - Detected model:', model);
+    console.log('  - Final description:', description);
+    
+    // Debug the available description objects
+    if (model === 'CT4 V-SERIES') {
+        console.log('  - CT4 V-Series descriptions available:', typeof ct4VSeriesFeatureDescriptions !== 'undefined');
+        if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
+            var descriptionKeys = Object.keys(ct4VSeriesFeatureDescriptions);
+            console.log('  - CT4 V-Series total descriptions loaded:', descriptionKeys.length);
+            console.log('  - CT4 V-Series description keys (first 10):', descriptionKeys.slice(0, 10));
+            console.log('  - Looking for key:', feature.toUpperCase());
+            console.log('  - Direct lookup result:', ct4VSeriesFeatureDescriptions[feature.toUpperCase()]);
+            
+            // Try to find similar keys
+            var similarKeys = descriptionKeys.filter(function(key) {
+                return key.includes(feature.toUpperCase()) || feature.toUpperCase().includes(key);
+            });
+            console.log('  - Similar keys found:', similarKeys);
+            
+            // If no exact match, try fuzzy matching
+            if (!ct4VSeriesFeatureDescriptions[feature.toUpperCase()]) {
+                console.log('  - No exact match, trying fuzzy matching...');
+                if (typeof findBestDescriptionMatch === 'function') {
+                    var fuzzyResult = findBestDescriptionMatch(feature.toUpperCase(), ct4VSeriesFeatureDescriptions);
+                    console.log('  - Fuzzy match result:', fuzzyResult);
+                }
+            }
+        } else {
+            console.log('  - ❌ CT4 V-Series descriptions not loaded yet!');
+        }
+    } else if (model === 'CT4') {
+        console.log('  - CT4 descriptions available:', typeof ct4FeatureDescriptions !== 'undefined');
+        if (typeof ct4FeatureDescriptions !== 'undefined') {
+            console.log('  - CT4 description keys:', Object.keys(ct4FeatureDescriptions).slice(0, 10));
+        }
+    } else {
+        console.log('  - Kia descriptions available:', typeof featureDescriptions !== 'undefined');
+        if (typeof featureDescriptions !== 'undefined') {
+            console.log('  - Kia description keys:', Object.keys(featureDescriptions).slice(0, 10));
+        }
+    }
+    
     debugFeatureIcons('BEFORE_SHOW_DESCRIPTION');
     showFeatureDescription(feature, description);
     
@@ -12587,6 +12632,55 @@ window.checkFeatureIconState = function(feature) {
         console.log(`❌ No icon found for feature: ${feature}`);
         return null;
     }
+};
+
+window.checkDescriptionStatus = function() {
+    console.log('📖 DESCRIPTION STATUS CHECK:');
+    
+    // Check CT4 V-Series descriptions
+    if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
+        var ct4vKeys = Object.keys(ct4VSeriesFeatureDescriptions);
+        console.log('✅ CT4 V-Series descriptions loaded:', ct4vKeys.length, 'descriptions');
+        if (ct4vKeys.length > 0) {
+            console.log('  - Sample keys:', ct4vKeys.slice(0, 5));
+            console.log('  - Sample description:', ct4VSeriesFeatureDescriptions[ct4vKeys[0]]);
+        }
+    } else {
+        console.log('❌ CT4 V-Series descriptions not loaded');
+    }
+    
+    // Check CT4 descriptions
+    if (typeof ct4FeatureDescriptions !== 'undefined') {
+        var ct4Keys = Object.keys(ct4FeatureDescriptions);
+        console.log('✅ CT4 descriptions loaded:', ct4Keys.length, 'descriptions');
+    } else {
+        console.log('❌ CT4 descriptions not loaded');
+    }
+    
+    // Check Kia descriptions
+    if (typeof featureDescriptions !== 'undefined') {
+        var kiaKeys = Object.keys(featureDescriptions);
+        console.log('✅ Kia descriptions loaded:', kiaKeys.length, 'descriptions');
+    } else {
+        console.log('❌ Kia descriptions not loaded');
+    }
+};
+
+window.testFeatureDescription = function(feature) {
+    console.log(`🧪 TESTING DESCRIPTION for "${feature}":`);
+    
+    // Test CT4 V-Series lookup
+    if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
+        var result = ct4VSeriesFeatureDescriptions[feature.toUpperCase()];
+        console.log('  - CT4 V-Series lookup:', result || 'Not found');
+        
+        if (!result && typeof findBestDescriptionMatch === 'function') {
+            var fuzzy = findBestDescriptionMatch(feature.toUpperCase(), ct4VSeriesFeatureDescriptions);
+            console.log('  - CT4 V-Series fuzzy match:', fuzzy || 'No fuzzy match');
+        }
+    }
+    
+    return result;
 };
 
 // Comments for Part 5/5
