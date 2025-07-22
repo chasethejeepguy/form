@@ -1877,6 +1877,9 @@ jQuery(document).ready(function($) {
 
     // Function to show feature description popup
     function showFeatureDescription(feature, description) {
+        console.log('🟡 showFeatureDescription called for:', feature);
+        debugFeatureIcons('BEFORE_FEATURE_POPUP_REMOVE');
+        
         $('#featurePopup, #featureOverlay').remove();
 
         var popupHtml = '\
@@ -1896,18 +1899,27 @@ jQuery(document).ready(function($) {
         var popup = $('#featurePopup');
         var overlay = $('#featureOverlay');
 
-        console.log('Feature popup created for: ' + feature);
+        console.log('🟡 Feature popup created for: ' + feature);
+        debugFeatureIcons('AFTER_FEATURE_POPUP_CREATE');
 
         overlay.on('click', function(e) {
             if (e.target.id === 'featureOverlay') {
-                console.log('Feature overlay clicked, closing popup');
+                console.log('🟡 Feature overlay clicked, closing popup');
+                debugFeatureIcons('BEFORE_FEATURE_OVERLAY_CLOSE');
                 $('#featurePopup, #featureOverlay').remove();
+                setTimeout(function() {
+                    debugFeatureIcons('AFTER_FEATURE_OVERLAY_CLOSE');
+                }, 100);
             }
         });
 
         popup.find('.feature-close-popup').on('click', function() {
-            console.log('Feature close button clicked, closing popup');
+            console.log('🟡 Feature close button clicked, closing popup');
+            debugFeatureIcons('BEFORE_FEATURE_CLOSE_BUTTON');
             $('#featurePopup, #featureOverlay').remove();
+            setTimeout(function() {
+                debugFeatureIcons('AFTER_FEATURE_CLOSE_BUTTON');
+            }, 100);
         });
     }
 
@@ -10380,23 +10392,38 @@ function initFormBindings() {
                     </div>\
                     <div id="trimLevelsOverlay"></div>';
 
+                console.log('🟢 Creating trim levels popup for ' + model);
+                debugFeatureIcons('BEFORE_TRIM_POPUP_CREATE');
+                
                 $('body').append(popupHtml);
 
                 var popup = $('#trimLevelsPopup');
                 var overlay = $('#trimLevelsOverlay');
 
-                console.log('Trim Levels popup created for ' + model + ' (Model: ' + modelFilter + '), exists: ' + (popup.length > 0));
+                console.log('🟢 Trim Levels popup created for ' + model + ' (Model: ' + modelFilter + '), exists: ' + (popup.length > 0));
+                
+                setTimeout(function() {
+                    debugFeatureIcons('AFTER_TRIM_POPUP_CREATE');
+                }, 100);
 
                 overlay.on('click', function(e) {
                     if (e.target.id === 'trimLevelsOverlay') {
-                        console.log('Trim Levels overlay clicked, closing popup');
+                        console.log('🔴 Trim Levels overlay clicked, closing popup');
+                        debugFeatureIcons('BEFORE_TRIM_OVERLAY_CLOSE');
                         $('#trimLevelsPopup, #trimLevelsOverlay').remove();
+                        setTimeout(function() {
+                            debugFeatureIcons('AFTER_TRIM_OVERLAY_CLOSE');
+                        }, 100);
                     }
                 });
 
                 popup.find('.trim-close-popup').on('click', function() {
-                    console.log('Trim Levels close button clicked, closing popup');
+                    console.log('🔴 Trim Levels close button clicked, closing popup');
+                    debugFeatureIcons('BEFORE_TRIM_CLOSE_BUTTON');
                     $('#trimLevelsPopup, #trimLevelsOverlay').remove();
+                    setTimeout(function() {
+                        debugFeatureIcons('AFTER_TRIM_CLOSE_BUTTON');
+                    }, 100);
                 });
 
                 popup.find('.copy-stock-link').on('click', function(e) {
@@ -12278,19 +12305,72 @@ $(document).on('change', 'input[type="radio"]', function() {
 // Remove all existing feature info icon event handlers to prevent conflicts
 $(document).off('click', '.feature-info-icon');
 
+// Add comprehensive debugging for DOM mutations and event handler issues
+var featureIconDebugCount = 0;
+function debugFeatureIcons(context) {
+    featureIconDebugCount++;
+    console.log(`🔍 FEATURE ICON DEBUG #${featureIconDebugCount} (${context}):`);
+    
+    var allIcons = $('.feature-info-icon');
+    console.log(`  - Total feature icons found: ${allIcons.length}`);
+    
+    allIcons.each(function(index, icon) {
+        var $icon = $(icon);
+        var feature = $icon.data('feature');
+        var isVisible = $icon.is(':visible');
+        var hasHandlers = $._data(icon, 'events');
+        var inDOM = $.contains(document, icon);
+        
+        console.log(`    Icon ${index}: feature="${feature}", visible=${isVisible}, inDOM=${inDOM}, hasHandlers=${!!hasHandlers}`);
+        
+        if (hasHandlers && hasHandlers.click) {
+            console.log(`      - Has ${hasHandlers.click.length} click handlers`);
+        }
+    });
+    
+    // Test if our global handler is still active
+    var testEvents = $._data(document, 'events');
+    if (testEvents && testEvents.click) {
+        var globalHandlers = testEvents.click.filter(function(handler) {
+            return handler.selector === '.feature-info-icon';
+        });
+        console.log(`  - Global .feature-info-icon handlers: ${globalHandlers.length}`);
+    } else {
+        console.log('  - No global click handlers found on document');
+    }
+}
+
+// Debug before setting up global handler
+debugFeatureIcons('BEFORE_GLOBAL_SETUP');
+
 // Global event delegation for feature info icons to prevent them from breaking after popup interactions
 $(document).on('click', '.feature-info-icon', function(e) {
+    console.log('🚨 GLOBAL FEATURE ICON HANDLER TRIGGERED');
+    console.log('  - Event target:', e.target);
+    console.log('  - Event currentTarget:', e.currentTarget);
+    console.log('  - Event type:', e.type);
+    console.log('  - Event namespace:', e.namespace);
+    console.log('  - Timestamp:', new Date().toISOString());
+    
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation(); // Stop any other handlers from running
     
-    var feature = $(this).data('feature');
+    var $this = $(this);
+    var feature = $this.data('feature');
+    
+    console.log('  - Clicked element classes:', $this.attr('class'));
+    console.log('  - Clicked element data-feature:', feature);
+    console.log('  - Element visible:', $this.is(':visible'));
+    console.log('  - Element in DOM:', $.contains(document, this));
+    
     if (!feature) {
-        console.log('No feature data found on clicked icon');
+        console.log('❌ No feature data found on clicked icon');
+        debugFeatureIcons('NO_FEATURE_DATA');
         return;
     }
     
-    console.log('Global feature info icon clicked for feature:', feature);
+    console.log('✅ Global feature info icon clicked for feature:', feature);
     
     // Determine the model context
     var model = 'K4'; // Default to K4
@@ -12383,9 +12463,18 @@ $(document).on('click', '.feature-info-icon', function(e) {
         }
     }
     
-    console.log('Global handler showing description for:', feature, 'Model:', model);
+    console.log('✅ Global handler showing description for:', feature, 'Model:', model);
+    debugFeatureIcons('BEFORE_SHOW_DESCRIPTION');
     showFeatureDescription(feature, description);
+    
+    // Debug after showing description
+    setTimeout(function() {
+        debugFeatureIcons('AFTER_SHOW_DESCRIPTION');
+    }, 100);
 });
+
+// Debug after setting up global handler
+debugFeatureIcons('AFTER_GLOBAL_SETUP');
 
 // Override any future attempts to bind specific feature info icon handlers
 var originalOn = $.fn.on;
@@ -12393,12 +12482,20 @@ $.fn.on = function(events, selector, data, handler) {
     // If someone tries to bind a click handler to .feature-info-icon, ignore it
     if (typeof events === 'string' && events.includes('click') && 
         typeof selector === 'string' && selector.includes('.feature-info-icon')) {
-        console.log('Blocked attempt to bind feature info icon handler:', events, selector);
+        console.log('🚫 Blocked attempt to bind feature info icon handler:', events, selector);
+        debugFeatureIcons('BLOCKED_HANDLER_ATTEMPT');
         return this; // Return this to maintain chainability but don't actually bind
     }
     // For all other cases, use the original on method
     return originalOn.apply(this, arguments);
 };
+
+// Add periodic debugging to monitor state
+setInterval(function() {
+    if (window.location.hash.includes('debug-feature-icons')) {
+        debugFeatureIcons('PERIODIC_CHECK');
+    }
+}, 5000);
 
 // Comments for Part 5/5
 /*
