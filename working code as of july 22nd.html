@@ -9891,6 +9891,30 @@ function initFormBindings() {
 
                 console.log('Model filtered vehicles for ' + modelFilter + ':', modelFilteredVehicles.length);
                 
+                // Special debug logging for CT4 V-SERIES model filtering
+                if (model === 'CT4 V-SERIES') {
+                    console.log('🔍 CT4 V-SERIES Model Filter Debug:');
+                    console.log('  - Filtering CSV for Model =', modelFilter);
+                    console.log('  - Found', modelFilteredVehicles.length, 'vehicles with Model =', modelFilter);
+                    
+                    // Show some examples of what we found
+                    var sampleVehicles = modelFilteredVehicles.slice(0, 5).map(function(v) {
+                        return {
+                            Model: v.Model,
+                            Series: v.Series,
+                            Make: v.Make,
+                            Year: v.Year
+                        };
+                    });
+                    console.log('  - Sample vehicles found:', sampleVehicles);
+                    
+                    // Show what Series values are available
+                    var availableSeries = [...new Set(modelFilteredVehicles.map(function(v) {
+                        return v.Series ? v.Series.trim() : '';
+                    }))].filter(function(s) { return s; });
+                    console.log('  - Available Series in filtered vehicles:', availableSeries);
+                }
+                
                 // Debug: Log the first few model-filtered vehicles to see what we're working with
                 if (modelFilteredVehicles.length > 0) {
                     console.log('Sample model-filtered vehicles:', modelFilteredVehicles.slice(0, 3).map(function(v) {
@@ -9957,8 +9981,23 @@ function initFormBindings() {
                     var displayModelName = model;
                     if (model === 'CT4 V-SERIES') {
                         displayModelName = 'Cadillac CT4 V-Series';
+                    } else if (model === 'CT4') {
+                        displayModelName = 'Cadillac CT4';
                     } else if (modelFilter === 'CT4') {
                         displayModelName = 'Cadillac CT4';
+                    }
+                    
+                    // Debug logging for CT4 V-SERIES troubleshooting
+                    if (model === 'CT4 V-SERIES') {
+                        console.log('🔍 CT4 V-SERIES Error Debug:');
+                        console.log('  - model:', model);
+                        console.log('  - modelFilter:', modelFilter);
+                        console.log('  - displayModelName:', displayModelName);
+                        console.log('  - trimLevels:', trimLevels);
+                        console.log('  - modelFilteredVehicles count:', modelFilteredVehicles.length);
+                        console.log('  - Sample modelFilteredVehicles:', modelFilteredVehicles.slice(0, 3).map(function(v) {
+                            return { Model: v.Model, Series: v.Series, Make: v.Make };
+                        }));
                     }
                     
                     alert('No vehicles found matching the selected trim levels for ' + displayModelName + '. The trim levels you selected (' + trimLevels.join(', ') + ') may not be available in current inventory.');
@@ -10091,69 +10130,24 @@ function initFormBindings() {
                 popup.find('.trim-close-popup').on('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
+                    e.stopImmediatePropagation(); // Stop all event propagation immediately
+                    
                     console.log('🔴 Trim Levels close button clicked, closing popup');
+                    
+                    // Remove the popup immediately to prevent any further event handling
                     $('#trimLevelsPopup, #trimLevelsOverlay').remove();
+                    
+                    // Add a flag to prevent any feature description handlers from firing
+                    window.trimPopupClosing = true;
+                    
                     setTimeout(function() {
-                            // Trim close button processed
-                            
-                            // Debug description objects after closing popup
-                            console.log('📖 DESCRIPTIONS AFTER TRIM CLOSE BUTTON:');
-                            if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
-                                console.log('  - CT4 V-Series descriptions count:', Object.keys(ct4VSeriesFeatureDescriptions).length);
-                                console.log('  - Sample CT4 V-Series key:', Object.keys(ct4VSeriesFeatureDescriptions)[0]);
-                                console.log('  - CT4 V-Series object type:', typeof ct4VSeriesFeatureDescriptions);
-                                console.log('  - CT4 V-Series object reference:', ct4VSeriesFeatureDescriptions);
-                            } else {
-                                console.log('  - ❌ CT4 V-Series descriptions UNDEFINED after close!');
-                            }
-                            if (typeof featureDescriptions !== 'undefined') {
-                                console.log('  - Kia descriptions count:', Object.keys(featureDescriptions).length);
-                            } else {
-                                console.log('  - ❌ Kia descriptions UNDEFINED after close!');
-                            }
-                            
-                            // Test a specific description lookup
-                            var testFeature = '1 YEAR MOBILESERVICE PLUS';
-                            console.log('🧪 TESTING SPECIFIC DESCRIPTION LOOKUP:');
-                            console.log('  - Test feature:', testFeature);
-                            if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
-                                var testResult = ct4VSeriesFeatureDescriptions[testFeature.toUpperCase()];
-                                console.log('  - Direct lookup result:', testResult);
-                                console.log('  - Available keys containing "MOBILE":', Object.keys(ct4VSeriesFeatureDescriptions).filter(function(key) {
-                                    return key.includes('MOBILE');
-                                }));
-                                console.log('  - Available keys containing "YEAR":', Object.keys(ct4VSeriesFeatureDescriptions).filter(function(key) {
-                                    return key.includes('YEAR');
-                                }));
-                            }
-                            console.log('📖 DESCRIPTIONS AFTER TRIM POPUP CLOSE:');
-                            if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
-                                console.log('  - CT4 V-Series descriptions count:', Object.keys(ct4VSeriesFeatureDescriptions).length);
-                                console.log('  - Sample CT4 V-Series description:', Object.keys(ct4VSeriesFeatureDescriptions)[0]);
-                                
-                                // Test a specific description lookup
-                                var testFeature = '1 YEAR MOBILESERVICE PLUS';
-                                var result = ct4VSeriesFeatureDescriptions[testFeature.toUpperCase()];
-                                console.log(`  - Test lookup for "${testFeature}":`, result || 'NOT FOUND');
-                            }
-                            if (typeof featureDescriptions !== 'undefined') {
-                                console.log('  - Kia descriptions count:', Object.keys(featureDescriptions).length);
-                            }
-                            
-                            // Descriptions should continue working after trim popup closes
-                            
-                            // Test a specific visible feature icon
-                            var testIcon = $('.feature-info-icon:visible').first();
-                            if (testIcon.length) {
-                                console.log('🧪 TESTING FIRST VISIBLE ICON:', testIcon.data('feature'));
-                                console.log('  - Can be clicked?', testIcon.css('pointer-events'));
-                                console.log('  - Z-index:', testIcon.css('z-index'));
-                                
-                                // Simulate a click to see what happens
-                                console.log('🧪 SIMULATING CLICK ON TEST ICON...');
-                                testIcon.trigger('click');
-                            }
-                        }, 100);
+                        // Clear the flag after a short delay
+                        window.trimPopupClosing = false;
+                        console.log('✅ Trim popup close processing complete');
+                    }, 300); // Increased timeout to ensure all events are processed
+                    
+                    // Return false to prevent any further event processing
+                    return false;
                 });
 
                 popup.find('.copy-stock-link').on('click', function(e) {
@@ -12042,6 +12036,12 @@ $(document).off('click', '.feature-info-icon'); // Remove any existing handlers
 $(document).on('click', '.feature-info-icon', function(e) {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Check if trim popup is closing to prevent unwanted feature popups
+    if (window.trimPopupClosing) {
+        console.log('🚫 BULLETPROOF: Ignoring feature click while trim popup is closing');
+        return;
+    }
     
     var feature = $(this).data('feature');
     if (!feature) return;
