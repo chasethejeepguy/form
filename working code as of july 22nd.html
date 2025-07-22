@@ -9904,6 +9904,12 @@ function initFormBindings() {
                 
                 // Debug: Log the trim levels we're trying to match
                 console.log('Trying to match trim levels:', trimLevels);
+                
+                // Special debug logging for CT4 V-SERIES
+                if (model === 'CT4 V-SERIES') {
+                    console.log('🔍 CT4 V-SERIES Debug: Using EXACT matching for trim levels');
+                    console.log('🔍 CT4 V-SERIES Debug: Looking for Series values that exactly match:', trimLevels);
+                }
 
                 // Then filter by trim levels within the model-matched vehicles
                 var filteredVehicles = modelFilteredVehicles.filter(function(row) {
@@ -9917,7 +9923,8 @@ function initFormBindings() {
                     
                     // Check if any trim level matches the series
                     var matchesTrim = trimLevels.some(function(trim) {
-                        if (model === 'K4') {
+                        if (model === 'K4' || model === 'CT4 V-SERIES') {
+                            // Use exact matching for K4 and CT4 V-SERIES to ensure precise trim level matching
                             return trim.toUpperCase() === series.toUpperCase();
                         } else {
                             // Debug logging can be enabled here if needed for troubleshooting
@@ -9935,7 +9942,7 @@ function initFormBindings() {
                             series: series,
                             vehicleModel: row['Model'],
                             trim: trimLevels.find(function(t) { 
-                                return model === 'K4' ? t.toUpperCase() === series.toUpperCase() : fuzzyMatch(t, series, model, series) >= 0.4;
+                                return (model === 'K4' || model === 'CT4 V-SERIES') ? t.toUpperCase() === series.toUpperCase() : fuzzyMatch(t, series, model, series) >= 0.4;
                             })
                         });
                     }
