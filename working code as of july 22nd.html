@@ -1769,6 +1769,11 @@ jQuery(document).ready(function($) {
             } else {
                 console.log('SUCCESS: Cadillac CT4 V-Series descriptions loaded successfully!');
                 console.log('First few CT4 V-Series descriptions:', Object.keys(ct4VSeriesFeatureDescriptions).slice(0, 5));
+                
+                // Create backup after successful loading
+                setTimeout(function() {
+                    backupDescriptions();
+                }, 100);
             }
         }).catch(function(error) {
             console.error('Fetch error for Cadillac CT4 V-Series Feature Descriptions:', error.message);
@@ -10423,6 +10428,12 @@ function initFormBindings() {
                         $('#trimLevelsPopup, #trimLevelsOverlay').remove();
                         setTimeout(function() {
                             debugFeatureIcons('AFTER_TRIM_OVERLAY_CLOSE');
+                            
+                            // Validate and restore descriptions if needed
+                            if (!validateDescriptions()) {
+                                console.log('🔄 Restoring descriptions after trim popup overlay close...');
+                                restoreDescriptions();
+                            }
                         }, 100);
                     }
                 });
@@ -10449,6 +10460,12 @@ function initFormBindings() {
                             }
                             if (typeof featureDescriptions !== 'undefined') {
                                 console.log('  - Kia descriptions count:', Object.keys(featureDescriptions).length);
+                            }
+                            
+                            // Validate and restore descriptions if needed
+                            if (!validateDescriptions()) {
+                                console.log('🔄 Restoring descriptions after trim popup close button...');
+                                restoreDescriptions();
                             }
                             
                             // Test a specific visible feature icon
@@ -12437,6 +12454,12 @@ $(document).on('click', '.feature-info-icon', function(e) {
     
     console.log('Detected model context:', model);
     
+    // Validate descriptions before lookup - restore if needed
+    if (!validateDescriptions()) {
+        console.log('⚠️ Descriptions corrupted, attempting restore...');
+        restoreDescriptions();
+    }
+    
     // Get the appropriate description based on the model
     var description;
     if (model === 'TERRAIN') {
@@ -12615,6 +12638,92 @@ setInterval(function() {
     }
 }, 5000);
 
+// Create backup copies of description objects to restore if they get corrupted
+var descriptionBackups = {};
+
+function backupDescriptions() {
+    console.log('📦 Creating backup of description objects...');
+    
+    if (typeof featureDescriptions !== 'undefined' && Object.keys(featureDescriptions).length > 0) {
+        descriptionBackups.featureDescriptions = JSON.parse(JSON.stringify(featureDescriptions));
+        console.log('  - Backed up featureDescriptions:', Object.keys(featureDescriptions).length, 'entries');
+    }
+    
+    if (typeof ct4VSeriesFeatureDescriptions !== 'undefined' && Object.keys(ct4VSeriesFeatureDescriptions).length > 0) {
+        descriptionBackups.ct4VSeriesFeatureDescriptions = JSON.parse(JSON.stringify(ct4VSeriesFeatureDescriptions));
+        console.log('  - Backed up ct4VSeriesFeatureDescriptions:', Object.keys(ct4VSeriesFeatureDescriptions).length, 'entries');
+    }
+    
+    if (typeof terrainFeatureDescriptions !== 'undefined' && Object.keys(terrainFeatureDescriptions).length > 0) {
+        descriptionBackups.terrainFeatureDescriptions = JSON.parse(JSON.stringify(terrainFeatureDescriptions));
+        console.log('  - Backed up terrainFeatureDescriptions:', Object.keys(terrainFeatureDescriptions).length, 'entries');
+    }
+    
+    if (typeof acadiaFeatureDescriptions !== 'undefined' && Object.keys(acadiaFeatureDescriptions).length > 0) {
+        descriptionBackups.acadiaFeatureDescriptions = JSON.parse(JSON.stringify(acadiaFeatureDescriptions));
+        console.log('  - Backed up acadiaFeatureDescriptions:', Object.keys(acadiaFeatureDescriptions).length, 'entries');
+    }
+    
+    console.log('📦 Backup complete. Backed up', Object.keys(descriptionBackups).length, 'description objects');
+}
+
+function restoreDescriptions() {
+    console.log('🔄 Restoring description objects from backup...');
+    
+    var restoredCount = 0;
+    
+    if (descriptionBackups.featureDescriptions && 
+        (typeof featureDescriptions === 'undefined' || Object.keys(featureDescriptions).length === 0)) {
+        featureDescriptions = JSON.parse(JSON.stringify(descriptionBackups.featureDescriptions));
+        console.log('  - Restored featureDescriptions:', Object.keys(featureDescriptions).length, 'entries');
+        restoredCount++;
+    }
+    
+    if (descriptionBackups.ct4VSeriesFeatureDescriptions && 
+        (typeof ct4VSeriesFeatureDescriptions === 'undefined' || Object.keys(ct4VSeriesFeatureDescriptions).length === 0)) {
+        ct4VSeriesFeatureDescriptions = JSON.parse(JSON.stringify(descriptionBackups.ct4VSeriesFeatureDescriptions));
+        console.log('  - Restored ct4VSeriesFeatureDescriptions:', Object.keys(ct4VSeriesFeatureDescriptions).length, 'entries');
+        restoredCount++;
+    }
+    
+    if (descriptionBackups.terrainFeatureDescriptions && 
+        (typeof terrainFeatureDescriptions === 'undefined' || Object.keys(terrainFeatureDescriptions).length === 0)) {
+        terrainFeatureDescriptions = JSON.parse(JSON.stringify(descriptionBackups.terrainFeatureDescriptions));
+        console.log('  - Restored terrainFeatureDescriptions:', Object.keys(terrainFeatureDescriptions).length, 'entries');
+        restoredCount++;
+    }
+    
+    if (descriptionBackups.acadiaFeatureDescriptions && 
+        (typeof acadiaFeatureDescriptions === 'undefined' || Object.keys(acadiaFeatureDescriptions).length === 0)) {
+        acadiaFeatureDescriptions = JSON.parse(JSON.stringify(descriptionBackups.acadiaFeatureDescriptions));
+        console.log('  - Restored acadiaFeatureDescriptions:', Object.keys(acadiaFeatureDescriptions).length, 'entries');
+        restoredCount++;
+    }
+    
+    console.log('🔄 Restoration complete. Restored', restoredCount, 'description objects');
+    return restoredCount > 0;
+}
+
+function validateDescriptions() {
+    var issues = [];
+    
+    if (typeof ct4VSeriesFeatureDescriptions === 'undefined' || Object.keys(ct4VSeriesFeatureDescriptions).length === 0) {
+        issues.push('ct4VSeriesFeatureDescriptions is empty or undefined');
+    }
+    
+    if (typeof featureDescriptions === 'undefined' || Object.keys(featureDescriptions).length === 0) {
+        issues.push('featureDescriptions is empty or undefined');
+    }
+    
+    if (issues.length > 0) {
+        console.warn('⚠️ DESCRIPTION VALIDATION FAILED:', issues);
+        return false;
+    }
+    
+    console.log('✅ Description validation passed');
+    return true;
+}
+
 // Add global test functions for manual debugging
 window.testFeatureIcons = function() {
     console.log('🧪 MANUAL FEATURE ICON TEST');
@@ -12627,6 +12736,12 @@ window.testFeatureIcons = function() {
     if (visibleIcons.length > 0) {
         var testIcon = visibleIcons.first();
         console.log('Testing first visible icon:', testIcon.data('feature'));
+        
+        // Validate descriptions before testing
+        if (!validateDescriptions()) {
+            console.log('🔄 Descriptions invalid, attempting restore...');
+            restoreDescriptions();
+        }
         
         // Test if we can click it
         console.log('Triggering click...');
@@ -12658,6 +12773,10 @@ window.checkFeatureIconState = function(feature) {
         return null;
     }
 };
+
+window.backupDescriptions = backupDescriptions;
+window.restoreDescriptions = restoreDescriptions;
+window.validateDescriptions = validateDescriptions;
 
 window.checkDescriptionStatus = function() {
     console.log('📖 DESCRIPTION STATUS CHECK:');
