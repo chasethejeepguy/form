@@ -10395,6 +10395,16 @@ function initFormBindings() {
                 console.log('🟢 Creating trim levels popup for ' + model);
                 debugFeatureIcons('BEFORE_TRIM_POPUP_CREATE');
                 
+                // Debug description objects before creating popup
+                console.log('📖 DESCRIPTIONS BEFORE TRIM POPUP:');
+                if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
+                    console.log('  - CT4 V-Series descriptions count:', Object.keys(ct4VSeriesFeatureDescriptions).length);
+                    console.log('  - Sample CT4 V-Series description:', Object.keys(ct4VSeriesFeatureDescriptions)[0]);
+                }
+                if (typeof featureDescriptions !== 'undefined') {
+                    console.log('  - Kia descriptions count:', Object.keys(featureDescriptions).length);
+                }
+                
                 $('body').append(popupHtml);
 
                 var popup = $('#trimLevelsPopup');
@@ -10425,6 +10435,21 @@ function initFormBindings() {
                         setTimeout(function() {
                             debugFeatureIcons('AFTER_TRIM_CLOSE_BUTTON');
                             checkForOverlays();
+                            
+                            // Debug description objects after closing popup
+                            console.log('📖 DESCRIPTIONS AFTER TRIM POPUP CLOSE:');
+                            if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
+                                console.log('  - CT4 V-Series descriptions count:', Object.keys(ct4VSeriesFeatureDescriptions).length);
+                                console.log('  - Sample CT4 V-Series description:', Object.keys(ct4VSeriesFeatureDescriptions)[0]);
+                                
+                                // Test a specific description lookup
+                                var testFeature = '1 YEAR MOBILESERVICE PLUS';
+                                var result = ct4VSeriesFeatureDescriptions[testFeature.toUpperCase()];
+                                console.log(`  - Test lookup for "${testFeature}":`, result || 'NOT FOUND');
+                            }
+                            if (typeof featureDescriptions !== 'undefined') {
+                                console.log('  - Kia descriptions count:', Object.keys(featureDescriptions).length);
+                            }
                             
                             // Test a specific visible feature icon
                             var testIcon = $('.feature-info-icon:visible').first();
