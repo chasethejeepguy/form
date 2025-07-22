@@ -10418,12 +10418,26 @@ function initFormBindings() {
                 });
 
                 popup.find('.trim-close-popup').on('click', function() {
-                    console.log('🔴 Trim Levels close button clicked, closing popup');
-                    debugFeatureIcons('BEFORE_TRIM_CLOSE_BUTTON');
-                    $('#trimLevelsPopup, #trimLevelsOverlay').remove();
-                    setTimeout(function() {
-                        debugFeatureIcons('AFTER_TRIM_CLOSE_BUTTON');
-                    }, 100);
+                                            console.log('🔴 Trim Levels close button clicked, closing popup');
+                        debugFeatureIcons('BEFORE_TRIM_CLOSE_BUTTON');
+                        checkForOverlays();
+                        $('#trimLevelsPopup, #trimLevelsOverlay').remove();
+                        setTimeout(function() {
+                            debugFeatureIcons('AFTER_TRIM_CLOSE_BUTTON');
+                            checkForOverlays();
+                            
+                            // Test a specific visible feature icon
+                            var testIcon = $('.feature-info-icon:visible').first();
+                            if (testIcon.length) {
+                                console.log('🧪 TESTING FIRST VISIBLE ICON:', testIcon.data('feature'));
+                                console.log('  - Can be clicked?', testIcon.css('pointer-events'));
+                                console.log('  - Z-index:', testIcon.css('z-index'));
+                                
+                                // Simulate a click to see what happens
+                                console.log('🧪 SIMULATING CLICK ON TEST ICON...');
+                                testIcon.trigger('click');
+                            }
+                        }, 100);
                 });
 
                 popup.find('.copy-stock-link').on('click', function(e) {
@@ -12476,6 +12490,40 @@ $(document).on('click', '.feature-info-icon', function(e) {
 // Debug after setting up global handler
 debugFeatureIcons('AFTER_GLOBAL_SETUP');
 
+// Add click event debugging to track ALL clicks on feature icons
+$(document).on('mousedown mouseup click', '.feature-info-icon', function(e) {
+    console.log(`🎯 RAW CLICK EVENT on feature icon: ${e.type}`);
+    console.log('  - Feature:', $(this).data('feature'));
+    console.log('  - Event target:', e.target);
+    console.log('  - Event currentTarget:', e.currentTarget);
+    console.log('  - Element z-index:', $(this).css('z-index'));
+    console.log('  - Element pointer-events:', $(this).css('pointer-events'));
+    console.log('  - Element position:', $(this).css('position'));
+    console.log('  - Element opacity:', $(this).css('opacity'));
+    console.log('  - Element display:', $(this).css('display'));
+    console.log('  - Element visibility:', $(this).css('visibility'));
+    
+    // Check if anything is covering this element
+    var rect = this.getBoundingClientRect();
+    var elementAtPoint = document.elementFromPoint(rect.left + rect.width/2, rect.top + rect.height/2);
+    console.log('  - Element at center point:', elementAtPoint);
+    console.log('  - Is same element?', elementAtPoint === this);
+    
+    if (e.type === 'click') {
+        console.log('🎯 CLICK EVENT DETECTED - should trigger global handler');
+    }
+});
+
+// Add debugging to detect any overlaying elements
+function checkForOverlays() {
+    var overlays = $('[id*="overlay"], [class*="overlay"], [style*="z-index"]').filter(':visible');
+    console.log(`🔍 OVERLAY CHECK: Found ${overlays.length} potential overlay elements`);
+    overlays.each(function(index, element) {
+        var $el = $(element);
+        console.log(`  Overlay ${index}: id="${$el.attr('id')}", class="${$el.attr('class')}", z-index="${$el.css('z-index')}"`);
+    });
+}
+
 // Override any future attempts to bind specific feature info icon handlers
 var originalOn = $.fn.on;
 $.fn.on = function(events, selector, data, handler) {
@@ -12496,6 +12544,50 @@ setInterval(function() {
         debugFeatureIcons('PERIODIC_CHECK');
     }
 }, 5000);
+
+// Add global test functions for manual debugging
+window.testFeatureIcons = function() {
+    console.log('🧪 MANUAL FEATURE ICON TEST');
+    debugFeatureIcons('MANUAL_TEST');
+    checkForOverlays();
+    
+    var visibleIcons = $('.feature-info-icon:visible');
+    console.log(`Found ${visibleIcons.length} visible feature icons`);
+    
+    if (visibleIcons.length > 0) {
+        var testIcon = visibleIcons.first();
+        console.log('Testing first visible icon:', testIcon.data('feature'));
+        
+        // Test if we can click it
+        console.log('Triggering click...');
+        testIcon.trigger('click');
+    }
+};
+
+window.checkFeatureIconState = function(feature) {
+    var icon = $(`.feature-info-icon[data-feature="${feature}"]`);
+    if (icon.length) {
+        console.log(`🔍 ICON STATE for "${feature}":`);
+        console.log('  - Exists:', icon.length);
+        console.log('  - Visible:', icon.is(':visible'));
+        console.log('  - In DOM:', $.contains(document, icon[0]));
+        console.log('  - Pointer events:', icon.css('pointer-events'));
+        console.log('  - Z-index:', icon.css('z-index'));
+        console.log('  - Position:', icon.css('position'));
+        console.log('  - Display:', icon.css('display'));
+        console.log('  - Opacity:', icon.css('opacity'));
+        
+        var rect = icon[0].getBoundingClientRect();
+        var elementAtPoint = document.elementFromPoint(rect.left + rect.width/2, rect.top + rect.height/2);
+        console.log('  - Element at center:', elementAtPoint);
+        console.log('  - Is same element?', elementAtPoint === icon[0]);
+        
+        return icon;
+    } else {
+        console.log(`❌ No icon found for feature: ${feature}`);
+        return null;
+    }
+};
 
 // Comments for Part 5/5
 /*
