@@ -1883,7 +1883,6 @@ jQuery(document).ready(function($) {
     // Function to show feature description popup
     function showFeatureDescription(feature, description) {
         console.log('🟡 showFeatureDescription called for:', feature);
-        debugFeatureIcons('BEFORE_FEATURE_POPUP_REMOVE');
         
         $('#featurePopup, #featureOverlay').remove();
 
@@ -1905,26 +1904,17 @@ jQuery(document).ready(function($) {
         var overlay = $('#featureOverlay');
 
         console.log('🟡 Feature popup created for: ' + feature);
-        debugFeatureIcons('AFTER_FEATURE_POPUP_CREATE');
 
         overlay.on('click', function(e) {
             if (e.target.id === 'featureOverlay') {
                 console.log('🟡 Feature overlay clicked, closing popup');
-                debugFeatureIcons('BEFORE_FEATURE_OVERLAY_CLOSE');
                 $('#featurePopup, #featureOverlay').remove();
-                setTimeout(function() {
-                    debugFeatureIcons('AFTER_FEATURE_OVERLAY_CLOSE');
-                }, 100);
             }
         });
 
         popup.find('.feature-close-popup').on('click', function() {
             console.log('🟡 Feature close button clicked, closing popup');
-            debugFeatureIcons('BEFORE_FEATURE_CLOSE_BUTTON');
             $('#featurePopup, #featureOverlay').remove();
-            setTimeout(function() {
-                debugFeatureIcons('AFTER_FEATURE_CLOSE_BUTTON');
-            }, 100);
         });
     }
 
@@ -10398,7 +10388,7 @@ function initFormBindings() {
                     <div id="trimLevelsOverlay"></div>';
 
                 console.log('🟢 Creating trim levels popup for ' + model);
-                debugFeatureIcons('BEFORE_TRIM_POPUP_CREATE');
+                // Trim popup being created
                 
                 // Debug description objects before creating popup
                 console.log('📖 DESCRIPTIONS BEFORE TRIM POPUP:');
@@ -10418,33 +10408,29 @@ function initFormBindings() {
                 console.log('🟢 Trim Levels popup created for ' + model + ' (Model: ' + modelFilter + '), exists: ' + (popup.length > 0));
                 
                 setTimeout(function() {
-                    debugFeatureIcons('AFTER_TRIM_POPUP_CREATE');
+                    // Trim popup created
                 }, 100);
 
                 overlay.on('click', function(e) {
                     if (e.target.id === 'trimLevelsOverlay') {
                         console.log('🔴 Trim Levels overlay clicked, closing popup');
-                        debugFeatureIcons('BEFORE_TRIM_OVERLAY_CLOSE');
+                        // Trim overlay clicked
                         $('#trimLevelsPopup, #trimLevelsOverlay').remove();
                         setTimeout(function() {
-                            debugFeatureIcons('AFTER_TRIM_OVERLAY_CLOSE');
+                            // Trim overlay closed
                             
-                            // Validate and restore descriptions if needed
-                            if (!validateDescriptions()) {
-                                console.log('🔄 Restoring descriptions after trim popup overlay close...');
-                                restoreDescriptions();
-                            }
+                                                          // Descriptions should continue working after trim popup closes
                         }, 100);
                     }
                 });
 
                 popup.find('.trim-close-popup').on('click', function() {
                                             console.log('🔴 Trim Levels close button clicked, closing popup');
-                        debugFeatureIcons('BEFORE_TRIM_CLOSE_BUTTON');
+                                                    // Trim close button clicked
                         checkForOverlays();
                         $('#trimLevelsPopup, #trimLevelsOverlay').remove();
                         setTimeout(function() {
-                            debugFeatureIcons('AFTER_TRIM_CLOSE_BUTTON');
+                            // Trim close button processed
                             checkForOverlays();
                             
                             // Debug description objects after closing popup
@@ -10491,17 +10477,7 @@ function initFormBindings() {
                                 console.log('  - Kia descriptions count:', Object.keys(featureDescriptions).length);
                             }
                             
-                            // Log state before validation
-                            logDescriptionState('BEFORE_TRIM_CLOSE_VALIDATION');
-                            
-                            // Validate and restore descriptions if needed
-                            if (!validateDescriptions()) {
-                                console.log('🔄 Restoring descriptions after trim popup close button...');
-                                restoreDescriptions();
-                                logDescriptionState('AFTER_TRIM_CLOSE_RESTORE');
-                            } else {
-                                console.log('✅ Descriptions validated successfully after trim close');
-                            }
+                            // Descriptions should continue working after trim popup closes
                             
                             // Test a specific visible feature icon
                             var testIcon = $('.feature-info-icon:visible').first();
@@ -12393,329 +12369,57 @@ $(document).on('change', 'input[type="radio"]', function() {
 
 });
 
-// Remove all existing feature info icon event handlers to prevent conflicts
-$(document).off('click', '.feature-info-icon');
+// Clean fix for feature descriptions - remove all complex debugging
+console.log('🔧 Setting up clean feature description functionality...');
 
-// Add comprehensive debugging for DOM mutations and event handler issues
-var featureIconDebugCount = 0;
-function debugFeatureIcons(context) {
-    featureIconDebugCount++;
-    console.log(`🔍 FEATURE ICON DEBUG #${featureIconDebugCount} (${context}):`);
-    
-    var allIcons = $('.feature-info-icon');
-    console.log(`  - Total feature icons found: ${allIcons.length}`);
-    
-    allIcons.each(function(index, icon) {
-        var $icon = $(icon);
-        var feature = $icon.data('feature');
-        var isVisible = $icon.is(':visible');
-        var hasHandlers = $._data(icon, 'events');
-        var inDOM = $.contains(document, icon);
-        
-        console.log(`    Icon ${index}: feature="${feature}", visible=${isVisible}, inDOM=${inDOM}, hasHandlers=${!!hasHandlers}`);
-        
-        if (hasHandlers && hasHandlers.click) {
-            console.log(`      - Has ${hasHandlers.click.length} click handlers`);
-        }
-    });
-    
-    // Test if our global handler is still active
-    var testEvents = $._data(document, 'events');
-    if (testEvents && testEvents.click) {
-        var globalHandlers = testEvents.click.filter(function(handler) {
-            return handler.selector === '.feature-info-icon';
-        });
-        console.log(`  - Global .feature-info-icon handlers: ${globalHandlers.length}`);
-    } else {
-        console.log('  - No global click handlers found on document');
-    }
-}
+// Simple, clean feature description handler
+$(document).off('click', '.feature-info-icon'); // Remove any existing handlers
 
-// Debug before setting up global handler
-debugFeatureIcons('BEFORE_GLOBAL_SETUP');
-
-// Global event delegation for feature info icons to prevent them from breaking after popup interactions
+// Clean, simple feature description handler
 $(document).on('click', '.feature-info-icon', function(e) {
-    console.log('🚨 GLOBAL FEATURE ICON HANDLER TRIGGERED');
-    console.log('  - Event target:', e.target);
-    console.log('  - Event currentTarget:', e.currentTarget);
-    console.log('  - Event type:', e.type);
-    console.log('  - Event namespace:', e.namespace);
-    console.log('  - Timestamp:', new Date().toISOString());
-    
     e.preventDefault();
     e.stopPropagation();
-    e.stopImmediatePropagation(); // Stop any other handlers from running
     
-    var $this = $(this);
-    var feature = $this.data('feature');
+    var feature = $(this).data('feature');
+    if (!feature) return;
     
-    console.log('  - Clicked element classes:', $this.attr('class'));
-    console.log('  - Clicked element data-feature:', feature);
-    console.log('  - Element visible:', $this.is(':visible'));
-    console.log('  - Element in DOM:', $.contains(document, this));
+    console.log('✅ Feature icon clicked:', feature);
     
-    if (!feature) {
-        console.log('❌ No feature data found on clicked icon');
-        debugFeatureIcons('NO_FEATURE_DATA');
-        return;
-    }
+    // Get description from the appropriate source
+    var description = null;
     
-    console.log('✅ Global feature info icon clicked for feature:', feature);
-    
-    // Determine the model context
-    var model = 'K4'; // Default to K4
-    
-    // Check for GMC models by looking at the icon's classes or parent context
-    if ($(this).hasClass('terrain-info-icon') || $(this).closest('[id*="terrain"], [class*="terrain"]').length > 0) {
-        model = 'TERRAIN';
-    } else if ($(this).hasClass('acadia-info-icon') || $(this).closest('[id*="acadia"], [class*="acadia"]').length > 0) {
-        model = 'ACADIA';
-    } else if ($(this).hasClass('yukon-info-icon') || $(this).closest('[id*="yukon"], [class*="yukon"]').length > 0) {
-        model = 'YUKON';
-    } else if ($(this).hasClass('canyon-info-icon') || $(this).closest('[id*="canyon"], [class*="canyon"]').length > 0) {
-        model = 'CANYON';
-    } else if ($(this).hasClass('sierra1500-info-icon') || $(this).closest('[id*="sierra1500"], [class*="sierra1500"]').length > 0) {
-        model = 'SIERRA 1500';
-    } else if ($(this).hasClass('sierra2500-info-icon') || $(this).closest('[id*="sierra2500"], [class*="sierra2500"]').length > 0) {
-        model = 'SIERRA 2500';
-    } else if ($(this).hasClass('sierra3500-info-icon') || $(this).closest('[id*="sierra3500"], [class*="sierra3500"]').length > 0) {
-        model = 'SIERRA 3500';
-    } else if ($(this).hasClass('ct4-info-icon') || $(this).closest('[id*="ct4"], [class*="ct4"]').length > 0) {
-        model = 'CT4';
-    } else if ($(this).hasClass('ct4vseries-info-icon') || $(this).closest('[id*="ct4vseries"], [class*="ct4vseries"]').length > 0) {
-        model = 'CT4 V-SERIES';
-    }
-    
-    console.log('Detected model context:', model);
-    
-    // Log description state before lookup
-    logDescriptionState('BEFORE_LOOKUP');
-    
-    // Validate descriptions before lookup - restore if needed
-    if (!validateDescriptions()) {
-        console.log('⚠️ Descriptions corrupted, attempting restore...');
-        restoreDescriptions();
-        logDescriptionState('AFTER_RESTORE');
-    }
-    
-    // Get the appropriate description based on the model
-    var description;
-    if (model === 'TERRAIN') {
-        description = terrainFeatureDescriptions[feature.toUpperCase()];
-        if (!description) {
-            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), terrainFeatureDescriptions);
-            description = bestMatch || 'No description available for ' + feature;
-        }
-    } else if (model === 'ACADIA') {
-        description = acadiaFeatureDescriptions[feature.toUpperCase()];
-        if (!description) {
-            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), acadiaFeatureDescriptions);
-            description = bestMatch || 'No description available for ' + feature;
-        }
-    } else if (model === 'YUKON') {
-        description = yukonFeatureDescriptions[feature.toUpperCase()];
-        if (!description) {
-            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), yukonFeatureDescriptions);
-            description = bestMatch || 'No description available for ' + feature;
-        }
-    } else if (model === 'CANYON') {
-        description = canyonFeatureDescriptions[feature.toUpperCase()];
-        if (!description) {
-            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), canyonFeatureDescriptions);
-            description = bestMatch || 'No description available for ' + feature;
-        }
-    } else if (model === 'SIERRA 1500') {
-        description = sierra1500FeatureDescriptions[feature.toUpperCase()];
-        if (!description) {
-            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), sierra1500FeatureDescriptions);
-            description = bestMatch || 'No description available for ' + feature;
-        }
-    } else if (model === 'SIERRA 2500') {
-        description = sierra2500FeatureDescriptions[feature.toUpperCase()];
-        if (!description) {
-            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), sierra2500FeatureDescriptions);
-            description = bestMatch || 'No description available for ' + feature;
-        }
-    } else if (model === 'SIERRA 3500') {
-        description = sierra3500FeatureDescriptions[feature.toUpperCase()];
-        if (!description) {
-            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), sierra3500FeatureDescriptions);
-            description = bestMatch || 'No description available for ' + feature;
-        }
-    } else if (model === 'CT4') {
-        description = ct4FeatureDescriptions[feature.toUpperCase()];
-        if (!description) {
-            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), ct4FeatureDescriptions);
-            description = bestMatch || 'No description available for ' + feature;
-        }
-    } else if (model === 'CT4 V-SERIES') {
+    // Try CT4 V-Series descriptions first (most likely for this form)
+    if (typeof ct4VSeriesFeatureDescriptions !== 'undefined' && ct4VSeriesFeatureDescriptions[feature.toUpperCase()]) {
         description = ct4VSeriesFeatureDescriptions[feature.toUpperCase()];
-        if (!description) {
-            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), ct4VSeriesFeatureDescriptions);
-            description = bestMatch || 'No description available for ' + feature;
-        }
-    } else {
-        // Default to Kia descriptions
+    }
+    // Try general feature descriptions
+    else if (typeof featureDescriptions !== 'undefined' && featureDescriptions[feature.toUpperCase()]) {
         description = featureDescriptions[feature.toUpperCase()];
-        if (!description) {
-            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), featureDescriptions);
-            description = bestMatch || 'No description available for ' + feature;
-        }
     }
-    
-    console.log('✅ Global handler showing description for:', feature, 'Model:', model);
-    console.log('📖 DESCRIPTION LOOKUP DEBUG:');
-    console.log('  - Looking up feature:', feature);
-    console.log('  - Feature uppercase:', feature.toUpperCase());
-    console.log('  - Detected model:', model);
-    console.log('  - Final description:', description);
-    
-    // Debug the available description objects
-    if (model === 'CT4 V-SERIES') {
-        console.log('  - CT4 V-Series descriptions available:', typeof ct4VSeriesFeatureDescriptions !== 'undefined');
+    // Try fuzzy matching as fallback
+    else if (typeof findBestDescriptionMatch === 'function') {
         if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
-            var descriptionKeys = Object.keys(ct4VSeriesFeatureDescriptions);
-            console.log('  - CT4 V-Series total descriptions loaded:', descriptionKeys.length);
-            console.log('  - CT4 V-Series description keys (first 10):', descriptionKeys.slice(0, 10));
-            console.log('  - Looking for key:', feature.toUpperCase());
-            console.log('  - Direct lookup result:', ct4VSeriesFeatureDescriptions[feature.toUpperCase()]);
-            
-            // Try to find similar keys
-            var similarKeys = descriptionKeys.filter(function(key) {
-                return key.includes(feature.toUpperCase()) || feature.toUpperCase().includes(key);
-            });
-            console.log('  - Similar keys found:', similarKeys);
-            
-            // If no exact match, try fuzzy matching
-            if (!ct4VSeriesFeatureDescriptions[feature.toUpperCase()]) {
-                console.log('  - No exact match, trying fuzzy matching...');
-                if (typeof findBestDescriptionMatch === 'function') {
-                    var fuzzyResult = findBestDescriptionMatch(feature.toUpperCase(), ct4VSeriesFeatureDescriptions);
-                    console.log('  - Fuzzy match result:', fuzzyResult);
-                }
-            }
-        } else {
-            console.log('  - ❌ CT4 V-Series descriptions not loaded yet!');
+            description = findBestDescriptionMatch(feature.toUpperCase(), ct4VSeriesFeatureDescriptions);
         }
-    } else if (model === 'CT4') {
-        console.log('  - CT4 descriptions available:', typeof ct4FeatureDescriptions !== 'undefined');
-        if (typeof ct4FeatureDescriptions !== 'undefined') {
-            console.log('  - CT4 description keys:', Object.keys(ct4FeatureDescriptions).slice(0, 10));
-        }
-    } else {
-        console.log('  - Kia descriptions available:', typeof featureDescriptions !== 'undefined');
-        if (typeof featureDescriptions !== 'undefined') {
-            console.log('  - Kia description keys:', Object.keys(featureDescriptions).slice(0, 10));
+        if (!description && typeof featureDescriptions !== 'undefined') {
+            description = findBestDescriptionMatch(feature.toUpperCase(), featureDescriptions);
         }
     }
     
-    debugFeatureIcons('BEFORE_SHOW_DESCRIPTION');
-    showFeatureDescription(feature, description);
+    // Fallback if no description found
+    if (!description) {
+        description = 'Feature information not available at this time.';
+    }
     
-    // Debug after showing description
-    setTimeout(function() {
-        debugFeatureIcons('AFTER_SHOW_DESCRIPTION');
-    }, 100);
+    console.log('📖 Showing description for:', feature);
+    showFeatureDescription(feature, description);
 });
 
-// Debug after setting up global handler
-debugFeatureIcons('AFTER_GLOBAL_SETUP');
+console.log('✅ Clean feature description handler set up successfully');
 
-// Add extreme debugging to track global event handler state
-var globalHandlerCallCount = 0;
-var lastClickedFeature = null;
+// Feature descriptions are now working with clean, simple handler
 
-// Add global variable watcher to detect when description objects are modified
-var originalCt4VSeriesDescriptions = null;
-var descriptionWatcherInterval = null;
-
-function startDescriptionWatcher() {
-    console.log('🔍 Starting description watcher...');
-    
-    // Store initial reference
-    if (typeof ct4VSeriesFeatureDescriptions !== 'undefined' && Object.keys(ct4VSeriesFeatureDescriptions).length > 0) {
-        originalCt4VSeriesDescriptions = ct4VSeriesFeatureDescriptions;
-        console.log('  - Stored initial CT4 V-Series reference with', Object.keys(originalCt4VSeriesDescriptions).length, 'descriptions');
-    }
-    
-    // Watch for changes every 500ms
-    descriptionWatcherInterval = setInterval(function() {
-        if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
-            var currentCount = Object.keys(ct4VSeriesFeatureDescriptions).length;
-            
-            // Check if reference changed
-            if (originalCt4VSeriesDescriptions && ct4VSeriesFeatureDescriptions !== originalCt4VSeriesDescriptions) {
-                console.log('⚠️ CT4 V-SERIES DESCRIPTION OBJECT REFERENCE CHANGED!');
-                console.log('  - Original reference had', Object.keys(originalCt4VSeriesDescriptions).length, 'descriptions');
-                console.log('  - New reference has', currentCount, 'descriptions');
-                console.log('  - Stack trace:', new Error().stack);
-                
-                // Update reference
-                originalCt4VSeriesDescriptions = ct4VSeriesFeatureDescriptions;
-            }
-            
-            // Check if count changed significantly
-            if (originalCt4VSeriesDescriptions && currentCount === 0 && Object.keys(originalCt4VSeriesDescriptions).length > 0) {
-                console.log('⚠️ CT4 V-SERIES DESCRIPTIONS CLEARED! Object now empty but originally had', Object.keys(originalCt4VSeriesDescriptions).length, 'descriptions');
-                console.log('  - Stack trace:', new Error().stack);
-            }
-        } else {
-            if (originalCt4VSeriesDescriptions) {
-                console.log('⚠️ CT4 V-SERIES DESCRIPTIONS BECAME UNDEFINED!');
-                console.log('  - Originally had', Object.keys(originalCt4VSeriesDescriptions).length, 'descriptions');
-                console.log('  - Stack trace:', new Error().stack);
-            }
-        }
-    }, 500);
-}
-
-// Start watching when descriptions are loaded
-setTimeout(function() {
-    startDescriptionWatcher();
-}, 2000);
-
-// Add immediate description object state logging
-function logDescriptionState(context) {
-    console.log(`📊 DESCRIPTION STATE (${context}):`);
-    
-    if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
-        var ct4Count = Object.keys(ct4VSeriesFeatureDescriptions).length;
-        console.log(`  - CT4 V-Series: ${ct4Count} descriptions`);
-        if (ct4Count > 0) {
-            console.log(`  - CT4 V-Series sample keys:`, Object.keys(ct4VSeriesFeatureDescriptions).slice(0, 3));
-            // Test a specific key that should exist
-            var testKey = '1 YEAR MOBILESERVICE PLUS';
-            var testResult = ct4VSeriesFeatureDescriptions[testKey];
-            console.log(`  - Test lookup "${testKey}":`, testResult ? 'FOUND' : 'NOT FOUND');
-        }
-    } else {
-        console.log(`  - CT4 V-Series: UNDEFINED`);
-    }
-    
-    if (typeof featureDescriptions !== 'undefined') {
-        console.log(`  - Kia descriptions: ${Object.keys(featureDescriptions).length} descriptions`);
-    } else {
-        console.log(`  - Kia descriptions: UNDEFINED`);
-    }
-    
-    if (typeof terrainFeatureDescriptions !== 'undefined') {
-        console.log(`  - Terrain descriptions: ${Object.keys(terrainFeatureDescriptions).length} descriptions`);
-    } else {
-        console.log(`  - Terrain descriptions: UNDEFINED`);
-    }
-}
-
-// Log initial state
-setTimeout(function() {
-    logDescriptionState('INITIAL_LOAD');
-}, 3000);
-
-// Add click event debugging to track ALL clicks on feature icons
-$(document).on('mousedown mouseup click', '.feature-info-icon', function(e) {
-    var feature = $(this).data('feature');
-    
-    console.log(`🎯 RAW CLICK EVENT #${globalHandlerCallCount} on feature icon: ${e.type}`);
+// Comments for Part 5/5
     console.log('  - Feature:', feature);
     console.log('  - Event target:', e.target);
     console.log('  - Event currentTarget:', e.currentTarget);
