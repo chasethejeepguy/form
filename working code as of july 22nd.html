@@ -10448,6 +10448,35 @@ function initFormBindings() {
                             checkForOverlays();
                             
                             // Debug description objects after closing popup
+                            console.log('📖 DESCRIPTIONS AFTER TRIM CLOSE BUTTON:');
+                            if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
+                                console.log('  - CT4 V-Series descriptions count:', Object.keys(ct4VSeriesFeatureDescriptions).length);
+                                console.log('  - Sample CT4 V-Series key:', Object.keys(ct4VSeriesFeatureDescriptions)[0]);
+                                console.log('  - CT4 V-Series object type:', typeof ct4VSeriesFeatureDescriptions);
+                                console.log('  - CT4 V-Series object reference:', ct4VSeriesFeatureDescriptions);
+                            } else {
+                                console.log('  - ❌ CT4 V-Series descriptions UNDEFINED after close!');
+                            }
+                            if (typeof featureDescriptions !== 'undefined') {
+                                console.log('  - Kia descriptions count:', Object.keys(featureDescriptions).length);
+                            } else {
+                                console.log('  - ❌ Kia descriptions UNDEFINED after close!');
+                            }
+                            
+                            // Test a specific description lookup
+                            var testFeature = '1 YEAR MOBILESERVICE PLUS';
+                            console.log('🧪 TESTING SPECIFIC DESCRIPTION LOOKUP:');
+                            console.log('  - Test feature:', testFeature);
+                            if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
+                                var testResult = ct4VSeriesFeatureDescriptions[testFeature.toUpperCase()];
+                                console.log('  - Direct lookup result:', testResult);
+                                console.log('  - Available keys containing "MOBILE":', Object.keys(ct4VSeriesFeatureDescriptions).filter(function(key) {
+                                    return key.includes('MOBILE');
+                                }));
+                                console.log('  - Available keys containing "YEAR":', Object.keys(ct4VSeriesFeatureDescriptions).filter(function(key) {
+                                    return key.includes('YEAR');
+                                }));
+                            }
                             console.log('📖 DESCRIPTIONS AFTER TRIM POPUP CLOSE:');
                             if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
                                 console.log('  - CT4 V-Series descriptions count:', Object.keys(ct4VSeriesFeatureDescriptions).length);
@@ -12583,12 +12612,70 @@ $(document).on('click', '.feature-info-icon', function(e) {
 // Debug after setting up global handler
 debugFeatureIcons('AFTER_GLOBAL_SETUP');
 
+// Add extreme debugging to track global event handler state
+var globalHandlerCallCount = 0;
+var lastClickedFeature = null;
+
+// Add global variable watcher to detect when description objects are modified
+var originalCt4VSeriesDescriptions = null;
+var descriptionWatcherInterval = null;
+
+function startDescriptionWatcher() {
+    console.log('🔍 Starting description watcher...');
+    
+    // Store initial reference
+    if (typeof ct4VSeriesFeatureDescriptions !== 'undefined' && Object.keys(ct4VSeriesFeatureDescriptions).length > 0) {
+        originalCt4VSeriesDescriptions = ct4VSeriesFeatureDescriptions;
+        console.log('  - Stored initial CT4 V-Series reference with', Object.keys(originalCt4VSeriesDescriptions).length, 'descriptions');
+    }
+    
+    // Watch for changes every 500ms
+    descriptionWatcherInterval = setInterval(function() {
+        if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
+            var currentCount = Object.keys(ct4VSeriesFeatureDescriptions).length;
+            
+            // Check if reference changed
+            if (originalCt4VSeriesDescriptions && ct4VSeriesFeatureDescriptions !== originalCt4VSeriesDescriptions) {
+                console.log('⚠️ CT4 V-SERIES DESCRIPTION OBJECT REFERENCE CHANGED!');
+                console.log('  - Original reference had', Object.keys(originalCt4VSeriesDescriptions).length, 'descriptions');
+                console.log('  - New reference has', currentCount, 'descriptions');
+                console.log('  - Stack trace:', new Error().stack);
+                
+                // Update reference
+                originalCt4VSeriesDescriptions = ct4VSeriesFeatureDescriptions;
+            }
+            
+            // Check if count changed significantly
+            if (originalCt4VSeriesDescriptions && currentCount === 0 && Object.keys(originalCt4VSeriesDescriptions).length > 0) {
+                console.log('⚠️ CT4 V-SERIES DESCRIPTIONS CLEARED! Object now empty but originally had', Object.keys(originalCt4VSeriesDescriptions).length, 'descriptions');
+                console.log('  - Stack trace:', new Error().stack);
+            }
+        } else {
+            if (originalCt4VSeriesDescriptions) {
+                console.log('⚠️ CT4 V-SERIES DESCRIPTIONS BECAME UNDEFINED!');
+                console.log('  - Originally had', Object.keys(originalCt4VSeriesDescriptions).length, 'descriptions');
+                console.log('  - Stack trace:', new Error().stack);
+            }
+        }
+    }, 500);
+}
+
+// Start watching when descriptions are loaded
+setTimeout(function() {
+    startDescriptionWatcher();
+}, 2000);
+
 // Add click event debugging to track ALL clicks on feature icons
 $(document).on('mousedown mouseup click', '.feature-info-icon', function(e) {
-    console.log(`🎯 RAW CLICK EVENT on feature icon: ${e.type}`);
-    console.log('  - Feature:', $(this).data('feature'));
+    var feature = $(this).data('feature');
+    
+    console.log(`🎯 RAW CLICK EVENT #${globalHandlerCallCount} on feature icon: ${e.type}`);
+    console.log('  - Feature:', feature);
     console.log('  - Event target:', e.target);
     console.log('  - Event currentTarget:', e.currentTarget);
+    console.log('  - Event delegateTarget:', e.delegateTarget);
+    console.log('  - Event namespace:', e.namespace);
+    console.log('  - Event timeStamp:', e.timeStamp);
     console.log('  - Element z-index:', $(this).css('z-index'));
     console.log('  - Element pointer-events:', $(this).css('pointer-events'));
     console.log('  - Element position:', $(this).css('position'));
@@ -12596,13 +12683,42 @@ $(document).on('mousedown mouseup click', '.feature-info-icon', function(e) {
     console.log('  - Element display:', $(this).css('display'));
     console.log('  - Element visibility:', $(this).css('visibility'));
     
+    // Check if this is the same element as last time
+    if (lastClickedFeature === feature && e.type === 'click') {
+        console.log('  - ⚠️ DUPLICATE CLICK on same feature:', feature);
+    }
+    
+    if (e.type === 'click') {
+        lastClickedFeature = feature;
+        globalHandlerCallCount++;
+    }
+    
     // Check if anything is covering this element
     var rect = this.getBoundingClientRect();
     var elementAtPoint = document.elementFromPoint(rect.left + rect.width/2, rect.top + rect.height/2);
     console.log('  - Element at center point:', elementAtPoint);
     console.log('  - Is same element?', elementAtPoint === this);
     
+    // Check if global handler is working
     if (e.type === 'click') {
+        console.log('  - 🔍 TESTING GLOBAL HANDLER STATE:');
+        var globalHandlers = $._data(document, 'events');
+        if (globalHandlers && globalHandlers.click) {
+            var featureIconHandlers = globalHandlers.click.filter(function(handler) {
+                return handler.selector && handler.selector.includes('.feature-info-icon');
+            });
+            console.log('    - Global .feature-info-icon click handlers:', featureIconHandlers.length);
+            featureIconHandlers.forEach(function(handler, index) {
+                console.log(`    - Handler ${index}:`, {
+                    selector: handler.selector,
+                    namespace: handler.namespace,
+                    guid: handler.guid
+                });
+            });
+        } else {
+            console.log('    - ⚠️ NO GLOBAL CLICK HANDLERS FOUND');
+        }
+        
         console.log('🎯 CLICK EVENT DETECTED - should trigger global handler');
     }
 });
