@@ -12275,6 +12275,114 @@ $(document).on('change', 'input[type="radio"]', function() {
 
 });
 
+// Global event delegation for feature info icons to prevent them from breaking after popup interactions
+$(document).on('click', '.feature-info-icon', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    var feature = $(this).data('feature');
+    if (!feature) {
+        console.log('No feature data found on clicked icon');
+        return;
+    }
+    
+    console.log('Global feature info icon clicked for feature:', feature);
+    
+    // Determine the model context
+    var model = 'K4'; // Default to K4
+    
+    // Check for GMC models by looking at the icon's classes or parent context
+    if ($(this).hasClass('terrain-info-icon') || $(this).closest('[id*="terrain"], [class*="terrain"]').length > 0) {
+        model = 'TERRAIN';
+    } else if ($(this).hasClass('acadia-info-icon') || $(this).closest('[id*="acadia"], [class*="acadia"]').length > 0) {
+        model = 'ACADIA';
+    } else if ($(this).hasClass('yukon-info-icon') || $(this).closest('[id*="yukon"], [class*="yukon"]').length > 0) {
+        model = 'YUKON';
+    } else if ($(this).hasClass('canyon-info-icon') || $(this).closest('[id*="canyon"], [class*="canyon"]').length > 0) {
+        model = 'CANYON';
+    } else if ($(this).hasClass('sierra1500-info-icon') || $(this).closest('[id*="sierra1500"], [class*="sierra1500"]').length > 0) {
+        model = 'SIERRA 1500';
+    } else if ($(this).hasClass('sierra2500-info-icon') || $(this).closest('[id*="sierra2500"], [class*="sierra2500"]').length > 0) {
+        model = 'SIERRA 2500';
+    } else if ($(this).hasClass('sierra3500-info-icon') || $(this).closest('[id*="sierra3500"], [class*="sierra3500"]').length > 0) {
+        model = 'SIERRA 3500';
+    } else if ($(this).hasClass('ct4-info-icon') || $(this).closest('[id*="ct4"], [class*="ct4"]').length > 0) {
+        model = 'CT4';
+    } else if ($(this).hasClass('ct4vseries-info-icon') || $(this).closest('[id*="ct4vseries"], [class*="ct4vseries"]').length > 0) {
+        model = 'CT4 V-SERIES';
+    }
+    
+    console.log('Detected model context:', model);
+    
+    // Get the appropriate description based on the model
+    var description;
+    if (model === 'TERRAIN') {
+        description = terrainFeatureDescriptions[feature.toUpperCase()];
+        if (!description) {
+            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), terrainFeatureDescriptions);
+            description = bestMatch || 'No description available for ' + feature;
+        }
+    } else if (model === 'ACADIA') {
+        description = acadiaFeatureDescriptions[feature.toUpperCase()];
+        if (!description) {
+            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), acadiaFeatureDescriptions);
+            description = bestMatch || 'No description available for ' + feature;
+        }
+    } else if (model === 'YUKON') {
+        description = yukonFeatureDescriptions[feature.toUpperCase()];
+        if (!description) {
+            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), yukonFeatureDescriptions);
+            description = bestMatch || 'No description available for ' + feature;
+        }
+    } else if (model === 'CANYON') {
+        description = canyonFeatureDescriptions[feature.toUpperCase()];
+        if (!description) {
+            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), canyonFeatureDescriptions);
+            description = bestMatch || 'No description available for ' + feature;
+        }
+    } else if (model === 'SIERRA 1500') {
+        description = sierra1500FeatureDescriptions[feature.toUpperCase()];
+        if (!description) {
+            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), sierra1500FeatureDescriptions);
+            description = bestMatch || 'No description available for ' + feature;
+        }
+    } else if (model === 'SIERRA 2500') {
+        description = sierra2500FeatureDescriptions[feature.toUpperCase()];
+        if (!description) {
+            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), sierra2500FeatureDescriptions);
+            description = bestMatch || 'No description available for ' + feature;
+        }
+    } else if (model === 'SIERRA 3500') {
+        description = sierra3500FeatureDescriptions[feature.toUpperCase()];
+        if (!description) {
+            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), sierra3500FeatureDescriptions);
+            description = bestMatch || 'No description available for ' + feature;
+        }
+    } else if (model === 'CT4') {
+        description = ct4FeatureDescriptions[feature.toUpperCase()];
+        if (!description) {
+            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), ct4FeatureDescriptions);
+            description = bestMatch || 'No description available for ' + feature;
+        }
+    } else if (model === 'CT4 V-SERIES') {
+        description = ct4VSeriesFeatureDescriptions[feature.toUpperCase()];
+        if (!description) {
+            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), ct4VSeriesFeatureDescriptions);
+            description = bestMatch || 'No description available for ' + feature;
+        }
+    } else {
+        // Default to Kia descriptions
+        description = featureDescriptions[feature.toUpperCase()];
+        if (!description) {
+            var bestMatch = findBestDescriptionMatch(feature.toUpperCase(), featureDescriptions);
+            description = bestMatch || 'No description available for ' + feature;
+        }
+    }
+    
+    console.log('Global handler showing description for:', feature, 'Model:', model);
+    showFeatureDescription(feature, description);
+});
+
 // Comments for Part 5/5
 /*
  * This is the updated Part 5/5, concluding from updated Part 4/5, with Terrain support integrated in prior parts.
