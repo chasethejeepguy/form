@@ -12275,10 +12275,14 @@ $(document).on('change', 'input[type="radio"]', function() {
 
 });
 
+// Remove all existing feature info icon event handlers to prevent conflicts
+$(document).off('click', '.feature-info-icon');
+
 // Global event delegation for feature info icons to prevent them from breaking after popup interactions
 $(document).on('click', '.feature-info-icon', function(e) {
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation(); // Stop any other handlers from running
     
     var feature = $(this).data('feature');
     if (!feature) {
@@ -12382,6 +12386,19 @@ $(document).on('click', '.feature-info-icon', function(e) {
     console.log('Global handler showing description for:', feature, 'Model:', model);
     showFeatureDescription(feature, description);
 });
+
+// Override any future attempts to bind specific feature info icon handlers
+var originalOn = $.fn.on;
+$.fn.on = function(events, selector, data, handler) {
+    // If someone tries to bind a click handler to .feature-info-icon, ignore it
+    if (typeof events === 'string' && events.includes('click') && 
+        typeof selector === 'string' && selector.includes('.feature-info-icon')) {
+        console.log('Blocked attempt to bind feature info icon handler:', events, selector);
+        return this; // Return this to maintain chainability but don't actually bind
+    }
+    // For all other cases, use the original on method
+    return originalOn.apply(this, arguments);
+};
 
 // Comments for Part 5/5
 /*
