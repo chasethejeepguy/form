@@ -10491,10 +10491,16 @@ function initFormBindings() {
                                 console.log('  - Kia descriptions count:', Object.keys(featureDescriptions).length);
                             }
                             
+                            // Log state before validation
+                            logDescriptionState('BEFORE_TRIM_CLOSE_VALIDATION');
+                            
                             // Validate and restore descriptions if needed
                             if (!validateDescriptions()) {
                                 console.log('🔄 Restoring descriptions after trim popup close button...');
                                 restoreDescriptions();
+                                logDescriptionState('AFTER_TRIM_CLOSE_RESTORE');
+                            } else {
+                                console.log('✅ Descriptions validated successfully after trim close');
                             }
                             
                             // Test a specific visible feature icon
@@ -12483,10 +12489,14 @@ $(document).on('click', '.feature-info-icon', function(e) {
     
     console.log('Detected model context:', model);
     
+    // Log description state before lookup
+    logDescriptionState('BEFORE_LOOKUP');
+    
     // Validate descriptions before lookup - restore if needed
     if (!validateDescriptions()) {
         console.log('⚠️ Descriptions corrupted, attempting restore...');
         restoreDescriptions();
+        logDescriptionState('AFTER_RESTORE');
     }
     
     // Get the appropriate description based on the model
@@ -12664,6 +12674,42 @@ function startDescriptionWatcher() {
 setTimeout(function() {
     startDescriptionWatcher();
 }, 2000);
+
+// Add immediate description object state logging
+function logDescriptionState(context) {
+    console.log(`📊 DESCRIPTION STATE (${context}):`);
+    
+    if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
+        var ct4Count = Object.keys(ct4VSeriesFeatureDescriptions).length;
+        console.log(`  - CT4 V-Series: ${ct4Count} descriptions`);
+        if (ct4Count > 0) {
+            console.log(`  - CT4 V-Series sample keys:`, Object.keys(ct4VSeriesFeatureDescriptions).slice(0, 3));
+            // Test a specific key that should exist
+            var testKey = '1 YEAR MOBILESERVICE PLUS';
+            var testResult = ct4VSeriesFeatureDescriptions[testKey];
+            console.log(`  - Test lookup "${testKey}":`, testResult ? 'FOUND' : 'NOT FOUND');
+        }
+    } else {
+        console.log(`  - CT4 V-Series: UNDEFINED`);
+    }
+    
+    if (typeof featureDescriptions !== 'undefined') {
+        console.log(`  - Kia descriptions: ${Object.keys(featureDescriptions).length} descriptions`);
+    } else {
+        console.log(`  - Kia descriptions: UNDEFINED`);
+    }
+    
+    if (typeof terrainFeatureDescriptions !== 'undefined') {
+        console.log(`  - Terrain descriptions: ${Object.keys(terrainFeatureDescriptions).length} descriptions`);
+    } else {
+        console.log(`  - Terrain descriptions: UNDEFINED`);
+    }
+}
+
+// Log initial state
+setTimeout(function() {
+    logDescriptionState('INITIAL_LOAD');
+}, 3000);
 
 // Add click event debugging to track ALL clicks on feature icons
 $(document).on('mousedown mouseup click', '.feature-info-icon', function(e) {
