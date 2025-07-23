@@ -821,6 +821,10 @@ jQuery(document).ready(function($) {
     // Cadillac CT4 V-Series Model Field IDs
     var ct4VSeriesCheckboxFieldId = 149;
     var ct4VSeriesHtmlBlockFieldId = 149;
+    
+    // Cadillac CT5 Model Field IDs
+    var ct5CheckboxFieldId = 150;
+    var ct5HtmlBlockFieldId = 150;
 
     // Global variables
     var vehicleData = null;
@@ -839,6 +843,7 @@ jQuery(document).ready(function($) {
     var sierra1500Populated = false;
     var sierra2500Populated = false;
     var ct4VSeriesPopulated = false;
+    var ct5Populated = false;
     
     // Function to find best description match with fuzzy matching for typos
     function findBestDescriptionMatch(searchFeature, descriptionMap) {
@@ -936,8 +941,8 @@ jQuery(document).ready(function($) {
         
         var bestMatch = null;
         var highestSimilarity = 0;
-        // Use lower threshold for Canyon, Sierra 1500, Sierra 2500, and CT4 V-Series descriptions (0.4 vs 0.7)
-        var threshold = (descriptionMap === canyonFeatureDescriptions || descriptionMap === sierra1500FeatureDescriptions || descriptionMap === sierra2500FeatureDescriptions || descriptionMap === sierra3500FeatureDescriptions || descriptionMap === ct4FeatureDescriptions || descriptionMap === ct4VSeriesFeatureDescriptions) ? 0.4 : 0.7;
+        // Use lower threshold for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, and CT5 descriptions (0.4 vs 0.7)
+        var threshold = (descriptionMap === canyonFeatureDescriptions || descriptionMap === sierra1500FeatureDescriptions || descriptionMap === sierra2500FeatureDescriptions || descriptionMap === sierra3500FeatureDescriptions || descriptionMap === ct4FeatureDescriptions || descriptionMap === ct4VSeriesFeatureDescriptions || descriptionMap === ct5FeatureDescriptions) ? 0.4 : 0.7;
         
         for (var key in descriptionMap) {
             var similarity = calculateSimilarity(correctedFeature, key);
@@ -950,9 +955,9 @@ jQuery(document).ready(function($) {
             }
         }
         
-        // If no match found for Canyon, Sierra 1500, Sierra 2500, or CT4 V-Series and threshold was lowered, try partial word matching
-        if (!bestMatch && (descriptionMap === canyonFeatureDescriptions || descriptionMap === sierra1500FeatureDescriptions || descriptionMap === sierra2500FeatureDescriptions || descriptionMap === sierra3500FeatureDescriptions || descriptionMap === ct4FeatureDescriptions || descriptionMap === ct4VSeriesFeatureDescriptions)) {
-            var modelName = descriptionMap === canyonFeatureDescriptions ? 'Canyon' : (descriptionMap === sierra1500FeatureDescriptions ? 'Sierra 1500' : (descriptionMap === sierra2500FeatureDescriptions ? 'Sierra 2500' : (descriptionMap === sierra3500FeatureDescriptions ? 'Sierra 3500' : (descriptionMap === ct4FeatureDescriptions ? 'CT4' : 'CT4 V-Series'))));
+        // If no match found for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, or CT5 and threshold was lowered, try partial word matching
+        if (!bestMatch && (descriptionMap === canyonFeatureDescriptions || descriptionMap === sierra1500FeatureDescriptions || descriptionMap === sierra2500FeatureDescriptions || descriptionMap === sierra3500FeatureDescriptions || descriptionMap === ct4FeatureDescriptions || descriptionMap === ct4VSeriesFeatureDescriptions || descriptionMap === ct5FeatureDescriptions)) {
+            var modelName = descriptionMap === canyonFeatureDescriptions ? 'Canyon' : (descriptionMap === sierra1500FeatureDescriptions ? 'Sierra 1500' : (descriptionMap === sierra2500FeatureDescriptions ? 'Sierra 2500' : (descriptionMap === sierra3500FeatureDescriptions ? 'Sierra 3500' : (descriptionMap === ct4FeatureDescriptions ? 'CT4' : (descriptionMap === ct4VSeriesFeatureDescriptions ? 'CT4 V-Series' : 'CT5')))));
             console.log('🔍 Trying partial word matching for ' + modelName + ' feature:', correctedFeature);
             var featureWords = correctedFeature.split(' ').filter(function(w) { return w.length > 3; });
             
@@ -1054,7 +1059,8 @@ jQuery(document).ready(function($) {
         'SIERRA 3500': { fieldId: sierra3500CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/gmcmodels/sierra3500.csv', modelFilter: 'Sierra 3500HD', isGmc: true },
         'SIERRA 3500HD': { fieldId: sierra3500CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/gmcmodels/sierra3500.csv', modelFilter: 'Sierra 3500HD', isGmc: true },
         'CT4': { fieldId: ct4CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/ct4.csv', modelFilter: 'CT4', isCadillac: true },
-        'CT4 V-SERIES': { fieldId: ct4VSeriesCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/ct4v.csv', modelFilter: 'CT4', isCadillac: true }
+        'CT4 V-SERIES': { fieldId: ct4VSeriesCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/ct4v.csv', modelFilter: 'CT4', isCadillac: true },
+        'CT5': { fieldId: ct5CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/ct5.csv', modelFilter: 'CT5', isCadillac: true }
     };
 
     // Email mappings
@@ -1385,6 +1391,9 @@ jQuery(document).ready(function($) {
     
     // Global variable for Cadillac CT4 V-Series feature descriptions
     var ct4VSeriesFeatureDescriptions = {};
+    
+    // Global variable for Cadillac CT5 feature descriptions
+    var ct5FeatureDescriptions = {};
     
     // Load Canyon feature descriptions
     function loadCanyonFeatureDescriptions() {
@@ -1778,6 +1787,76 @@ jQuery(document).ready(function($) {
         }).catch(function(error) {
             console.error('Fetch error for Cadillac CT4 V-Series Feature Descriptions:', error.message);
             ct4VSeriesFeatureDescriptions = {};
+        });
+    }
+    
+    // Load Cadillac CT5 feature descriptions
+    function loadCT5FeatureDescriptions() {
+        var ct5DescriptionsUrl = 'https://hutchinsonautoteam.com/cadillacmodels/cadillacct5descriptions.csv';
+        console.log('Loading Cadillac CT5 feature descriptions from:', ct5DescriptionsUrl);
+        
+        fetch(ct5DescriptionsUrl)
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text();
+        })
+        .then(function(csvText) {
+            console.log('Raw CT5 descriptions CSV:', csvText);
+            console.log('Raw CT5 descriptions CSV length:', csvText.length);
+            console.log('Raw CT5 descriptions CSV preview (first 500 chars):', csvText.substring(0, 500));
+            
+            ct5FeatureDescriptions = {};
+            
+            // Parse CSV text line by line
+            var lines = csvText.split('\n');
+            console.log('CT5 descriptions total lines:', lines.length);
+            
+            lines.forEach(function(line, index) {
+                if (line.trim() && line.includes('{') && line.includes('}') && line.includes(':')) {
+                    console.log('Processing CT5 description line', index, ':', line.substring(0, 100) + '...');
+                    
+                    // Find the closing brace
+                    var closingBraceIndex = line.indexOf('}');
+                    if (closingBraceIndex !== -1) {
+                        var content = line.substring(1, closingBraceIndex);
+                        var colonIndex = content.indexOf(':');
+                        
+                        if (colonIndex !== -1) {
+                            var feature = content.substring(0, colonIndex).trim();
+                            var description = content.substring(colonIndex + 1).trim();
+                            
+                            if (feature && description) {
+                                ct5FeatureDescriptions[feature.toUpperCase()] = description;
+                                console.log('Added CT5 description:', feature.toUpperCase(), '=', description.substring(0, 100) + '...');
+                            }
+                        }
+                    }
+                }
+            });
+            
+            console.log('Parsed CT5 feature descriptions:', ct5FeatureDescriptions);
+            console.log('Total CT5 descriptions loaded:', Object.keys(ct5FeatureDescriptions).length);
+            
+            if (Object.keys(ct5FeatureDescriptions).length === 0) {
+                console.warn('WARNING: No CT5 feature descriptions loaded!');
+                console.warn('Sample lines from CT5 descriptions CSV:');
+                lines.slice(0, 5).forEach(function(line, index) {
+                    console.warn('Line', index, ':', line);
+                });
+            } else {
+                console.log('SUCCESS: Cadillac CT5 descriptions loaded successfully!');
+                console.log('First few CT5 descriptions:', Object.keys(ct5FeatureDescriptions).slice(0, 5));
+                
+                // Create backup after successful loading
+                setTimeout(function() {
+                    backupDescriptions();
+                }, 100);
+            }
+        }).catch(function(error) {
+            console.error('Fetch error for Cadillac CT5 Feature Descriptions:', error.message);
+            ct5FeatureDescriptions = {};
         });
     }
 
@@ -2327,6 +2406,10 @@ jQuery(document).ready(function($) {
             case 'ct4v':
                 featureDescriptions = ct4VSeriesFeatureDescriptions;
                 modelName = 'CT4 V-Series';
+                break;
+            case 'ct5':
+                featureDescriptions = ct5FeatureDescriptions;
+                modelName = 'CT5';
                 break;
             default:
                 console.warn('Unknown model prefix for trim walk popup:', modelPrefix);
@@ -4512,6 +4595,241 @@ function populateCT4VSeriesFeatures() {
         });
     }).catch(function(error) {
         console.error('Fetch error for CT4 V-Series population: ' + error.message);
+    });
+}
+
+// Cadillac CT5 population function
+function populateCT5Features() {
+    console.log('=== populateCT5Features called ===');
+    console.log('Current ct5Populated flag:', ct5Populated);
+    console.log('Form ID:', formId);
+    console.log('ct5HtmlBlockFieldId:', ct5HtmlBlockFieldId);
+    
+    if (ct5Populated) {
+        console.log('CT5 features already populated, skipping');
+        return;
+    }
+
+    var config = modelConfigs['CT5'];
+    if (!config) {
+        console.warn('CT5 configuration not found');
+        console.log('Available modelConfigs:', Object.keys(modelConfigs));
+        return;
+    }
+    console.log('CT5 config found:', config);
+
+    // Try multiple selectors to find the HTML block field
+    console.log('Searching for HTML block field with multiple selectors...');
+    var htmlBlock = $('#field_' + formId + '_' + ct5HtmlBlockFieldId);
+    console.log('Selector 1 (#field_' + formId + '_' + ct5HtmlBlockFieldId + '):', htmlBlock.length);
+    
+    if (!htmlBlock.length) {
+        htmlBlock = $('#field_' + formId + '_150');
+        console.log('Selector 2 (#field_' + formId + '_150):', htmlBlock.length);
+    }
+    if (!htmlBlock.length) {
+        htmlBlock = $('#input_' + formId + '_150');
+        console.log('Selector 3 (#input_' + formId + '_150):', htmlBlock.length);
+    }
+    if (!htmlBlock.length) {
+        htmlBlock = $('[id*="150"]').filter(function() {
+            return $(this).attr('id').includes('field') || $(this).attr('id').includes('input');
+        });
+        console.log('Selector 4 (wildcard [id*="150"]):', htmlBlock.length);
+    }
+    
+    console.log('HTML Block field (ID: 150) debug:', {
+        selector: '#field_' + formId + '_' + ct5HtmlBlockFieldId,
+        exists: htmlBlock.length > 0,
+        visible: htmlBlock.length ? htmlBlock.is(':visible') : false,
+        content: htmlBlock.length ? htmlBlock.html().substring(0, 200) : 'N/A',
+        actualId: htmlBlock.length ? htmlBlock.attr('id') : 'N/A'
+    });
+    
+    if (!htmlBlock.length) {
+        console.warn('CT5 HTML block field (ID: 150) not found');
+        return;
+    }
+
+    console.log('Fetching CT5 CSV from:', config.csvUrl);
+    fetchCsvWithRetry(config.csvUrl, 'CT5', 3, 1000).then(function(csvText) {
+        console.log('CT5 CSV fetched successfully, length:', csvText.length);
+        console.log('CSV preview (first 500 chars):', csvText.substring(0, 500));
+        
+        Papa.parse(csvText, {
+            skipEmptyLines: true,
+            complete: function(results) {
+                console.log('CT5 CSV parsed for population, rows: ' + results.data.length);
+                console.log('First few rows:', results.data.slice(0, 3));
+                
+                var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
+                var featureGroups = {};
+                var currentCategory = null;
+                var features = [];
+
+                results.data.forEach(function(row, rowIndex) {
+                    if (row.length > 0) {
+                        var firstCell = row[0] ? row[0].trim() : '';
+                        if (firstCell.startsWith('TRIM LEVELS FOR {')) {
+                            if (currentCategory && features.length > 0) {
+                                featureGroups[currentCategory] = features;
+                                console.log('Stored category: ' + currentCategory + ' with ' + features.length + ' features');
+                            }
+                            currentCategory = firstCell.match(/\{(.+)\}/)[1];
+                            // Clean up features by removing extra quotes and trimming
+                            features = row.slice(1).filter(function(f) { return f && f.trim() !== ''; }).map(function(f) {
+                                // Remove surrounding quotes if present
+                                var cleaned = f.trim();
+                                if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+                                    cleaned = cleaned.slice(1, -1);
+                                }
+                                // Handle double quotes inside the string (CSV escape format)
+                                cleaned = cleaned.replace(/""/g, '"');
+                                return cleaned;
+                            });
+                            console.log('Row ' + rowIndex + ': Parsed category: ' + currentCategory + ', features: ' + features.length);
+                            console.log('Features for ' + currentCategory + ':', features.slice(0, 5)); // Show first 5 features
+                            console.log('Raw features before cleaning:', row.slice(1, 6)); // Show raw features
+                        }
+                    }
+                });
+                if (currentCategory && features.length > 0) {
+                    featureGroups[currentCategory] = features;
+                    console.log('Final stored category: ' + currentCategory + ' with ' + features.length + ' features');
+                }
+
+                console.log('Feature groups summary:', Object.keys(featureGroups).map(function(cat) {
+                    return cat + ': ' + featureGroups[cat].length + ' features';
+                }));
+
+                if (Object.keys(featureGroups).length !== 5) {
+                    console.error('Expected 5 categories, found: ' + Object.keys(featureGroups).length);
+                    console.error('Found categories:', Object.keys(featureGroups));
+                    return;
+                }
+
+                // Populate trim level mapping from CSV data before building checkboxes
+                console.log('Populating trim level mapping for CT5 features...');
+                var trimLevels = discoverTrimLevelsFromCSV(results.data, categories);
+                var featureToColumnMap = {};
+                var featureToCategoryMap = {};
+                var trimLevelRowsByCategory = {};
+                
+                // Parse CSV data to create feature-to-column mapping and find trim level data (Cadillac structure like Sierra)
+                var currentCategory = null;
+                results.data.forEach(function(row, rowIndex) {
+                    if (row && row.length > 0) {
+                        var firstCell = row[0];
+                        
+                        // Check if this is a category header
+                        if (firstCell && firstCell.includes('TRIM LEVELS FOR {')) {
+                            currentCategory = categories.find(function(cat) {
+                                return firstCell.includes(cat);
+                            });
+                            
+                            if (currentCategory) {
+                                trimLevelRowsByCategory[currentCategory] = {};
+                                
+                                // Map features to column indices
+                                var features = row.slice(1).filter(function(f) { return f && f.trim() !== ''; }).map(function(f) {
+                                    var cleaned = f.trim();
+                                    if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+                                        cleaned = cleaned.slice(1, -1);
+                                    }
+                                    cleaned = cleaned.replace(/""/g, '"');
+                                    return cleaned;
+                                });
+                                
+                                features.forEach(function(feature, index) {
+                                    featureToColumnMap[feature] = index + 1;
+                                    featureToCategoryMap[feature] = currentCategory;
+                                });
+                            }
+                        } else if (currentCategory && trimLevels.includes(firstCell)) {
+                            // This is a trim level row
+                            trimLevelRowsByCategory[currentCategory][firstCell] = row;
+                        }
+                    }
+                });
+
+                // Populate feature-to-trim-levels mapping for display
+                populateFeatureTrimLevelsMapCadillac('CT5', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+
+                // Create global mappings for trim walk functionality
+                window.ct5TrimLevelMap = featureToTrimLevelsMap['CT5'];
+                window.ct5FeatureToCategoryMap = featureToCategoryMap;
+
+                console.log('Building HTML for CT5 features...');
+                var globalIndex = 0;
+                var html = '';
+                
+                // Add trim level walk buttons
+                var trimLevelButtons = buildTrimLevelWalkButtons(trimLevels, 'ct5');
+                html += trimLevelButtons;
+
+                categories.forEach(function(category) {
+                    var catFeatures = featureGroups[category];
+                    if (catFeatures && catFeatures.length > 0) {
+                        console.log('Building category: ' + category + ' with ' + catFeatures.length + ' features');
+                        
+                        // Create mapping for CT5 features
+                        var featureMapping = {};
+                        catFeatures.forEach(function(feature, index) {
+                            featureMapping['ct5_' + globalIndex] = feature;
+                            globalIndex++;
+                        });
+                        
+                        // Store the mapping globally for CT5
+                        window.ct5FeatureMap = window.ct5FeatureMap || {};
+                        Object.assign(window.ct5FeatureMap, featureMapping);
+                        
+                        var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'ct5', globalIndex);
+                        html += categoryHtml;
+                        globalIndex += catFeatures.length;
+                    }
+                });
+                
+                console.log('Total CT5 features processed:', globalIndex);
+                console.log('CT5 feature mapping created:', Object.keys(window.ct5FeatureMap || {}).length, 'entries');
+
+                // Check if HTML block already has populated content to avoid duplicates
+                if (htmlBlock.find('.gchoice_ct5_0').length > 0) {
+                    console.log('CT5 features already populated in HTML block, skipping HTML update');
+                } else {
+                    console.log('Updating HTML block with CT5 features');
+                    htmlBlock.html(html);
+                }
+
+                ct5Populated = true;
+                console.log('CT5 features populated into 5 columns in field 150');
+
+                // Bind change events and add info icons
+                htmlBlock.find('input[type="checkbox"]').off('change.CT5Features').on('change.CT5Features', function() {
+                    console.log('CT5 checkbox changed, updating trim levels');
+                    updateTrimLevels('CT5');
+                });
+
+                // Info icons are already included in the initial HTML generation above
+                // No need to prepend additional icons to avoid duplicates
+
+                // BULLETPROOF: Use global bulletproof handler instead of model-specific logic
+                htmlBlock.find('.feature-info-icon').off('click.featureInfo').on('click.featureInfo', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var feature = $(this).data('feature');
+                    if (!feature) return;
+                    
+                    console.log('🚀 BULLETPROOF (CT5): Feature icon clicked:', feature);
+                    var description = getBulletproofDescription(feature);
+                    showFeatureDescription(feature, description);
+                });
+            },
+            error: function(error) {
+                console.error('Papa Parse error for CT5 population: ' + error);
+            }
+        });
+    }).catch(function(error) {
+        console.error('Fetch error for CT5 population: ' + error.message);
     });
 }
 
@@ -7174,6 +7492,146 @@ function processCT4VSeriesTrimLevels(csvData, selectedFeatures, htmlBlock, trimL
 	window.ct4VSeriesFeatureToCategoryMap = featureToCategoryMap;
 }
 
+function processCT5TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model) {
+	console.log('Processing CT5 trim levels for selected features:', selectedFeatures);
+	
+	var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
+	var trimLevels = discoverTrimLevelsFromCSV(csvData, categories);
+	
+	// Custom ordering for CT5 trim levels: PREMIUM LUXURY, SPORT
+	console.log('CT5 processing - trim levels discovered:', trimLevels);
+	var ct5TrimOrder = ['PREMIUM LUXURY', 'SPORT'];
+	var orderedTrimLevels = [];
+	
+	// Add trim levels in the specified order
+	ct5TrimOrder.forEach(function(orderedTrim) {
+		if (trimLevels.indexOf(orderedTrim) !== -1) {
+			orderedTrimLevels.push(orderedTrim);
+		}
+	});
+	
+	// Add any remaining trim levels that weren't in our custom order
+	trimLevels.forEach(function(trim) {
+		if (orderedTrimLevels.indexOf(trim) === -1) {
+			orderedTrimLevels.push(trim);
+		}
+	});
+	
+	trimLevels = orderedTrimLevels;
+	console.log('CT5 processing - trim levels reordered:', trimLevels);
+	var matchingTrimLevels = [];
+	var featureToColumnMap = {};
+	var featureToCategoryMap = {};
+	var trimLevelRowsByCategory = {};
+	var currentCategory = null;
+	
+	// Parse the CSV data to map features to columns and find trim level rows
+	csvData.forEach(function(row, rowIndex) {
+		if (row && row.length > 0) {
+			var firstCell = row[0];
+			
+			// Check if this is a category header
+			if (firstCell && firstCell.includes('TRIM LEVELS FOR {')) {
+				currentCategory = categories.find(function(cat) {
+					return firstCell.includes(cat);
+				});
+				
+				if (currentCategory) {
+					trimLevelRowsByCategory[currentCategory] = {};
+					
+					// Map features to column indices
+					var features = row.slice(1).filter(function(f) { return f && f.trim() !== ''; }).map(function(f) {
+						var cleaned = f.trim();
+						if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+							cleaned = cleaned.slice(1, -1);
+						}
+						cleaned = cleaned.replace(/""/g, '"');
+						return cleaned;
+					});
+					
+					features.forEach(function(feature, index) {
+						featureToColumnMap[feature] = index + 1;
+						featureToCategoryMap[feature] = currentCategory;
+					});
+				}
+			} else if (currentCategory && trimLevels.includes(firstCell)) {
+				// This is a trim level row
+				trimLevelRowsByCategory[currentCategory][firstCell] = row;
+			}
+		}
+	});
+	
+	// For each trim level, check if it has all the selected features
+	trimLevels.forEach(function(trimLevel) {
+		var hasAllFeatures = true;
+		
+		selectedFeatures.forEach(function(selectedFeature) {
+			var foundInTrimLevel = false;
+			
+			// Check each category for this feature in this trim level
+			categories.forEach(function(category) {
+				if (trimLevelRowsByCategory[category] && trimLevelRowsByCategory[category][trimLevel]) {
+					var trimRow = trimLevelRowsByCategory[category][trimLevel];
+					var featureColumn = featureToColumnMap[selectedFeature];
+					
+					if (featureColumn && trimRow[featureColumn] && trimRow[featureColumn].toUpperCase() === 'YES') {
+						foundInTrimLevel = true;
+					}
+				}
+			});
+			
+			if (!foundInTrimLevel) {
+				hasAllFeatures = false;
+			}
+		});
+		
+		if (hasAllFeatures) {
+			matchingTrimLevels.push(trimLevel);
+		}
+	});
+	
+	console.log('Matching CT5 trim levels:', matchingTrimLevels);
+	trimLevelsData['CT5'] = matchingTrimLevels;
+	
+	// Update trim levels button
+	if (trimLevelsButtonBlock && trimLevelsButtonBlock.length) {
+		var buttonText = matchingTrimLevels.length > 0 ? 
+			'View Available Trim Levels (' + matchingTrimLevels.length + ')' :
+			'No Matching Trim Levels';
+		
+		trimLevelsButtonBlock.html('<button type="button" id="viewTrimLevelsButton" class="button">' + buttonText + '</button>');
+		
+		$('#viewTrimLevelsButton').off('click.trimLevels').on('click.trimLevels', function(e) {
+			e.preventDefault();
+			if (matchingTrimLevels.length > 0) {
+				var config = modelConfigs[model];
+				var correctModelFilter = config ? config.modelFilter : 'CT5';
+				showTrimLevelsPopup(model, matchingTrimLevels, correctModelFilter);
+			} else {
+				alert('No matching trim levels found for the selected features.');
+			}
+		});
+	}
+	
+	// Update field 69 with trim levels
+	if (htmlBlock && htmlBlock.length) {
+		var trimLevelsText = matchingTrimLevels.length > 0 ? matchingTrimLevels.join(', ') : 'No matching trim levels found';
+		var message = 'Wonderful, it sounds like the ' + trimLevelsText + ' would be the best fit, which has all of these features and it is available! One moment while I plug this car in.';
+		
+		htmlBlock.find('p').text(message);
+		console.log('✅ HTML block (ID: 69) updated for CT5 with:', message);
+	} else {
+		console.warn('❌ HTML block (ID: 69) not found for CT5');
+	}
+	
+	// Populate feature-to-trim-levels mapping for display
+	populateFeatureTrimLevelsMapCadillac('CT5', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+	
+	// Create global mappings for trim walk functionality
+	window.ct5TrimLevelMap = featureToTrimLevelsMap['CT5'];
+	window.ct5FeatureToCategoryMap = featureToCategoryMap;
+}
+
 	function updateTrimLevels(model) {
     var config = modelConfigs[model];
     if (!config) {
@@ -7382,6 +7840,29 @@ function processCT4VSeriesTrimLevels(csvData, selectedFeatures, htmlBlock, trimL
             ct4VSeriesHtmlBlockFieldId: ct4VSeriesHtmlBlockFieldId,
             selector1: '#field_' + formId + '_' + ct4VSeriesHtmlBlockFieldId,
             selector2: '#field_' + formId + '_149',
+            found: checkboxField.length,
+            actualId: checkboxField.attr('id'),
+            hasCheckboxes: checkboxField.find('input[type="checkbox"]').length
+        });
+        
+        htmlBlock = $('#field_' + formId + '_' + htmlBlockFieldId);
+        trimLevelsButtonBlock = $('#field_' + formId + '_' + trimLevelsButtonFieldId);
+    } else if (model === 'CT5') {
+        // For CT5, checkboxes are in field 150 (HTML block)
+        checkboxField = $('#field_' + formId + '_' + ct5HtmlBlockFieldId);
+        if (!checkboxField.length) {
+            checkboxField = $('#field_' + formId + '_150');
+        }
+        if (!checkboxField.length) {
+            checkboxField = $('[id*="150"]').filter(function() {
+                return $(this).attr('id').includes('field') || $(this).attr('id').includes('input');
+            });
+        }
+        
+        console.log('CT5 checkboxField debug:', {
+            ct5HtmlBlockFieldId: ct5HtmlBlockFieldId,
+            selector1: '#field_' + formId + '_' + ct5HtmlBlockFieldId,
+            selector2: '#field_' + formId + '_150',
             found: checkboxField.length,
             actualId: checkboxField.attr('id'),
             hasCheckboxes: checkboxField.find('input[type="checkbox"]').length
@@ -7806,6 +8287,23 @@ function processCT4VSeriesTrimLevels(csvData, selectedFeatures, htmlBlock, trimL
                 hasFeatureMap: !!window.ct4vseriesFeatureMap,
                 featureMapKeys: window.ct4vseriesFeatureMap ? Object.keys(window.ct4vseriesFeatureMap).slice(0, 5) : []
             });
+        } else if (model === 'CT5') {
+            // For CT5, get feature from the global mapping using the checkbox value
+            var checkboxValue = $input.attr('value') || '';
+            feature = window.ct5FeatureMap && window.ct5FeatureMap[checkboxValue] ? window.ct5FeatureMap[checkboxValue] : checkboxValue;
+            // If no mapping found, use the checkbox value directly as fallback
+            
+            console.log('CT5 checkbox debug:', {
+                id: $input.attr('id'),
+                checkboxValue: checkboxValue,
+                mappedFeature: feature,
+                featureLength: feature.length,
+                name: $input.attr('name'),
+                checked: $input.is(':checked'),
+                labelText: $input.next('label').text().substring(0, 100),
+                hasFeatureMap: !!window.ct5FeatureMap,
+                featureMapKeys: window.ct5FeatureMap ? Object.keys(window.ct5FeatureMap).slice(0, 5) : []
+            });
         } else {
             // For other models, use the existing logic
             var $div = $input.closest('.gfield_checkbox > div, .gfield-choice-wrapper');
@@ -8013,6 +8511,24 @@ function processCT4VSeriesTrimLevels(csvData, selectedFeatures, htmlBlock, trimL
                     console.log(model + ' CSV parsed, rows: ' + results.data.length);
                     console.log('First 10 rows of parsed data:', results.data.slice(0, 10));
                     processCT4VSeriesTrimLevels(results.data, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model);
+                }
+            });
+            return;
+        }
+        
+        // Special handling for CT5 model
+        if (model === 'CT5') {
+            // Log the full CSV content to debug data issues
+            console.log('=== FULL CT5 CSV CONTENT ===');
+            console.log(csvText);
+            console.log('=== END CT5 CSV CONTENT ===');
+            
+            Papa.parse(csvText, {
+                skipEmptyLines: true,
+                complete: function(results) {
+                    console.log(model + ' CSV parsed, rows: ' + results.data.length);
+                    console.log('First 10 rows of parsed data:', results.data.slice(0, 10));
+                    processCT5TrimLevels(results.data, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model);
                 }
             });
             return;
@@ -8730,6 +9246,7 @@ function initFormBindings() {
                     sierra2500Populated = false;
                     sierra3500Populated = false;
                     ct4VSeriesPopulated = false;
+                    ct5Populated = false;
                                 }
                             }
                         }
@@ -8838,8 +9355,15 @@ function initFormBindings() {
                             populateCT4VSeriesFeatures();
                             console.log('ct4VSeriesPopulated after call:', ct4VSeriesPopulated);
                             updateTrimLevels('CT4 V-SERIES');
+                        } else if ($(this).val() === 'CT5' && $(this).is(':checked')) {
+                            console.log('🚗 CT5 selected via delegated radio button - calling populateCT5Features');
+                            console.log('Current time:', new Date().toISOString());
+                            console.log('ct5Populated before call:', ct5Populated);
+                            populateCT5Features();
+                            console.log('ct5Populated after call:', ct5Populated);
+                            updateTrimLevels('CT5');
                                                 } else if ($(this).is(':checked')) {
-                            console.log('Non-TERRAIN/ACADIA/YUKON/CANYON/SIERRA 1500/SIERRA 2500/SIERRA 2500HD/SIERRA 3500/SIERRA 3500HD/CT4/CT4 V-SERIES GMC/Cadillac model selected via delegated: ' + $(this).val());
+                            console.log('Non-TERRAIN/ACADIA/YUKON/CANYON/SIERRA 1500/SIERRA 2500/SIERRA 2500HD/SIERRA 3500/SIERRA 3500HD/CT4/CT4 V-SERIES/CT5 GMC/Cadillac model selected via delegated: ' + $(this).val());
                                                         terrainPopulated = false;
                             acadiaPopulated = false;
                             yukonPopulated = false;
@@ -8849,6 +9373,7 @@ function initFormBindings() {
                             sierra3500Populated = false;
                             ct4Populated = false;
                             ct4VSeriesPopulated = false;
+                            ct5Populated = false;
                          }
                      }
                 }
@@ -9051,6 +9576,7 @@ function initFormBindings() {
                      sierra3500Populated = false;
                      ct4Populated = false;
                      ct4VSeriesPopulated = false;
+                     ct5Populated = false;
                  }
              }, 0);
          });
@@ -9142,7 +9668,16 @@ function initFormBindings() {
                             } else {
                                 console.log('CT4 V-SERIES radio button not checked or not found');
                             }
-                        } else if (model !== 'TERRAIN' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && model !== 'CT4 V-SERIES') {
+                        } else if (model === 'CT5') {
+                            var ct5RadioButton = $('input[type="radio"][value="CT5"]');
+                            if (ct5RadioButton.is(':checked')) {
+                                console.log('CT5 radio button checked, calling populateCT5Features and updateTrimLevels');
+                                populateCT5Features();
+                                updateTrimLevels('CT5');
+                            } else {
+                                console.log('CT5 radio button not checked or not found');
+                            }
+                        } else if (model !== 'TERRAIN' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && model !== 'CT4 V-SERIES' && model !== 'CT5') {
                             updateTrimLevels(model);
                         }
                     });
@@ -9239,7 +9774,16 @@ function initFormBindings() {
                             } else {
                                 console.log('CT4 V-SERIES radio button not checked or not found');
                             }
-                        } else if (model !== 'TERRAIN' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && model !== 'CT4 V-SERIES') {
+                        } else if (model === 'CT5') {
+                            var ct5RadioButton = $('input[type="radio"][value="CT5"]');
+                            if (ct5RadioButton.is(':checked')) {
+                                console.log('CT5 radio button checked, calling populateCT5Features and updateTrimLevels');
+                                populateCT5Features();
+                                updateTrimLevels('CT5');
+                            } else {
+                                console.log('CT5 radio button not checked or not found');
+                            }
+                        } else if (model !== 'TERRAIN' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && model !== 'CT4 V-SERIES' && model !== 'CT5') {
                             updateTrimLevels(model);
                         }
                     });
@@ -11686,6 +12230,7 @@ function showVehicleInfo(isKiaField) {
     loadSierra3500FeatureDescriptions();
     loadCT4FeatureDescriptions();
     loadCT4VSeriesFeatureDescriptions();
+    loadCT5FeatureDescriptions();
 initFormBindings();
 updateSelectedName();
 
@@ -12033,6 +12578,10 @@ $(document).on('change', 'input[type="radio"]', function() {
         console.log('🚨 CT4 V-SERIES DETECTED IN GLOBAL LISTENER - FORCING POPULATE');
         ct4VSeriesPopulated = false;
         populateCT4VSeriesFeatures();
+    } else if ($(this).val() === 'CT5' && $(this).is(':checked')) {
+        console.log('🚨 CT5 DETECTED IN GLOBAL LISTENER - FORCING POPULATE');
+        ct5Populated = false;
+        populateCT5Features();
     }
 });
 
