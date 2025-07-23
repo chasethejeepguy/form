@@ -1828,8 +1828,14 @@ jQuery(document).ready(function($) {
                             var description = content.substring(colonIndex + 1).trim();
                             
                             if (feature && description) {
-                                ct5FeatureDescriptions[feature.toUpperCase()] = description;
-                                console.log('Added CT5 description:', feature.toUpperCase(), '=', description.substring(0, 100) + '...');
+                                var featureUpper = feature.toUpperCase();
+                                ct5FeatureDescriptions[featureUpper] = description;
+                                console.log('Added CT5 description:', featureUpper, '=', description.substring(0, 100) + '...');
+                                
+                                // Special debug for SUPER CRUISE 1PACKAGE
+                                if (featureUpper.includes('SUPER CRUISE')) {
+                                    console.log('🚨 SUPER CRUISE FOUND! Key:', featureUpper, 'Value:', description);
+                                }
                             }
                         }
                     }
@@ -1839,6 +1845,12 @@ jQuery(document).ready(function($) {
             console.log('Parsed CT5 feature descriptions:', ct5FeatureDescriptions);
             console.log('Total CT5 descriptions loaded:', Object.keys(ct5FeatureDescriptions).length);
             
+            // Special check for SUPER CRUISE 1PACKAGE
+            console.log('🚨 SUPER CRUISE 1PACKAGE CHECK:', ct5FeatureDescriptions.hasOwnProperty('SUPER CRUISE 1PACKAGE'));
+            if (ct5FeatureDescriptions.hasOwnProperty('SUPER CRUISE 1PACKAGE')) {
+                console.log('🚨 SUPER CRUISE 1PACKAGE VALUE:', ct5FeatureDescriptions['SUPER CRUISE 1PACKAGE']);
+            }
+            
             if (Object.keys(ct5FeatureDescriptions).length === 0) {
                 console.warn('WARNING: No CT5 feature descriptions loaded!');
                 console.warn('Sample lines from CT5 descriptions CSV:');
@@ -1846,7 +1858,7 @@ jQuery(document).ready(function($) {
                     console.warn('Line', index, ':', line);
                 });
             } else {
-                console.log('SUCCESS: Cadillac CT5 descriptions loaded successfully!');
+                console.log('SUCCESS: Cadillac CT5 descriptions loaded successfully at:', new Date().toISOString());
                 console.log('First few CT5 descriptions:', Object.keys(ct5FeatureDescriptions).slice(0, 5));
                 
                 // Create backup after successful loading
@@ -1858,6 +1870,27 @@ jQuery(document).ready(function($) {
             console.error('Fetch error for Cadillac CT5 Feature Descriptions:', error.message);
             ct5FeatureDescriptions = {};
         });
+    }
+
+    // Backup descriptions function
+    function backupDescriptions() {
+        try {
+            // Backup CT5 descriptions
+            if (typeof ct5FeatureDescriptions !== 'undefined' && Object.keys(ct5FeatureDescriptions).length > 0) {
+                window.ct5DescriptionsBackup = JSON.parse(JSON.stringify(ct5FeatureDescriptions));
+                console.log('✅ CT5 descriptions backed up:', Object.keys(window.ct5DescriptionsBackup).length, 'entries');
+            }
+            
+            // Backup CT4 V-Series descriptions
+            if (typeof ct4VSeriesFeatureDescriptions !== 'undefined' && Object.keys(ct4VSeriesFeatureDescriptions).length > 0) {
+                window.ct4VSeriesDescriptionsBackup = JSON.parse(JSON.stringify(ct4VSeriesFeatureDescriptions));
+                console.log('✅ CT4 V-Series descriptions backed up:', Object.keys(window.ct4VSeriesDescriptionsBackup).length, 'entries');
+            }
+            
+            console.log('✅ All descriptions backed up successfully');
+        } catch (error) {
+            console.error('❌ Error backing up descriptions:', error);
+        }
     }
 
     // Fuzzy matching function with exact matching for K4 and validation
@@ -12627,6 +12660,24 @@ function getBulletproofDescription(feature) {
     var description = null;
     
     console.log('🔍 BULLETPROOF: Looking up description for:', featureUpper);
+    console.log('🔍 BULLETPROOF: Called at timestamp:', new Date().toISOString());
+    
+    // Special handling for CT5 - if descriptions aren't loaded yet, try to use backup or reload them
+    if (featureUpper.includes('SUPER CRUISE') || featureUpper.includes('CT5')) {
+        if (typeof ct5FeatureDescriptions === 'undefined' || Object.keys(ct5FeatureDescriptions).length === 0) {
+            console.log('🚨 CT5 descriptions not loaded, checking backup and attempting reload...');
+            
+            // Try to use backup if available
+            if (typeof window.ct5DescriptionsBackup !== 'undefined' && Object.keys(window.ct5DescriptionsBackup).length > 0) {
+                console.log('🚨 Using CT5 descriptions backup with', Object.keys(window.ct5DescriptionsBackup).length, 'entries');
+                ct5FeatureDescriptions = window.ct5DescriptionsBackup;
+            } else {
+                console.log('🚨 No CT5 backup available, reloading descriptions...');
+                loadCT5FeatureDescriptions();
+                // For now, continue with existing logic, but this will help for future lookups
+            }
+        }
+    }
     
     // STEP 1: Try all description objects with direct lookup
     var allDescriptionSources = [
@@ -12643,7 +12694,26 @@ function getBulletproofDescription(feature) {
         typeof featureDescriptions !== 'undefined' ? featureDescriptions : {}
     ];
     
+    // DEBUG: Log the state of CT5 descriptions
+    console.log('🔍 BULLETPROOF DEBUG: ct5FeatureDescriptions exists?', typeof ct5FeatureDescriptions !== 'undefined');
+    console.log('🔍 BULLETPROOF DEBUG: ct5FeatureDescriptions keys count:', typeof ct5FeatureDescriptions !== 'undefined' ? Object.keys(ct5FeatureDescriptions).length : 0);
+    if (typeof ct5FeatureDescriptions !== 'undefined' && Object.keys(ct5FeatureDescriptions).length > 0) {
+        console.log('🔍 BULLETPROOF DEBUG: ct5FeatureDescriptions sample keys:', Object.keys(ct5FeatureDescriptions).slice(0, 5));
+        console.log('🔍 BULLETPROOF DEBUG: Looking for exact key:', featureUpper, 'in ct5FeatureDescriptions:', ct5FeatureDescriptions.hasOwnProperty(featureUpper));
+        
+        // Special debug for SUPER CRUISE
+        if (featureUpper.includes('SUPER CRUISE')) {
+            console.log('🚨 SUPER CRUISE DEBUG: All CT5 keys containing SUPER CRUISE:');
+            Object.keys(ct5FeatureDescriptions).forEach(function(key) {
+                if (key.includes('SUPER CRUISE')) {
+                    console.log('🚨 Found CT5 key:', key, '=', ct5FeatureDescriptions[key].substring(0, 100) + '...');
+                }
+            });
+        }
+    }
+    
     for (var i = 0; i < allDescriptionSources.length; i++) {
+        console.log('🔍 BULLETPROOF: Checking source', i, 'with', Object.keys(allDescriptionSources[i]).length, 'keys');
         if (allDescriptionSources[i][featureUpper]) {
             description = allDescriptionSources[i][featureUpper];
             console.log('✅ BULLETPROOF: Direct match found in source', i);
@@ -12676,8 +12746,24 @@ function getBulletproofDescription(feature) {
         }
     }
     
-    // STEP 4: Generate intelligent description based on feature name
-    console.log('🔍 BULLETPROOF: No variation match, generating smart description...');
+    // STEP 4: Hardcoded fallbacks for specific features
+    console.log('🔍 BULLETPROOF: No variation match, checking hardcoded fallbacks...');
+    
+    // Hardcoded fallbacks for specific CT5 features
+    if (featureUpper === 'SUPER CRUISE 1PACKAGE') {
+        description = 'Experience hands-free driving with the Cadillac CT5\'s Super Cruise 1 Package, featuring Super Cruise technology and 3 Years of Super Cruise and Digital Services by OnStar for a connected, premium experience.';
+        console.log('✅ BULLETPROOF: Hardcoded fallback used for SUPER CRUISE 1PACKAGE');
+        return description;
+    }
+    
+    if (featureUpper === 'SUPER CRUISE STEERING WHEEL') {
+        description = 'Enhance hands-free driving with the Cadillac CT5\'s Super Cruise steering wheel, featuring a leather-wrapped design with a light bar for Super Cruise status (late availability).';
+        console.log('✅ BULLETPROOF: Hardcoded fallback used for SUPER CRUISE STEERING WHEEL');
+        return description;
+    }
+    
+    // STEP 5: Generate intelligent description based on feature name
+    console.log('🔍 BULLETPROOF: No hardcoded fallback, generating smart description...');
     description = generateSmartDescription(originalFeature);
     
     console.log('✅ BULLETPROOF: Smart description generated');
