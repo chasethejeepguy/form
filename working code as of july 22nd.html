@@ -4760,45 +4760,49 @@ function populateCT5Features() {
                 window.ct5FeatureToCategoryMap = featureToCategoryMap;
 
                 console.log('Building HTML for CT5 features...');
-                var globalIndex = 0;
-                var html = '';
                 
-                // Add trim level walk buttons
+                // Build trim level walk buttons
                 var trimLevelButtons = buildTrimLevelWalkButtons(trimLevels, 'ct5');
-                html += trimLevelButtons;
-
-                categories.forEach(function(category) {
-                    var catFeatures = featureGroups[category];
-                    if (catFeatures && catFeatures.length > 0) {
-                        console.log('Building category: ' + category + ' with ' + catFeatures.length + ' features');
-                        
-                        // Create mapping for CT5 features
-                        var featureMapping = {};
-                        catFeatures.forEach(function(feature, index) {
-                            featureMapping['ct5_' + globalIndex] = feature;
-                            globalIndex++;
-                        });
-                        
-                        // Store the mapping globally for CT5
-                        window.ct5FeatureMap = window.ct5FeatureMap || {};
-                        Object.assign(window.ct5FeatureMap, featureMapping);
-                        
-                        var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'ct5', globalIndex);
-                        html += categoryHtml;
-                        globalIndex += catFeatures.length;
-                    }
-                });
                 
-                console.log('Total CT5 features processed:', globalIndex);
-                console.log('CT5 feature mapping created:', Object.keys(window.ct5FeatureMap || {}).length, 'entries');
+                var html = trimLevelButtons + '<div class="feature-groups">';
+                var globalIndex = 0;
+                categories.forEach(function(category) {
+                    var catFeatures = featureGroups[category] || [];
+                    console.log('Building HTML for category: ' + category + ' with ' + catFeatures.length + ' features');
+                    
+                    // Sort features alphabetically within each category
+                    catFeatures.sort(function(a, b) {
+                        return a.toLowerCase().localeCompare(b.toLowerCase());
+                    });
+                    
+                    html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
+                    
+                    // Build collapsible groups and regular features
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'ct5', globalIndex);
+                    html += categoryHtml.html;
+                    globalIndex = categoryHtml.globalIndex;
+                    html += '</div></div>';
+                });
+                html += '</div>';
 
-                // Check if HTML block already has populated content to avoid duplicates
-                if (htmlBlock.find('.gchoice_ct5_0').length > 0) {
-                    console.log('CT5 features already populated in HTML block, skipping HTML update');
+                console.log('Generated HTML length:', html.length);
+                console.log('HTML preview (first 500 chars):', html.substring(0, 500));
+
+                // Replace the placeholder in the HTML block
+                var currentHtml = htmlBlock.html();
+                console.log('Current HTML content:', currentHtml);
+                
+                if (currentHtml.includes('{ct5 feature checkboxes}')) {
+                    var newHtml = currentHtml.replace('{ct5 feature checkboxes}', html);
+                    console.log('Replacing {ct5 feature checkboxes} with generated HTML');
+                    console.log('New HTML preview (first 500 chars):', newHtml.substring(0, 500));
+                    htmlBlock.html(newHtml);
                 } else {
-                    console.log('Updating HTML block with CT5 features');
+                    console.log('Placeholder {ct5 feature checkboxes} not found, setting HTML directly');
                     htmlBlock.html(html);
                 }
+                
+                console.log('Total CT5 features processed:', globalIndex);
 
                 ct5Populated = true;
                 console.log('CT5 features populated into 5 columns in field 150');
@@ -12626,6 +12630,7 @@ function getBulletproofDescription(feature) {
     
     // STEP 1: Try all description objects with direct lookup
     var allDescriptionSources = [
+        typeof ct5FeatureDescriptions !== 'undefined' ? ct5FeatureDescriptions : {},
         typeof ct4VSeriesFeatureDescriptions !== 'undefined' ? ct4VSeriesFeatureDescriptions : {},
         typeof ct4FeatureDescriptions !== 'undefined' ? ct4FeatureDescriptions : {},
         typeof terrainFeatureDescriptions !== 'undefined' ? terrainFeatureDescriptions : {},
