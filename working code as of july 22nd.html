@@ -3828,7 +3828,7 @@ function populateSierra1500Features() {
                 // Bind change events and add info icons
                 htmlBlock.find('input[type="checkbox"]').off('change.SIERRA1500Features').on('change.SIERRA1500Features', function() {
                     console.log('SIERRA 1500 checkbox changed, updating trim levels');
-                    updateTrimLevels('SIERRA 1500');
+                    updateTrimLevels('sierra1500');
                 });
 
                 // Set up collapsible group functionality
@@ -4048,7 +4048,7 @@ function populateSierra2500Features() {
                 // Bind change events and add info icons
                 htmlBlock.find('input[type="checkbox"]').off('change.SIERRA2500Features').on('change.SIERRA2500Features', function() {
                     console.log('SIERRA 2500 checkbox changed, updating trim levels');
-                    updateTrimLevels('SIERRA 2500');
+                    updateTrimLevels('sierra2500');
                 });
 
                 // Set up collapsible group functionality
@@ -4268,7 +4268,7 @@ function populateSierra3500Features() {
                 // Bind change events and add info icons
                 htmlBlock.find('input[type="checkbox"]').off('change.SIERRA3500Features').on('change.SIERRA3500Features', function() {
                     console.log('SIERRA 3500 checkbox changed, updating trim levels');
-                    updateTrimLevels('SIERRA 3500');
+                    updateTrimLevels('sierra3500');
                 });
 
                 // Set up collapsible group functionality
@@ -9489,21 +9489,21 @@ function initFormBindings() {
                     console.log('sierra1500Populated before call:', sierra1500Populated);
                     populateSierra1500Features();
                     console.log('sierra1500Populated after call:', sierra1500Populated);
-                    updateTrimLevels('SIERRA 1500');
+                    updateTrimLevels('sierra1500');
                 } else if ((input.val() === 'SIERRA 2500' || input.val() === 'SIERRA 2500HD') && input.is(':checked')) {
                     console.log('🚗 SIERRA 2500 selected via radio button - calling populateSierra2500Features');
                     console.log('Current time:', new Date().toISOString());
                     console.log('sierra2500Populated before call:', sierra2500Populated);
                     populateSierra2500Features();
                     console.log('sierra2500Populated after call:', sierra2500Populated);
-                    updateTrimLevels('SIERRA 2500');
+                    updateTrimLevels('sierra2500');
                 } else if ((input.val() === 'SIERRA 3500' || input.val() === 'SIERRA 3500HD') && input.is(':checked')) {
                     console.log('🚗 SIERRA 3500 selected via radio button - calling populateSierra3500Features');
                     console.log('Current time:', new Date().toISOString());
                     console.log('sierra3500Populated before call:', sierra3500Populated);
                     populateSierra3500Features();
                     console.log('sierra3500Populated after call:', sierra3500Populated);
-                    updateTrimLevels('SIERRA 3500');
+                    updateTrimLevels('sierra3500');
                 } else if (input.val() === 'CT4' && input.is(':checked')) {
                     console.log('🚗 CT4 selected via radio button - calling populateCT4Features');
                     console.log('Current time:', new Date().toISOString());
@@ -9600,21 +9600,21 @@ function initFormBindings() {
                             console.log('sierra1500Populated before call:', sierra1500Populated);
                             populateSierra1500Features();
                             console.log('sierra1500Populated after call:', sierra1500Populated);
-                            updateTrimLevels('SIERRA 1500');
+                            updateTrimLevels('sierra1500');
                         } else if (($(this).val() === 'SIERRA 2500' || $(this).val() === 'SIERRA 2500HD') && $(this).is(':checked')) {
                             console.log('🚗 SIERRA 2500 selected via delegated radio button - calling populateSierra2500Features');
                             console.log('Current time:', new Date().toISOString());
                             console.log('sierra2500Populated before call:', sierra2500Populated);
                             populateSierra2500Features();
                             console.log('sierra2500Populated after call:', sierra2500Populated);
-                            updateTrimLevels('SIERRA 2500');
+                            updateTrimLevels('sierra2500');
                         } else if (($(this).val() === 'SIERRA 3500' || $(this).val() === 'SIERRA 3500HD') && $(this).is(':checked')) {
                             console.log('🚗 SIERRA 3500 selected via delegated radio button - calling populateSierra3500Features');
                             console.log('Current time:', new Date().toISOString());
                             console.log('sierra3500Populated before call:', sierra3500Populated);
                             populateSierra3500Features();
                             console.log('sierra3500Populated after call:', sierra3500Populated);
-                            updateTrimLevels('SIERRA 3500');
+                            updateTrimLevels('sierra3500');
                         } else if ($(this).val() === 'CT4' && $(this).is(':checked')) {
                             console.log('🚗 CT4 selected via delegated radio button - calling populateCT4Features');
                             console.log('Current time:', new Date().toISOString());
@@ -9823,15 +9823,15 @@ function initFormBindings() {
                 } else if (radioValue === 'SIERRA 1500' && isChecked) {
                     console.log('SIERRA 1500 radio button detected, calling populateSierra1500Features');
                     populateSierra1500Features();
-                    updateTrimLevels('SIERRA 1500');
+                    updateTrimLevels('sierra1500');
                 } else if ((radioValue === 'SIERRA 2500' || radioValue === 'SIERRA 2500HD') && isChecked) {
                     console.log('SIERRA 2500/2500HD radio button detected, calling populateSierra2500Features');
                     populateSierra2500Features();
-                    updateTrimLevels('SIERRA 2500');
+                    updateTrimLevels('sierra2500');
                 } else if ((radioValue === 'SIERRA 3500' || radioValue === 'SIERRA 3500HD') && isChecked) {
                     console.log('SIERRA 3500/3500HD radio button detected, calling populateSierra3500Features');
                     populateSierra3500Features();
-                    updateTrimLevels('SIERRA 3500');
+                    updateTrimLevels('sierra3500');
                 } else if (radioValue === 'CT4' && isChecked) {
                     console.log('CT4 radio button detected, calling populateCT4Features');
                     populateCT4Features();
