@@ -10223,6 +10223,8 @@ function initFormBindings() {
             console.log('Model:', modelPrefix);
             console.log('Trim Level:', trimLevel);
             console.log('Checked:', checkbox.is(':checked'));
+            console.log('Checkbox ID:', checkbox.attr('id'));
+            console.log('Checkbox classes:', checkbox.attr('class'));
             console.log('=== END TRIM WALK CHECKBOX ===');
             
             // Process immediately for instant checkbox response
@@ -10304,6 +10306,7 @@ function initFormBindings() {
                     
                     console.log('✅ Updated field 69 with trim level:', trimLevel);
                     console.log('New content:', updatedContent);
+                    console.log('🔍 SIERRA DEBUG - Model prefix:', modelPrefix, 'Should work for sierra1500, sierra2500, sierra3500');
                     
                     // Uncheck other checkboxes for this model (only one trim level at a time)
                     $('.trim-level-checkbox[data-model="' + modelPrefix + '"]').not(checkbox).prop('checked', false);
