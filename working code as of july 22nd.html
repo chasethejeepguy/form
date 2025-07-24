@@ -3865,6 +3865,12 @@ function populateSierra2500Features() {
     console.log('Form ID:', formId);
     console.log('sierra2500HtmlBlockFieldId:', sierra2500HtmlBlockFieldId);
     
+    // AGGRESSIVE CHECK: Use a global window flag to prevent any multiple calls
+    if (window.sierra2500PopulationInProgress) {
+        console.log('⚠️ Sierra 2500 population already in progress, aborting this call');
+        return;
+    }
+    
     // Check if already populated by flag or by DOM content
     var htmlBlock = $('#field_' + formId + '_' + sierra2500HtmlBlockFieldId);
     if (!htmlBlock.length) {
@@ -3878,10 +3884,17 @@ function populateSierra2500Features() {
     var htmlContent = htmlBlock.html();
     var hasFeatureContent = htmlContent && (htmlContent.indexOf('sierra2500_feature_') !== -1 || htmlContent.indexOf('SIERRA 2500') !== -1 && htmlContent.indexOf('checkbox') !== -1);
     
-    if (sierra2500Populated || hasExistingFeatures || hasFeatureContent) {
-        console.log('Sierra 2500 features already populated, skipping (flag:', sierra2500Populated, ', DOM check:', hasExistingFeatures, ', content check:', hasFeatureContent, ')');
+    // Check for actual checkbox count - if we have more than 250 checkboxes, we're duplicated
+    var totalCheckboxes = htmlBlock.find('input[type="checkbox"]').length;
+    var isDuplicated = totalCheckboxes > 250;
+    
+    if (sierra2500Populated || hasExistingFeatures || hasFeatureContent || isDuplicated) {
+        console.log('Sierra 2500 features already populated, skipping (flag:', sierra2500Populated, ', DOM check:', hasExistingFeatures, ', content check:', hasFeatureContent, ', checkbox count:', totalCheckboxes, ')');
         return;
     }
+    
+    // Set the global flag to prevent concurrent calls
+    window.sierra2500PopulationInProgress = true;
 
     var config = modelConfigs['SIERRA 2500'];
     if (!config) {
@@ -4062,6 +4075,9 @@ function populateSierra2500Features() {
 
                 sierra2500Populated = true;
                 console.log('Sierra 2500 features populated into 5 columns in field 142');
+                
+                // Clear the global population flag
+                window.sierra2500PopulationInProgress = false;
 
                 // Bind change events and add info icons - target the sierra2500-specific checkboxes
                 htmlBlock.find('.sierra2500-features input[type="checkbox"], input[type="checkbox"][id*="sierra2500"]').off('change.SIERRA2500Features').on('change.SIERRA2500Features', function() {
@@ -4091,10 +4107,14 @@ function populateSierra2500Features() {
             },
             error: function(error) {
                 console.error('Papa Parse error for Sierra 2500 population: ' + error);
+                // Clear the global population flag on error
+                window.sierra2500PopulationInProgress = false;
             }
         });
     }).catch(function(error) {
         console.error('Fetch error for Sierra 2500 population: ' + error.message);
+        // Clear the global population flag on error
+        window.sierra2500PopulationInProgress = false;
     });
 }
 
@@ -4107,6 +4127,12 @@ function populateSierra3500Features() {
     console.log('Current sierra3500Populated flag:', sierra3500Populated);
     console.log('Form ID:', formId);
     console.log('sierra3500HtmlBlockFieldId:', sierra3500HtmlBlockFieldId);
+    
+    // AGGRESSIVE CHECK: Use a global window flag to prevent any multiple calls
+    if (window.sierra3500PopulationInProgress) {
+        console.log('⚠️ Sierra 3500 population already in progress, aborting this call');
+        return;
+    }
     
     // Check if already populated by flag or by DOM content
     var htmlBlock = $('#field_' + formId + '_' + sierra3500HtmlBlockFieldId);
@@ -4121,10 +4147,17 @@ function populateSierra3500Features() {
     var htmlContent = htmlBlock.html();
     var hasFeatureContent = htmlContent && (htmlContent.indexOf('sierra3500_feature_') !== -1 || htmlContent.indexOf('SIERRA 3500') !== -1 && htmlContent.indexOf('checkbox') !== -1);
     
-    if (sierra3500Populated || hasExistingFeatures || hasFeatureContent) {
-        console.log('Sierra 3500 features already populated, skipping (flag:', sierra3500Populated, ', DOM check:', hasExistingFeatures, ', content check:', hasFeatureContent, ')');
+    // Check for actual checkbox count - if we have more than 250 checkboxes, we're duplicated
+    var totalCheckboxes = htmlBlock.find('input[type="checkbox"]').length;
+    var isDuplicated = totalCheckboxes > 250;
+    
+    if (sierra3500Populated || hasExistingFeatures || hasFeatureContent || isDuplicated) {
+        console.log('Sierra 3500 features already populated, skipping (flag:', sierra3500Populated, ', DOM check:', hasExistingFeatures, ', content check:', hasFeatureContent, ', checkbox count:', totalCheckboxes, ')');
         return;
     }
+    
+    // Set the global flag to prevent concurrent calls
+    window.sierra3500PopulationInProgress = true;
 
     var config = modelConfigs['SIERRA 3500'];
     if (!config) {
@@ -4304,6 +4337,9 @@ function populateSierra3500Features() {
 
                 sierra3500Populated = true;
                 console.log('Sierra 3500 features populated into 5 columns in field 144');
+                
+                // Clear the global population flag
+                window.sierra3500PopulationInProgress = false;
 
                 // Bind change events and add info icons - target the sierra3500-specific checkboxes
                 htmlBlock.find('.sierra3500-features input[type="checkbox"], input[type="checkbox"][id*="sierra3500"]').off('change.SIERRA3500Features').on('change.SIERRA3500Features', function() {
@@ -4333,10 +4369,14 @@ function populateSierra3500Features() {
             },
             error: function(error) {
                 console.error('Papa Parse error for Sierra 3500 population: ' + error);
+                // Clear the global population flag on error
+                window.sierra3500PopulationInProgress = false;
             }
         });
     }).catch(function(error) {
         console.error('Fetch error for Sierra 3500 population: ' + error.message);
+        // Clear the global population flag on error
+        window.sierra3500PopulationInProgress = false;
     });
 }
 
@@ -9566,6 +9606,10 @@ function initFormBindings() {
                     sierra3500Populated = false;
                     ct4VSeriesPopulated = false;
                     ct5Populated = false;
+                    
+                    // Reset population in progress flags
+                    window.sierra2500PopulationInProgress = false;
+                    window.sierra3500PopulationInProgress = false;
                                 }
                             }
                         }
