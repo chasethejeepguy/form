@@ -7766,9 +7766,11 @@ function processCT5TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
 	// For each trim level, check if it has all the selected features
 	trimLevels.forEach(function(trimLevel) {
 		var hasAllFeatures = true;
+		console.log('🔍 CT5 TRIM LEVEL CHECK: ' + trimLevel);
 		
 		selectedFeatures.forEach(function(selectedFeature) {
 			var foundInTrimLevel = false;
+			console.log('  🔎 Checking feature: ' + selectedFeature);
 			
 			// Check each category for this feature in this trim level
 			categories.forEach(function(category) {
@@ -7776,19 +7778,35 @@ function processCT5TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
 					var trimRow = trimLevelRowsByCategory[category][trimLevel];
 					var featureColumn = featureToColumnMap[selectedFeature];
 					
-					if (featureColumn && trimRow[featureColumn] && trimRow[featureColumn].toUpperCase() === 'YES') {
-						foundInTrimLevel = true;
+					if (featureColumn && trimRow[featureColumn]) {
+						var featureValue = trimRow[featureColumn].toUpperCase();
+						console.log('    📋 Category: ' + category + ', Column: ' + featureColumn + ', Value: ' + featureValue);
+						
+						if (featureValue === 'YES') {
+							foundInTrimLevel = true;
+							console.log('    ✅ FOUND YES for ' + selectedFeature + ' in ' + trimLevel + ' (' + category + ')');
+						} else {
+							console.log('    ❌ NO for ' + selectedFeature + ' in ' + trimLevel + ' (' + category + ')');
+						}
+					} else {
+						console.log('    ⚠️ Feature not found in category: ' + category + ' (column: ' + featureColumn + ')');
 					}
 				}
 			});
 			
 			if (!foundInTrimLevel) {
 				hasAllFeatures = false;
+				console.log('  ❌ Feature ' + selectedFeature + ' NOT FOUND in ' + trimLevel);
+			} else {
+				console.log('  ✅ Feature ' + selectedFeature + ' FOUND in ' + trimLevel);
 			}
 		});
 		
 		if (hasAllFeatures) {
 			matchingTrimLevels.push(trimLevel);
+			console.log('✅ TRIM LEVEL MATCH: ' + trimLevel + ' has ALL features');
+		} else {
+			console.log('❌ TRIM LEVEL NO MATCH: ' + trimLevel + ' missing some features');
 		}
 	});
 	
