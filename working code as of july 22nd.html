@@ -1401,16 +1401,207 @@ jQuery(document).ready(function($) {
     window.sierra2500FeatureDescriptions = {};
     
     // Global variable for Sierra 3500 feature descriptions
-    window.window.sierra3500FeatureDescriptions = {};
+    window.sierra3500FeatureDescriptions = {};
     
     // Global variable for Cadillac CT4 feature descriptions
-    window.window.ct4FeatureDescriptions = {};
+    window.ct4FeatureDescriptions = {};
     
     // Global variable for Cadillac CT4 V-Series feature descriptions
-    window.window.ct4VSeriesFeatureDescriptions = {};
+    window.ct4VSeriesFeatureDescriptions = {};
     
     // Global variable for Cadillac CT5 feature descriptions
     window.ct5FeatureDescriptions = {};
+    
+    // ============================================================================
+    // FUTURE-PROOF DESCRIPTION SYSTEM
+    // ============================================================================
+    // This system automatically works with any model by using a centralized registry
+    // and standardized URL patterns. No need to manually add variables for new models!
+    
+    // Global description registry - automatically populated for all models
+    window.modelDescriptions = {};
+    
+    // Global description backup registry
+    window.modelDescriptionsBackup = {};
+    
+    // Description URL mapping for all models (automatically extensible)
+    window.descriptionUrlMap = {
+        // GMC Models
+        'TERRAIN': 'https://hutchinsonautoteam.com/gmcmodels/gmcterraindescriptions.csv',
+        'ACADIA': 'https://www.hutchinsonautoteam.com/gmcmodels/gmcacadiadescriptions.csv',
+        'YUKON': 'https://hutchinsonautoteam.com/gmcmodels/gmcyukondescriptions.csv',
+        'CANYON': 'https://hutchinsonautoteam.com/gmcmodels/gmccanyondescriptions.csv',
+        'SIERRA 1500': 'https://hutchinsonautoteam.com/gmcmodels/gmcsierra1500descriptions.csv',
+        'SIERRA 2500': 'https://hutchinsonautoteam.com/gmcmodels/gmcsierra2500descriptions.csv',
+        'SIERRA 2500HD': 'https://hutchinsonautoteam.com/gmcmodels/gmcsierra2500descriptions.csv',
+        'SIERRA 3500': 'https://hutchinsonautoteam.com/gmcmodels/gmcsierra3500descriptions.csv',
+        'SIERRA 3500HD': 'https://hutchinsonautoteam.com/gmcmodels/gmcsierra3500descriptions.csv',
+        
+        // Cadillac Models
+        'CT4': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacct4descriptions.csv',
+        'CT4 V-SERIES': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacct4vdescriptions.csv',
+        'CT5': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacct5descriptions.csv',
+        
+        // Kia Models (using generic pattern - can be customized per model)
+        'K4': 'https://hutchinsonautoteam.com/kiamodels/KIAMODELDESCRIPTIONS.CSV',
+        'K5': 'https://hutchinsonautoteam.com/kiamodels/KIAMODELDESCRIPTIONS.CSV'
+        
+        // Future models can be added here or auto-detected from modelConfigs
+    };
+    
+    // Universal description loader function - works for any model
+    function loadModelDescriptions(modelName, csvUrl) {
+        console.log('🚀 UNIVERSAL LOADER: Loading descriptions for', modelName, 'from:', csvUrl);
+        
+        // Initialize model description object if it doesn't exist
+        if (!window.modelDescriptions[modelName]) {
+            window.modelDescriptions[modelName] = {};
+        }
+        
+        return fetch(csvUrl)
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Network response was not ok for ' + modelName);
+            }
+            return response.text();
+        })
+        .then(function(csvText) {
+            console.log('Raw', modelName, 'descriptions CSV length:', csvText.length);
+            console.log('Raw', modelName, 'descriptions CSV preview (first 200 chars):', csvText.substring(0, 200));
+            
+            window.modelDescriptions[modelName] = {};
+            
+            // Parse CSV text line by line
+            var lines = csvText.split('\n');
+            console.log(modelName, 'descriptions total lines:', lines.length);
+            
+            lines.forEach(function(line, index) {
+                if (line.trim() && line.includes('{') && line.includes('}') && line.includes(':')) {
+                    // Find the closing brace
+                    var closingBraceIndex = line.indexOf('}');
+                    if (closingBraceIndex !== -1) {
+                        var content = line.substring(1, closingBraceIndex);
+                        var colonIndex = content.indexOf(':');
+                        
+                        if (colonIndex !== -1) {
+                            var feature = content.substring(0, colonIndex).trim();
+                            var description = content.substring(colonIndex + 1).trim();
+                            
+                            if (feature && description) {
+                                var featureUpper = feature.toUpperCase();
+                                window.modelDescriptions[modelName][featureUpper] = description;
+                                
+                                // Also update legacy variables for backward compatibility
+                                updateLegacyDescriptionVariable(modelName, featureUpper, description);
+                            }
+                        }
+                    }
+                }
+            });
+            
+            console.log('✅ SUCCESS:', modelName, 'descriptions loaded:', Object.keys(window.modelDescriptions[modelName]).length, 'entries');
+            console.log('First few', modelName, 'descriptions:', Object.keys(window.modelDescriptions[modelName]).slice(0, 3));
+            
+            // Create backup
+            if (!window.modelDescriptionsBackup[modelName]) {
+                window.modelDescriptionsBackup[modelName] = {};
+            }
+            window.modelDescriptionsBackup[modelName] = JSON.parse(JSON.stringify(window.modelDescriptions[modelName]));
+            console.log('✅ BACKUP: Created backup for', modelName, 'with', Object.keys(window.modelDescriptionsBackup[modelName]).length, 'entries');
+            
+            return window.modelDescriptions[modelName];
+        })
+        .catch(function(error) {
+            console.error('❌ ERROR: Failed to load', modelName, 'descriptions:', error.message);
+            window.modelDescriptions[modelName] = {};
+            return {};
+        });
+    }
+    
+    // Helper function to update legacy variables for backward compatibility
+    function updateLegacyDescriptionVariable(modelName, featureUpper, description) {
+        switch(modelName) {
+            case 'TERRAIN':
+                window.terrainFeatureDescriptions[featureUpper] = description;
+                break;
+            case 'ACADIA':
+                window.acadiaFeatureDescriptions[featureUpper] = description;
+                break;
+            case 'YUKON':
+                window.yukonFeatureDescriptions[featureUpper] = description;
+                break;
+            case 'CANYON':
+                window.canyonFeatureDescriptions[featureUpper] = description;
+                break;
+            case 'SIERRA 1500':
+                window.sierra1500FeatureDescriptions[featureUpper] = description;
+                break;
+            case 'SIERRA 2500':
+            case 'SIERRA 2500HD':
+                window.sierra2500FeatureDescriptions[featureUpper] = description;
+                break;
+            case 'SIERRA 3500':
+            case 'SIERRA 3500HD':
+                window.sierra3500FeatureDescriptions[featureUpper] = description;
+                break;
+            case 'CT4':
+                window.ct4FeatureDescriptions[featureUpper] = description;
+                break;
+            case 'CT4 V-SERIES':
+                window.ct4VSeriesFeatureDescriptions[featureUpper] = description;
+                break;
+            case 'CT5':
+                window.ct5FeatureDescriptions[featureUpper] = description;
+                break;
+        }
+    }
+    
+    // Auto-detect and load all model descriptions
+    function loadAllModelDescriptions() {
+        console.log('🚀 AUTO-LOADER: Starting to load all model descriptions...');
+        
+        // First, load from the explicit URL map
+        Object.keys(window.descriptionUrlMap).forEach(function(modelName) {
+            var csvUrl = window.descriptionUrlMap[modelName];
+            loadModelDescriptions(modelName, csvUrl);
+        });
+        
+        // Then, auto-detect from modelConfigs for any missing models
+        if (typeof modelConfigs !== 'undefined') {
+            Object.keys(modelConfigs).forEach(function(modelName) {
+                var config = modelConfigs[modelName];
+                
+                // Skip if already loaded from explicit URL map
+                if (window.descriptionUrlMap[modelName]) {
+                    return;
+                }
+                
+                // Try to auto-generate description URL based on model type
+                var descriptionUrl = null;
+                
+                if (config.isGmc) {
+                    // GMC model pattern
+                    var modelLower = modelName.toLowerCase().replace(/\s+/g, '').replace('hd', '');
+                    descriptionUrl = 'https://hutchinsonautoteam.com/gmcmodels/gmc' + modelLower + 'descriptions.csv';
+                } else if (config.isCadillac) {
+                    // Cadillac model pattern
+                    var modelLower = modelName.toLowerCase().replace(/\s+/g, '').replace('-', '');
+                    descriptionUrl = 'https://hutchinsonautoteam.com/cadillacmodels/cadillac' + modelLower + 'descriptions.csv';
+                } else {
+                    // Kia model pattern (fallback to generic)
+                    descriptionUrl = 'https://hutchinsonautoteam.com/kiamodels/KIAMODELDESCRIPTIONS.CSV';
+                }
+                
+                if (descriptionUrl) {
+                    console.log('🔍 AUTO-DETECTED: Description URL for', modelName, ':', descriptionUrl);
+                    window.descriptionUrlMap[modelName] = descriptionUrl;
+                    loadModelDescriptions(modelName, descriptionUrl);
+                }
+            });
+        }
+        
+        console.log('✅ AUTO-LOADER: Finished initiating all description loads');
+    }
     
     // Load Canyon feature descriptions
     function loadCanyonFeatureDescriptions() {
