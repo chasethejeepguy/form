@@ -887,7 +887,7 @@ jQuery(document).ready(function($) {
         }
         
         // Canyon-specific feature normalization
-        if (descriptionMap === canyonFeatureDescriptions) {
+        if (descriptionMap === window.canyonFeatureDescriptions) {
             // Normalize common Canyon feature variations
             var canyonNormalizations = {
                 'VENTILATED DRIVER AND FRONT PASSENGER SEATS': 'VENTILATED FRONT SEATS',
@@ -913,7 +913,7 @@ jQuery(document).ready(function($) {
         }
         
         // Sierra 1500-specific feature normalization
-        if (descriptionMap === sierra1500FeatureDescriptions) {
+        if (descriptionMap === window.sierra1500FeatureDescriptions) {
             // Normalize common Sierra 1500 feature variations
             var sierra1500Normalizations = {
                 'WIRELESS APPLE CAR PLAY AND WIRELESS ANDROID AUTO CAPABILITY FOR COMPATIBLE PHONES': 'WIRELESS APPLE CARPLAY AND WIRELESS ANDROID AUTO CAPABILITY FOR COMPATIBLE PHONES',
@@ -959,7 +959,7 @@ jQuery(document).ready(function($) {
         var bestMatch = null;
         var highestSimilarity = 0;
         // Use lower threshold for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, and CT5 descriptions (0.4 vs 0.7)
-        var threshold = (descriptionMap === canyonFeatureDescriptions || descriptionMap === sierra1500FeatureDescriptions || descriptionMap === sierra2500FeatureDescriptions || descriptionMap === sierra3500FeatureDescriptions || descriptionMap === ct4FeatureDescriptions || descriptionMap === ct4VSeriesFeatureDescriptions || descriptionMap === ct5FeatureDescriptions) ? 0.4 : 0.7;
+        var threshold = (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions) ? 0.4 : 0.7;
         
         for (var key in descriptionMap) {
             var similarity = calculateSimilarity(correctedFeature, key);
@@ -973,8 +973,8 @@ jQuery(document).ready(function($) {
         }
         
         // If no match found for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, or CT5 and threshold was lowered, try partial word matching
-        if (!bestMatch && (descriptionMap === canyonFeatureDescriptions || descriptionMap === sierra1500FeatureDescriptions || descriptionMap === sierra2500FeatureDescriptions || descriptionMap === sierra3500FeatureDescriptions || descriptionMap === ct4FeatureDescriptions || descriptionMap === ct4VSeriesFeatureDescriptions || descriptionMap === ct5FeatureDescriptions)) {
-            var modelName = descriptionMap === canyonFeatureDescriptions ? 'Canyon' : (descriptionMap === sierra1500FeatureDescriptions ? 'Sierra 1500' : (descriptionMap === sierra2500FeatureDescriptions ? 'Sierra 2500' : (descriptionMap === sierra3500FeatureDescriptions ? 'Sierra 3500' : (descriptionMap === ct4FeatureDescriptions ? 'CT4' : (descriptionMap === ct4VSeriesFeatureDescriptions ? 'CT4 V-Series' : 'CT5')))));
+        if (!bestMatch && (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions)) {
+            var modelName = descriptionMap === window.canyonFeatureDescriptions ? 'Canyon' : (descriptionMap === window.sierra1500FeatureDescriptions ? 'Sierra 1500' : (descriptionMap === window.sierra2500FeatureDescriptions ? 'Sierra 2500' : (descriptionMap === window.sierra3500FeatureDescriptions ? 'Sierra 3500' : (descriptionMap === window.ct4FeatureDescriptions ? 'CT4' : (descriptionMap === window.ct4VSeriesFeatureDescriptions ? 'CT4 V-Series' : 'CT5')))));
             console.log('🔍 Trying partial word matching for ' + modelName + ' feature:', correctedFeature);
             var featureWords = correctedFeature.split(' ').filter(function(w) { return w.length > 3; });
             
@@ -1234,7 +1234,7 @@ jQuery(document).ready(function($) {
     }
 
     // Load GMC Terrain feature descriptions from CSV
-    var terrainFeatureDescriptions = {};
+    window.window.terrainFeatureDescriptions = {};
     function loadTerrainFeatureDescriptions() {
         var csvUrl = 'https://hutchinsonautoteam.com/gmcmodels/gmcterraindescriptions.csv';
         console.log('🔥 TERRAIN DESCRIPTIONS - Loading GMC Terrain descriptions from:', csvUrl);
@@ -1243,7 +1243,7 @@ jQuery(document).ready(function($) {
             console.log('First 500 characters of CSV:', csvText.substring(0, 500));
             
             // Parse the CSV - handle {FEATURE:DESCRIPTION} format
-            terrainFeatureDescriptions = {};
+            window.terrainFeatureDescriptions = {};
             
             // The CSV format is: {FEATURE :DESCRIPTION}
             // Split by } to get each feature block
@@ -1266,7 +1266,7 @@ jQuery(document).ready(function($) {
                         // Clean up the description
                         description = description.replace(/^"|"$/g, '');
                         
-                        terrainFeatureDescriptions[feature] = description;
+                        window.terrainFeatureDescriptions[feature] = description;
                         console.log('✅ Terrain feature stored:', feature, '=', description.substring(0, 100));
                     } else {
                         console.log('⚠️ Could not parse terrain block (no colon found):', block.substring(0, 100));
@@ -1274,22 +1274,22 @@ jQuery(document).ready(function($) {
                 }
             }
             
-            console.log('GMC Terrain Feature Descriptions loaded, features:', Object.keys(terrainFeatureDescriptions).length);
-            console.log('Sample features loaded:', Object.keys(terrainFeatureDescriptions).slice(0, 5));
-            console.log('All terrain features loaded:', Object.keys(terrainFeatureDescriptions));
-            if (Object.keys(terrainFeatureDescriptions).length === 0) {
+            console.log.*window.terrainFeatureDescriptions).length);
+            console.log.*window.terrainFeatureDescriptions).slice(0, 5));
+            console.log.*window.terrainFeatureDescriptions));
+            if (Object.keys(window.terrainFeatureDescriptions).length === 0) {
                 console.warn('No GMC Terrain descriptions were parsed from CSV');
             } else {
                 console.log('SUCCESS: GMC Terrain descriptions loaded successfully!');
             }
         }).catch(function(error) {
             console.error('Fetch error for GMC Terrain Feature Descriptions:', error.message);
-            terrainFeatureDescriptions = {};
+            window.terrainFeatureDescriptions = {};
         });
     }
 
     // Load GMC Acadia feature descriptions from CSV
-    var acadiaFeatureDescriptions = {};
+    window.window.acadiaFeatureDescriptions = {};
     function loadAcadiaFeatureDescriptions() {
         var csvUrl = 'https://www.hutchinsonautoteam.com/gmcmodels/gmcacadiadescriptions.csv';
         console.log('🔥 ACADIA DESCRIPTIONS - Loading GMC Acadia descriptions from:', csvUrl);
@@ -1298,7 +1298,7 @@ jQuery(document).ready(function($) {
             console.log('First 500 characters of CSV:', csvText.substring(0, 500));
             
             // Parse the CSV - handle {FEATURE:DESCRIPTION} format
-            acadiaFeatureDescriptions = {};
+            window.acadiaFeatureDescriptions = {};
             
             // The CSV format is: {FEATURE :DESCRIPTION}
             // Split by } to get each feature block
@@ -1321,7 +1321,7 @@ jQuery(document).ready(function($) {
                         // Clean up the description
                         description = description.replace(/^"|"$/g, '');
                         
-                        acadiaFeatureDescriptions[feature] = description;
+                        window.acadiaFeatureDescriptions[feature] = description;
                         console.log('✅ Acadia feature stored:', feature, '=', description.substring(0, 100));
                     } else {
                         console.log('⚠️ Could not parse acadia block (no colon found):', block.substring(0, 100));
@@ -1329,22 +1329,22 @@ jQuery(document).ready(function($) {
                 }
             }
             
-            console.log('GMC Acadia Feature Descriptions loaded, features:', Object.keys(acadiaFeatureDescriptions).length);
-            console.log('Sample features loaded:', Object.keys(acadiaFeatureDescriptions).slice(0, 5));
-            console.log('All acadia features loaded:', Object.keys(acadiaFeatureDescriptions));
-            if (Object.keys(acadiaFeatureDescriptions).length === 0) {
+            console.log('GMC Acadia Feature Descriptions loaded, features:', Object.keys(window.acadiaFeatureDescriptions).length);
+            console.log('Sample features loaded:', Object.keys(window.acadiaFeatureDescriptions).slice(0, 5));
+            console.log('All acadia features loaded:', Object.keys(window.acadiaFeatureDescriptions));
+            if (Object.keys(window.acadiaFeatureDescriptions).length === 0) {
                 console.warn('No GMC Acadia descriptions were parsed from CSV');
             } else {
                 console.log('SUCCESS: GMC Acadia descriptions loaded successfully!');
             }
         }).catch(function(error) {
             console.error('Fetch error for GMC Acadia Feature Descriptions:', error.message);
-            acadiaFeatureDescriptions = {};
+            window.acadiaFeatureDescriptions = {};
         });
     }
 
     // Load GMC Yukon feature descriptions from CSV
-    var yukonFeatureDescriptions = {};
+    window.window.yukonFeatureDescriptions = {};
     function loadYukonFeatureDescriptions() {
         var csvUrl = 'https://hutchinsonautoteam.com/gmcmodels/gmcyukondescriptions.csv';
         console.log('🔥 YUKON DESCRIPTIONS - Loading GMC Yukon descriptions from:', csvUrl);
@@ -1353,7 +1353,7 @@ jQuery(document).ready(function($) {
             console.log('First 500 characters of CSV:', csvText.substring(0, 500));
             
             // Parse the CSV - handle complex format with curly braces and colon separators
-            yukonFeatureDescriptions = {};
+            window.yukonFeatureDescriptions = {};
             
             // Split by lines and process each line
             var lines = csvText.split('\n').filter(function(line) { return line.trim(); });
@@ -1367,7 +1367,7 @@ jQuery(document).ready(function($) {
                         var description = match[2].trim();
                         
                         // Store with case-insensitive key for matching
-                        yukonFeatureDescriptions[feature.toUpperCase()] = description;
+                        window.yukonFeatureDescriptions[feature.toUpperCase()] = description;
                         console.log('Loaded GMC Yukon description for:', feature);
                     } else {
                         console.warn('Could not parse yukon description line:', line.substring(0, 100));
@@ -1377,40 +1377,40 @@ jQuery(document).ready(function($) {
                 }
             });
             
-            console.log('GMC Yukon Feature Descriptions loaded, features:', Object.keys(yukonFeatureDescriptions).length);
-            console.log('Sample features loaded:', Object.keys(yukonFeatureDescriptions).slice(0, 5));
-            console.log('All yukon features loaded:', Object.keys(yukonFeatureDescriptions));
-            if (Object.keys(yukonFeatureDescriptions).length === 0) {
+            console.log('GMC Yukon Feature Descriptions loaded, features:', Object.keys(window.yukonFeatureDescriptions).length);
+            console.log('Sample features loaded:', Object.keys(window.yukonFeatureDescriptions).slice(0, 5));
+            console.log('All yukon features loaded:', Object.keys(window.yukonFeatureDescriptions));
+            if (Object.keys(window.yukonFeatureDescriptions).length === 0) {
                 console.warn('No GMC Yukon descriptions were parsed from CSV');
             } else {
                 console.log('SUCCESS: GMC Yukon descriptions loaded successfully!');
             }
         }).catch(function(error) {
             console.error('Fetch error for GMC Yukon Feature Descriptions:', error.message);
-            yukonFeatureDescriptions = {};
+            window.yukonFeatureDescriptions = {};
         });
     }
 
     // Global variable for Canyon feature descriptions
-    var canyonFeatureDescriptions = {};
+    window.canyonFeatureDescriptions = {};
     
     // Global variable for Sierra 1500 feature descriptions
-    var sierra1500FeatureDescriptions = {};
+    window.sierra1500FeatureDescriptions = {};
     
     // Global variable for Sierra 2500 feature descriptions
-    var sierra2500FeatureDescriptions = {};
+    window.sierra2500FeatureDescriptions = {};
     
     // Global variable for Sierra 3500 feature descriptions
-    var sierra3500FeatureDescriptions = {};
+    window.window.sierra3500FeatureDescriptions = {};
     
     // Global variable for Cadillac CT4 feature descriptions
-    var ct4FeatureDescriptions = {};
+    window.window.ct4FeatureDescriptions = {};
     
     // Global variable for Cadillac CT4 V-Series feature descriptions
-    var ct4VSeriesFeatureDescriptions = {};
+    window.window.ct4VSeriesFeatureDescriptions = {};
     
     // Global variable for Cadillac CT5 feature descriptions
-    var ct5FeatureDescriptions = {};
+    window.ct5FeatureDescriptions = {};
     
     // Load Canyon feature descriptions
     function loadCanyonFeatureDescriptions() {
@@ -1429,7 +1429,7 @@ jQuery(document).ready(function($) {
             console.log('Raw Canyon descriptions CSV length:', csvText.length);
             console.log('Raw Canyon descriptions CSV preview (first 500 chars):', csvText.substring(0, 500));
             
-            canyonFeatureDescriptions = {};
+            window.canyonFeatureDescriptions = {};
             
             // Parse CSV text line by line
             var lines = csvText.split('\n');
@@ -1450,7 +1450,7 @@ jQuery(document).ready(function($) {
                             var description = content.substring(colonIndex + 1).trim();
                             
                             if (feature && description) {
-                                canyonFeatureDescriptions[feature.toUpperCase()] = description;
+                                window.canyonFeatureDescriptions[feature.toUpperCase()] = description;
                                 console.log('Added Canyon description:', feature.toUpperCase(), '=', description.substring(0, 100) + '...');
                             }
                         }
@@ -1458,10 +1458,10 @@ jQuery(document).ready(function($) {
                 }
             });
             
-            console.log('Parsed Canyon feature descriptions:', canyonFeatureDescriptions);
-            console.log('Total Canyon descriptions loaded:', Object.keys(canyonFeatureDescriptions).length);
+            console.log('Parsed Canyon feature descriptions:', window.canyonFeatureDescriptions);
+            console.log('Total Canyon descriptions loaded:', Object.keys(window.canyonFeatureDescriptions).length);
             
-            if (Object.keys(canyonFeatureDescriptions).length === 0) {
+            if (Object.keys(window.canyonFeatureDescriptions).length === 0) {
                 console.warn('WARNING: No Canyon feature descriptions loaded!');
                 console.warn('Sample lines from Canyon descriptions CSV:');
                 lines.slice(0, 5).forEach(function(line, index) {
@@ -1469,11 +1469,11 @@ jQuery(document).ready(function($) {
                 });
             } else {
                 console.log('SUCCESS: GMC Canyon descriptions loaded successfully!');
-                console.log('First few Canyon descriptions:', Object.keys(canyonFeatureDescriptions).slice(0, 5));
+                console.log('First few Canyon descriptions:', Object.keys(window.canyonFeatureDescriptions).slice(0, 5));
             }
         }).catch(function(error) {
             console.error('Fetch error for GMC Canyon Feature Descriptions:', error.message);
-            canyonFeatureDescriptions = {};
+            window.canyonFeatureDescriptions = {};
         });
     }
 
@@ -1494,7 +1494,7 @@ jQuery(document).ready(function($) {
             console.log('Raw Sierra 1500 descriptions CSV length:', csvText.length);
             console.log('Raw Sierra 1500 descriptions CSV preview (first 500 chars):', csvText.substring(0, 500));
             
-            sierra1500FeatureDescriptions = {};
+            window.sierra1500FeatureDescriptions = {};
             
             // Parse CSV text line by line
             var lines = csvText.split('\n');
@@ -1515,7 +1515,7 @@ jQuery(document).ready(function($) {
                             var description = content.substring(colonIndex + 1).trim();
                             
                             if (feature && description) {
-                                sierra1500FeatureDescriptions[feature.toUpperCase()] = description;
+                                window.sierra1500FeatureDescriptions[feature.toUpperCase()] = description;
                                 console.log('Added Sierra 1500 description:', feature.toUpperCase(), '=', description.substring(0, 100) + '...');
                             }
                         }
@@ -1523,10 +1523,10 @@ jQuery(document).ready(function($) {
                 }
             });
             
-            console.log('Parsed Sierra 1500 feature descriptions:', sierra1500FeatureDescriptions);
-            console.log('Total Sierra 1500 descriptions loaded:', Object.keys(sierra1500FeatureDescriptions).length);
+            console.log('Parsed Sierra 1500 feature descriptions:', window.sierra1500FeatureDescriptions);
+            console.log('Total Sierra 1500 descriptions loaded:', Object.keys(window.sierra1500FeatureDescriptions).length);
             
-            if (Object.keys(sierra1500FeatureDescriptions).length === 0) {
+            if (Object.keys(window.sierra1500FeatureDescriptions).length === 0) {
                 console.warn('WARNING: No Sierra 1500 feature descriptions loaded!');
                 console.warn('Sample lines from Sierra 1500 descriptions CSV:');
                 lines.slice(0, 5).forEach(function(line, index) {
@@ -1534,11 +1534,11 @@ jQuery(document).ready(function($) {
                 });
             } else {
                 console.log('SUCCESS: GMC Sierra 1500 descriptions loaded successfully!');
-                console.log('First few Sierra 1500 descriptions:', Object.keys(sierra1500FeatureDescriptions).slice(0, 5));
+                console.log('First few Sierra 1500 descriptions:', Object.keys(window.sierra1500FeatureDescriptions).slice(0, 5));
             }
         }).catch(function(error) {
             console.error('Fetch error for GMC Sierra 1500 Feature Descriptions:', error.message);
-            sierra1500FeatureDescriptions = {};
+            window.sierra1500FeatureDescriptions = {};
         });
     }
 
@@ -1559,7 +1559,7 @@ jQuery(document).ready(function($) {
             console.log('Raw Sierra 2500 descriptions CSV length:', csvText.length);
             console.log('Raw Sierra 2500 descriptions CSV preview (first 500 chars):', csvText.substring(0, 500));
             
-            sierra2500FeatureDescriptions = {};
+            window.sierra2500FeatureDescriptions = {};
             
             // Parse CSV text line by line
             var lines = csvText.split('\n');
@@ -1580,7 +1580,7 @@ jQuery(document).ready(function($) {
                             var description = content.substring(colonIndex + 1).trim();
                             
                             if (feature && description) {
-                                sierra2500FeatureDescriptions[feature.toUpperCase()] = description;
+                                window.sierra2500FeatureDescriptions[feature.toUpperCase()] = description;
                                 console.log('Added Sierra 2500 description:', feature.toUpperCase(), '=', description.substring(0, 100) + '...');
                             }
                         }
@@ -1588,10 +1588,10 @@ jQuery(document).ready(function($) {
                 }
             });
             
-            console.log('Parsed Sierra 2500 feature descriptions:', sierra2500FeatureDescriptions);
-            console.log('Total Sierra 2500 descriptions loaded:', Object.keys(sierra2500FeatureDescriptions).length);
+            console.log('Parsed Sierra 2500 feature descriptions:', window.sierra2500FeatureDescriptions);
+            console.log('Total Sierra 2500 descriptions loaded:', Object.keys(window.sierra2500FeatureDescriptions).length);
             
-            if (Object.keys(sierra2500FeatureDescriptions).length === 0) {
+            if (Object.keys(window.sierra2500FeatureDescriptions).length === 0) {
                 console.warn('WARNING: No Sierra 2500 feature descriptions loaded!');
                 console.warn('Sample lines from Sierra 2500 descriptions CSV:');
                 lines.slice(0, 5).forEach(function(line, index) {
@@ -1599,11 +1599,11 @@ jQuery(document).ready(function($) {
                 });
             } else {
                 console.log('SUCCESS: GMC Sierra 2500 descriptions loaded successfully!');
-                console.log('First few Sierra 2500 descriptions:', Object.keys(sierra2500FeatureDescriptions).slice(0, 5));
+                console.log('First few Sierra 2500 descriptions:', Object.keys(window.sierra2500FeatureDescriptions).slice(0, 5));
             }
         }).catch(function(error) {
             console.error('Fetch error for GMC Sierra 2500 Feature Descriptions:', error.message);
-            sierra2500FeatureDescriptions = {};
+            window.sierra2500FeatureDescriptions = {};
         });
     }
 
@@ -1624,7 +1624,7 @@ jQuery(document).ready(function($) {
             console.log('Raw Sierra 3500 descriptions CSV length:', csvText.length);
             console.log('Raw Sierra 3500 descriptions CSV preview (first 500 chars):', csvText.substring(0, 500));
             
-            sierra3500FeatureDescriptions = {};
+            window.sierra3500FeatureDescriptions = {};
             
             // Parse CSV text line by line
             var lines = csvText.split('\n');
@@ -1645,7 +1645,7 @@ jQuery(document).ready(function($) {
                             var description = content.substring(colonIndex + 1).trim();
                             
                             if (feature && description) {
-                                sierra3500FeatureDescriptions[feature.toUpperCase()] = description;
+                                window.sierra3500FeatureDescriptions[feature.toUpperCase()] = description;
                                 console.log('Added Sierra 3500 description:', feature.toUpperCase(), '=', description.substring(0, 100) + '...');
                             }
                         }
@@ -1653,10 +1653,10 @@ jQuery(document).ready(function($) {
                 }
             });
             
-            console.log('Parsed Sierra 3500 feature descriptions:', sierra3500FeatureDescriptions);
-            console.log('Total Sierra 3500 descriptions loaded:', Object.keys(sierra3500FeatureDescriptions).length);
+            console.log('Parsed Sierra 3500 feature descriptions:', window.sierra3500FeatureDescriptions);
+            console.log('Total Sierra 3500 descriptions loaded:', Object.keys(window.sierra3500FeatureDescriptions).length);
             
-            if (Object.keys(sierra3500FeatureDescriptions).length === 0) {
+            if (Object.keys(window.sierra3500FeatureDescriptions).length === 0) {
                 console.warn('WARNING: No Sierra 3500 feature descriptions loaded!');
                 console.warn('Sample lines from Sierra 3500 descriptions CSV:');
                 lines.slice(0, 5).forEach(function(line, index) {
@@ -1664,11 +1664,11 @@ jQuery(document).ready(function($) {
                 });
             } else {
                 console.log('SUCCESS: GMC Sierra 3500 descriptions loaded successfully!');
-                console.log('First few Sierra 3500 descriptions:', Object.keys(sierra3500FeatureDescriptions).slice(0, 5));
+                console.log('First few Sierra 3500 descriptions:', Object.keys(window.sierra3500FeatureDescriptions).slice(0, 5));
             }
         }).catch(function(error) {
             console.error('Fetch error for GMC Sierra 3500 Feature Descriptions:', error.message);
-            sierra3500FeatureDescriptions = {};
+            window.sierra3500FeatureDescriptions = {};
         });
     }
 
@@ -1689,7 +1689,7 @@ jQuery(document).ready(function($) {
             console.log('Raw CT4 descriptions CSV length:', csvText.length);
             console.log('Raw CT4 descriptions CSV preview (first 500 chars):', csvText.substring(0, 500));
             
-            ct4FeatureDescriptions = {};
+            window.ct4FeatureDescriptions = {};
             
             // Parse CSV text line by line
             var lines = csvText.split('\n');
@@ -1710,7 +1710,7 @@ jQuery(document).ready(function($) {
                             var description = content.substring(colonIndex + 1).trim();
                             
                             if (feature && description) {
-                                ct4FeatureDescriptions[feature.toUpperCase()] = description;
+                                window.ct4FeatureDescriptions[feature.toUpperCase()] = description;
                                 console.log('Added CT4 description:', feature.toUpperCase(), '=', description.substring(0, 100) + '...');
                             }
                         }
@@ -1718,10 +1718,10 @@ jQuery(document).ready(function($) {
                 }
             });
             
-            console.log('Parsed CT4 feature descriptions:', ct4FeatureDescriptions);
-            console.log('Total CT4 descriptions loaded:', Object.keys(ct4FeatureDescriptions).length);
+            console.log('Parsed CT4 feature descriptions:', window.ct4FeatureDescriptions);
+            console.log('Total CT4 descriptions loaded:', Object.keys(window.ct4FeatureDescriptions).length);
             
-            if (Object.keys(ct4FeatureDescriptions).length === 0) {
+            if (Object.keys(window.ct4FeatureDescriptions).length === 0) {
                 console.warn('WARNING: No CT4 feature descriptions loaded!');
                 console.warn('Sample lines from CT4 descriptions CSV:');
                 lines.slice(0, 5).forEach(function(line, index) {
@@ -1729,11 +1729,11 @@ jQuery(document).ready(function($) {
                 });
             } else {
                 console.log('SUCCESS: Cadillac CT4 descriptions loaded successfully!');
-                console.log('First few CT4 descriptions:', Object.keys(ct4FeatureDescriptions).slice(0, 5));
+                console.log('First few CT4 descriptions:', Object.keys(window.ct4FeatureDescriptions).slice(0, 5));
             }
         }).catch(function(error) {
             console.error('Fetch error for Cadillac CT4 Feature Descriptions:', error.message);
-            ct4FeatureDescriptions = {};
+            window.ct4FeatureDescriptions = {};
         });
     }
 
@@ -1754,7 +1754,7 @@ jQuery(document).ready(function($) {
             console.log('Raw CT4 V-Series descriptions CSV length:', csvText.length);
             console.log('Raw CT4 V-Series descriptions CSV preview (first 500 chars):', csvText.substring(0, 500));
             
-            ct4VSeriesFeatureDescriptions = {};
+            window.ct4VSeriesFeatureDescriptions = {};
             
             // Parse CSV text line by line
             var lines = csvText.split('\n');
@@ -1775,7 +1775,7 @@ jQuery(document).ready(function($) {
                             var description = content.substring(colonIndex + 1).trim();
                             
                             if (feature && description) {
-                                ct4VSeriesFeatureDescriptions[feature.toUpperCase()] = description;
+                                window.ct4VSeriesFeatureDescriptions[feature.toUpperCase()] = description;
                                 console.log('Added CT4 V-Series description:', feature.toUpperCase(), '=', description.substring(0, 100) + '...');
                             }
                         }
@@ -1783,10 +1783,10 @@ jQuery(document).ready(function($) {
                 }
             });
             
-            console.log('Parsed CT4 V-Series feature descriptions:', ct4VSeriesFeatureDescriptions);
-            console.log('Total CT4 V-Series descriptions loaded:', Object.keys(ct4VSeriesFeatureDescriptions).length);
+            console.log('Parsed CT4 V-Series feature descriptions:', window.ct4VSeriesFeatureDescriptions);
+            console.log('Total CT4 V-Series descriptions loaded:', Object.keys(window.ct4VSeriesFeatureDescriptions).length);
             
-            if (Object.keys(ct4VSeriesFeatureDescriptions).length === 0) {
+            if (Object.keys(window.ct4VSeriesFeatureDescriptions).length === 0) {
                 console.warn('WARNING: No CT4 V-Series feature descriptions loaded!');
                 console.warn('Sample lines from CT4 V-Series descriptions CSV:');
                 lines.slice(0, 5).forEach(function(line, index) {
@@ -1794,7 +1794,7 @@ jQuery(document).ready(function($) {
                 });
             } else {
                 console.log('SUCCESS: Cadillac CT4 V-Series descriptions loaded successfully!');
-                console.log('First few CT4 V-Series descriptions:', Object.keys(ct4VSeriesFeatureDescriptions).slice(0, 5));
+                console.log('First few CT4 V-Series descriptions:', Object.keys(window.ct4VSeriesFeatureDescriptions).slice(0, 5));
                 
                 // Create backup after successful loading
                 setTimeout(function() {
@@ -1803,7 +1803,7 @@ jQuery(document).ready(function($) {
             }
         }).catch(function(error) {
             console.error('Fetch error for Cadillac CT4 V-Series Feature Descriptions:', error.message);
-            ct4VSeriesFeatureDescriptions = {};
+            window.ct4VSeriesFeatureDescriptions = {};
         });
     }
     
@@ -1824,7 +1824,7 @@ jQuery(document).ready(function($) {
             console.log('Raw CT5 descriptions CSV length:', csvText.length);
             console.log('Raw CT5 descriptions CSV preview (first 500 chars):', csvText.substring(0, 500));
             
-            ct5FeatureDescriptions = {};
+            window.ct5FeatureDescriptions = {};
             
             // Parse CSV text line by line
             var lines = csvText.split('\n');
@@ -1846,7 +1846,7 @@ jQuery(document).ready(function($) {
                             
                             if (feature && description) {
                                 var featureUpper = feature.toUpperCase();
-                                ct5FeatureDescriptions[featureUpper] = description;
+                                window.ct5FeatureDescriptions[featureUpper] = description;
                                 console.log('Added CT5 description:', featureUpper, '=', description.substring(0, 100) + '...');
                                 
                                 // Special debug for SUPER CRUISE 1PACKAGE
@@ -1859,16 +1859,16 @@ jQuery(document).ready(function($) {
                 }
             });
             
-            console.log('Parsed CT5 feature descriptions:', ct5FeatureDescriptions);
-            console.log('Total CT5 descriptions loaded:', Object.keys(ct5FeatureDescriptions).length);
+            console.log('Parsed CT5 feature descriptions:', window.ct5FeatureDescriptions);
+            console.log('Total CT5 descriptions loaded:', Object.keys(window.ct5FeatureDescriptions).length);
             
             // Special check for SUPER CRUISE 1PACKAGE
-            console.log('🚨 SUPER CRUISE 1PACKAGE CHECK:', ct5FeatureDescriptions.hasOwnProperty('SUPER CRUISE 1PACKAGE'));
-            if (ct5FeatureDescriptions.hasOwnProperty('SUPER CRUISE 1PACKAGE')) {
-                console.log('🚨 SUPER CRUISE 1PACKAGE VALUE:', ct5FeatureDescriptions['SUPER CRUISE 1PACKAGE']);
+            console.log('🚨 SUPER CRUISE 1PACKAGE CHECK:', window.ct5FeatureDescriptions.hasOwnProperty('SUPER CRUISE 1PACKAGE'));
+            if (window.ct5FeatureDescriptions.hasOwnProperty('SUPER CRUISE 1PACKAGE')) {
+                console.log('🚨 SUPER CRUISE 1PACKAGE VALUE:', window.ct5FeatureDescriptions['SUPER CRUISE 1PACKAGE']);
             }
             
-            if (Object.keys(ct5FeatureDescriptions).length === 0) {
+            if (Object.keys(window.ct5FeatureDescriptions).length === 0) {
                 console.warn('WARNING: No CT5 feature descriptions loaded!');
                 console.warn('Sample lines from CT5 descriptions CSV:');
                 lines.slice(0, 5).forEach(function(line, index) {
@@ -1876,7 +1876,7 @@ jQuery(document).ready(function($) {
                 });
             } else {
                 console.log('SUCCESS: Cadillac CT5 descriptions loaded successfully at:', new Date().toISOString());
-                console.log('First few CT5 descriptions:', Object.keys(ct5FeatureDescriptions).slice(0, 5));
+                console.log('First few CT5 descriptions:', Object.keys(window.ct5FeatureDescriptions).slice(0, 5));
                 
                 // Create backup after successful loading
                 setTimeout(function() {
@@ -1885,7 +1885,7 @@ jQuery(document).ready(function($) {
             }
         }).catch(function(error) {
             console.error('Fetch error for Cadillac CT5 Feature Descriptions:', error.message);
-            ct5FeatureDescriptions = {};
+            window.ct5FeatureDescriptions = {};
         });
     }
 
@@ -1893,14 +1893,14 @@ jQuery(document).ready(function($) {
     function backupDescriptions() {
         try {
             // Backup CT5 descriptions
-            if (typeof ct5FeatureDescriptions !== 'undefined' && Object.keys(ct5FeatureDescriptions).length > 0) {
-                window.ct5DescriptionsBackup = JSON.parse(JSON.stringify(ct5FeatureDescriptions));
+            if (typeof window.ct5FeatureDescriptions !== 'undefined' && Object.keys(window.ct5FeatureDescriptions).length > 0) {
+                window.ct5DescriptionsBackup = JSON.parse(JSON.stringify(window.ct5FeatureDescriptions));
                 console.log('✅ CT5 descriptions backed up:', Object.keys(window.ct5DescriptionsBackup).length, 'entries');
             }
             
             // Backup CT4 V-Series descriptions
-            if (typeof ct4VSeriesFeatureDescriptions !== 'undefined' && Object.keys(ct4VSeriesFeatureDescriptions).length > 0) {
-                window.ct4VSeriesDescriptionsBackup = JSON.parse(JSON.stringify(ct4VSeriesFeatureDescriptions));
+            if (typeof window.ct4VSeriesFeatureDescriptions !== 'undefined' && Object.keys(window.ct4VSeriesFeatureDescriptions).length > 0) {
+                window.ct4VSeriesDescriptionsBackup = JSON.parse(JSON.stringify(window.ct4VSeriesFeatureDescriptions));
                 console.log('✅ CT4 V-Series descriptions backed up:', Object.keys(window.ct4VSeriesDescriptionsBackup).length, 'entries');
             }
             
@@ -2450,15 +2450,15 @@ jQuery(document).ready(function($) {
         
         switch(modelPrefix.toLowerCase()) {
             case 'terrain':
-                featureDescriptions = terrainFeatureDescriptions;
+                featureDescriptions = window.terrainFeatureDescriptions;
                 modelName = 'Terrain';
                 break;
             case 'acadia':
-                featureDescriptions = acadiaFeatureDescriptions;
+                featureDescriptions = window.acadiaFeatureDescriptions;
                 modelName = 'Acadia';
                 break;
             case 'yukon':
-                featureDescriptions = yukonFeatureDescriptions;
+                featureDescriptions = window.yukonFeatureDescriptions;
                 modelName = 'Yukon';
                 break;
             case 'canyon':
@@ -2474,16 +2474,16 @@ jQuery(document).ready(function($) {
                 modelName = 'Sierra 2500';
                 break;
             case 'sierra3500':
-                featureDescriptions = sierra3500FeatureDescriptions;
+                featureDescriptions = window.sierra3500FeatureDescriptions;
                 modelName = 'Sierra 3500';
                 break;
             case 'ct4':
-                featureDescriptions = ct4FeatureDescriptions;
+                featureDescriptions = window.ct4FeatureDescriptions;
                 modelName = 'CT4';
                 break;
             case 'ct4vseries':
             case 'ct4v':
-                featureDescriptions = ct4VSeriesFeatureDescriptions;
+                featureDescriptions = window.ct4VSeriesFeatureDescriptions;
                 modelName = 'CT4 V-Series';
                 break;
             case 'ct5':
@@ -10727,9 +10727,9 @@ function initFormBindings() {
                 
                 // Debug description objects before creating popup
                 console.log('📖 DESCRIPTIONS BEFORE TRIM POPUP:');
-                if (typeof ct4VSeriesFeatureDescriptions !== 'undefined') {
-                    console.log('  - CT4 V-Series descriptions count:', Object.keys(ct4VSeriesFeatureDescriptions).length);
-                    console.log('  - Sample CT4 V-Series description:', Object.keys(ct4VSeriesFeatureDescriptions)[0]);
+                if (typeof window.ct4VSeriesFeatureDescriptions !== 'undefined') {
+                    console.log('  - CT4 V-Series descriptions count:', Object.keys(window.ct4VSeriesFeatureDescriptions).length);
+                    console.log('  - Sample CT4 V-Series description:', Object.keys(window.ct4VSeriesFeatureDescriptions)[0]);
                 }
                 if (typeof featureDescriptions !== 'undefined') {
                     console.log('  - Kia descriptions count:', Object.keys(featureDescriptions).length);
@@ -12522,7 +12522,7 @@ window.testSierra2500Debug = function() {
     // Check feature descriptions
     console.log('Feature descriptions loaded:');
     console.log('  - Sierra 2500:', typeof sierra2500FeatureDescriptions !== 'undefined' ? Object.keys(sierra2500FeatureDescriptions).length : 0);
-    console.log('  - Sierra 3500:', typeof sierra3500FeatureDescriptions !== 'undefined' ? Object.keys(sierra3500FeatureDescriptions).length : 0);
+    console.log('  - Sierra 3500:', typeof window.sierra3500FeatureDescriptions !== 'undefined' ? Object.keys(window.sierra3500FeatureDescriptions).length : 0);
     
     return {
         fieldExists: htmlBlock.length > 0,
@@ -12710,13 +12710,13 @@ function getBulletproofDescription(feature) {
     
     // Special handling for CT5 - if descriptions aren't loaded yet, try to use backup or reload them
     if (featureUpper.includes('SUPER CRUISE') || featureUpper.includes('CT5')) {
-        if (typeof ct5FeatureDescriptions === 'undefined' || Object.keys(ct5FeatureDescriptions).length === 0) {
+        if (typeof window.ct5FeatureDescriptions === 'undefined' || Object.keys(window.ct5FeatureDescriptions).length === 0) {
             console.log('🚨 CT5 descriptions not loaded, checking backup and attempting reload...');
             
             // Try to use backup if available
             if (typeof window.ct5DescriptionsBackup !== 'undefined' && Object.keys(window.ct5DescriptionsBackup).length > 0) {
                 console.log('🚨 Using CT5 descriptions backup with', Object.keys(window.ct5DescriptionsBackup).length, 'entries');
-                ct5FeatureDescriptions = window.ct5DescriptionsBackup;
+                window.ct5FeatureDescriptions = window.ct5DescriptionsBackup;
             } else {
                 console.log('🚨 No CT5 backup available, reloading descriptions...');
                 loadCT5FeatureDescriptions();
@@ -12727,32 +12727,32 @@ function getBulletproofDescription(feature) {
     
     // STEP 1: Try all description objects with direct lookup
     var allDescriptionSources = [
-        typeof ct5FeatureDescriptions !== 'undefined' ? ct5FeatureDescriptions : {},
-        typeof ct4VSeriesFeatureDescriptions !== 'undefined' ? ct4VSeriesFeatureDescriptions : {},
-        typeof ct4FeatureDescriptions !== 'undefined' ? ct4FeatureDescriptions : {},
-        typeof terrainFeatureDescriptions !== 'undefined' ? terrainFeatureDescriptions : {},
-        typeof acadiaFeatureDescriptions !== 'undefined' ? acadiaFeatureDescriptions : {},
-        typeof yukonFeatureDescriptions !== 'undefined' ? yukonFeatureDescriptions : {},
-        typeof canyonFeatureDescriptions !== 'undefined' ? canyonFeatureDescriptions : {},
-        typeof sierra1500FeatureDescriptions !== 'undefined' ? sierra1500FeatureDescriptions : {},
-        typeof sierra2500FeatureDescriptions !== 'undefined' ? sierra2500FeatureDescriptions : {},
-        typeof sierra3500FeatureDescriptions !== 'undefined' ? sierra3500FeatureDescriptions : {},
+        typeof window.ct5FeatureDescriptions !== 'undefined' ? window.ct5FeatureDescriptions : {},
+        typeof window.ct4VSeriesFeatureDescriptions !== 'undefined' ? window.ct4VSeriesFeatureDescriptions : {},
+        typeof window.ct4FeatureDescriptions !== 'undefined' ? window.ct4FeatureDescriptions : {},
+        typeof window.terrainFeatureDescriptions !== 'undefined' ? window.terrainFeatureDescriptions : {},
+        typeof window.acadiaFeatureDescriptions !== 'undefined' ? window.acadiaFeatureDescriptions : {},
+        typeof window.yukonFeatureDescriptions !== 'undefined' ? window.yukonFeatureDescriptions : {},
+        typeof window.canyonFeatureDescriptions !== 'undefined' ? window.canyonFeatureDescriptions : {},
+        typeof window.sierra1500FeatureDescriptions !== 'undefined' ? window.sierra1500FeatureDescriptions : {},
+        typeof window.sierra2500FeatureDescriptions !== 'undefined' ? window.sierra2500FeatureDescriptions : {},
+        typeof window.sierra3500FeatureDescriptions !== 'undefined' ? window.sierra3500FeatureDescriptions : {},
         typeof featureDescriptions !== 'undefined' ? featureDescriptions : {}
     ];
     
     // DEBUG: Log the state of CT5 descriptions
-    console.log('🔍 BULLETPROOF DEBUG: ct5FeatureDescriptions exists?', typeof ct5FeatureDescriptions !== 'undefined');
-    console.log('🔍 BULLETPROOF DEBUG: ct5FeatureDescriptions keys count:', typeof ct5FeatureDescriptions !== 'undefined' ? Object.keys(ct5FeatureDescriptions).length : 0);
-    if (typeof ct5FeatureDescriptions !== 'undefined' && Object.keys(ct5FeatureDescriptions).length > 0) {
-        console.log('🔍 BULLETPROOF DEBUG: ct5FeatureDescriptions sample keys:', Object.keys(ct5FeatureDescriptions).slice(0, 5));
-        console.log('🔍 BULLETPROOF DEBUG: Looking for exact key:', featureUpper, 'in ct5FeatureDescriptions:', ct5FeatureDescriptions.hasOwnProperty(featureUpper));
+    console.log('🔍 BULLETPROOF DEBUG: ct5FeatureDescriptions exists?', typeof window.ct5FeatureDescriptions !== 'undefined');
+    console.log('🔍 BULLETPROOF DEBUG: ct5FeatureDescriptions keys count:', typeof window.ct5FeatureDescriptions !== 'undefined' ? Object.keys(window.ct5FeatureDescriptions).length : 0);
+    if (typeof window.ct5FeatureDescriptions !== 'undefined' && Object.keys(window.ct5FeatureDescriptions).length > 0) {
+        console.log('🔍 BULLETPROOF DEBUG: ct5FeatureDescriptions sample keys:', Object.keys(window.ct5FeatureDescriptions).slice(0, 5));
+        console.log('🔍 BULLETPROOF DEBUG: Looking for exact key:', featureUpper, 'in ct5FeatureDescriptions:', window.ct5FeatureDescriptions.hasOwnProperty(featureUpper));
         
         // Special debug for SUPER CRUISE
         if (featureUpper.includes('SUPER CRUISE')) {
             console.log('🚨 SUPER CRUISE DEBUG: All CT5 keys containing SUPER CRUISE:');
-            Object.keys(ct5FeatureDescriptions).forEach(function(key) {
+            Object.keys(window.ct5FeatureDescriptions).forEach(function(key) {
                 if (key.includes('SUPER CRUISE')) {
-                    console.log('🚨 Found CT5 key:', key, '=', ct5FeatureDescriptions[key].substring(0, 100) + '...');
+                    console.log('🚨 Found CT5 key:', key, '=', window.ct5FeatureDescriptions[key].substring(0, 100) + '...');
                 }
             });
         }
