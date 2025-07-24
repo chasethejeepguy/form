@@ -1305,7 +1305,7 @@ jQuery(document).ready(function($) {
     }
 
     // Load GMC Yukon feature descriptions from CSV
-    window.window.yukonFeatureDescriptions = {};
+    window.yukonFeatureDescriptions = {};
     function loadYukonFeatureDescriptions() {
         var csvUrl = 'https://hutchinsonautoteam.com/gmcmodels/gmcyukondescriptions.csv';
         console.log('🔥 YUKON DESCRIPTIONS - Loading GMC Yukon descriptions from:', csvUrl);
@@ -2551,7 +2551,7 @@ jQuery(document).ready(function($) {
                 modelName = 'Yukon';
                 break;
             case 'canyon':
-                featureDescriptions = canyonFeatureDescriptions;
+                featureDescriptions = window.canyonFeatureDescriptions;
                 modelName = 'Canyon';
                 break;
             case 'sierra1500':
@@ -3865,8 +3865,16 @@ function populateSierra2500Features() {
     console.log('Form ID:', formId);
     console.log('sierra2500HtmlBlockFieldId:', sierra2500HtmlBlockFieldId);
     
-    if (sierra2500Populated) {
-        console.log('Sierra 2500 features already populated, skipping');
+    // Check if already populated by flag or by DOM content
+    var htmlBlock = $('#field_' + formId + '_' + sierra2500HtmlBlockFieldId);
+    if (!htmlBlock.length) {
+        htmlBlock = $('#field_' + formId + '_142');
+    }
+    
+    var hasExistingFeatures = htmlBlock.find('.sierra2500-features, [id*="sierra2500_feature_"]').length > 0;
+    
+    if (sierra2500Populated || hasExistingFeatures) {
+        console.log('Sierra 2500 features already populated, skipping (flag:', sierra2500Populated, ', DOM check:', hasExistingFeatures, ')');
         return;
     }
 
@@ -3878,15 +3886,11 @@ function populateSierra2500Features() {
     }
     console.log('Sierra 2500 config found:', config);
 
-    // Try multiple selectors to find the HTML block field
+    // Try additional selectors to find the HTML block field if not found yet
     console.log('Searching for HTML block field with multiple selectors...');
-    var htmlBlock = $('#field_' + formId + '_' + sierra2500HtmlBlockFieldId);
-    console.log('Selector 1 (#field_' + formId + '_' + sierra2500HtmlBlockFieldId + '):', htmlBlock.length);
+    console.log('Current htmlBlock length:', htmlBlock.length);
     
-    if (!htmlBlock.length) {
-        htmlBlock = $('#field_' + formId + '_142');
-        console.log('Selector 2 (#field_' + formId + '_142):', htmlBlock.length);
-    }
+    // htmlBlock was already set in the population check above, only search if not found
     if (!htmlBlock.length) {
         htmlBlock = $('#input_' + formId + '_142');
         console.log('Selector 3 (#input_' + formId + '_142):', htmlBlock.length);
@@ -4042,7 +4046,7 @@ function populateSierra2500Features() {
                     console.warn('🔧 Appending checkboxes to existing HTML content to preserve trim walks and other functionality');
                     
                     // Remove any existing sierra 2500 feature content to avoid duplicates
-                    htmlBlock.find('.sierra2500-features, .feature-groups[data-model="sierra2500"]').remove();
+                    htmlBlock.find('.sierra2500-features, .feature-groups[data-model="sierra2500"], .feature-columns[data-model="sierra2500"], [class*="sierra2500_feature_"], [id*="sierra2500_feature_"]').remove();
                     
                     // Append the new checkboxes while preserving existing content
                     var wrappedHtml = `<div class="sierra2500-features" data-model="sierra2500">${html}</div>`;
@@ -4099,8 +4103,16 @@ function populateSierra3500Features() {
     console.log('Form ID:', formId);
     console.log('sierra3500HtmlBlockFieldId:', sierra3500HtmlBlockFieldId);
     
-    if (sierra3500Populated) {
-        console.log('Sierra 3500 features already populated, skipping');
+    // Check if already populated by flag or by DOM content
+    var htmlBlock = $('#field_' + formId + '_' + sierra3500HtmlBlockFieldId);
+    if (!htmlBlock.length) {
+        htmlBlock = $('#field_' + formId + '_144');
+    }
+    
+    var hasExistingFeatures = htmlBlock.find('.sierra3500-features, [id*="sierra3500_feature_"]').length > 0;
+    
+    if (sierra3500Populated || hasExistingFeatures) {
+        console.log('Sierra 3500 features already populated, skipping (flag:', sierra3500Populated, ', DOM check:', hasExistingFeatures, ')');
         return;
     }
 
@@ -4112,15 +4124,10 @@ function populateSierra3500Features() {
     }
     console.log('Sierra 3500 config found:', config);
 
-    // Try multiple selectors to find the HTML block field
+    // Try additional selectors to find the HTML block field if not found yet
     console.log('Searching for HTML block field with multiple selectors...');
-    var htmlBlock = $('#field_' + formId + '_' + sierra3500HtmlBlockFieldId);
-    console.log('Selector 1 (#field_' + formId + '_' + sierra3500HtmlBlockFieldId + '):', htmlBlock.length);
+    console.log('Current htmlBlock length:', htmlBlock.length);
     
-    if (!htmlBlock.length) {
-        htmlBlock = $('#field_' + formId + '_144');
-        console.log('Selector 2 (#field_' + formId + '_144):', htmlBlock.length);
-    }
     if (!htmlBlock.length) {
         htmlBlock = $('#input_' + formId + '_144');
         console.log('Selector 3 (#input_' + formId + '_144):', htmlBlock.length);
@@ -4276,7 +4283,7 @@ function populateSierra3500Features() {
                     console.warn('🔧 Appending checkboxes to existing HTML content to preserve trim walks and other functionality');
                     
                     // Remove any existing sierra 3500 feature content to avoid duplicates
-                    htmlBlock.find('.sierra3500-features, .feature-groups[data-model="sierra3500"]').remove();
+                    htmlBlock.find('.sierra3500-features, .feature-groups[data-model="sierra3500"], .feature-columns[data-model="sierra3500"], [class*="sierra3500_feature_"], [id*="sierra3500_feature_"]').remove();
                     
                     // Append the new checkboxes while preserving existing content
                     var wrappedHtml = `<div class="sierra3500-features" data-model="sierra3500">${html}</div>`;
