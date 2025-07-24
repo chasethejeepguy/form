@@ -10279,24 +10279,41 @@ function initFormBindings() {
                         var possibleTrimLevels = ['PRO', 'SLE', 'SLT', 'AT4', 'AT4X', 'DENALI', 'DENALI ULTIMATE', 'ELEVATION', 'SPORT', 'PREMIUM LUXURY', 'V-SERIES', 'LUXURY', 'PREMIUM'];
                         var replaced = false;
                         
-                        // FIXED: Replace ALL existing trim levels, not just the first one found
-                        var trimLevelsFound = [];
-                        for (var i = 0; i < possibleTrimLevels.length; i++) {
-                            var possibleTrim = possibleTrimLevels[i];
-                            if (possibleTrim !== trimLevel && updatedContent.indexOf(possibleTrim) !== -1) {
-                                trimLevelsFound.push(possibleTrim);
-                                replaced = true;
-                            }
-                        }
+                        // SIMPLE FIX: Find the entire trim levels section and replace it with single trim level
+                        // Look for pattern: "word1, word2, word3 would be the best fit"
+                        var trimSectionPattern = /([A-Z0-9][A-Z0-9\s]*(?:,\s*[A-Z0-9][A-Z0-9\s]*)*)\s+would be the best fit/i;
+                        var match = updatedContent.match(trimSectionPattern);
                         
-                        // Replace all found trim levels with the new single trim level
-                        if (trimLevelsFound.length > 0) {
-                            // Create a pattern that matches any of the found trim levels
-                            var trimPattern = trimLevelsFound.join('|');
-                            // Also match common separators and conjunctions around trim levels
-                            var fullPattern = '(?:' + trimPattern + ')(?:\\s*,\\s*(?:' + trimPattern + '))*(?:\\s*(?:,\\s*)?(?:and\\s+)?(?:' + trimPattern + '))?';
-                            updatedContent = updatedContent.replace(new RegExp(fullPattern, 'gi'), trimLevel);
-                            console.log('🔄 Replaced existing trim levels [' + trimLevelsFound.join(', ') + '] with "' + trimLevel + '"');
+                        if (match) {
+                            // Replace the entire trim levels section with just the new trim level
+                            var fullMatch = match[0];
+                            var replacement = trimLevel + ' would be the best fit';
+                            updatedContent = updatedContent.replace(fullMatch, replacement);
+                            replaced = true;
+                            console.log('🔄 Replaced entire trim section "' + match[1] + '" with "' + trimLevel + '"');
+                        } else {
+                            // Fallback: Try to find and replace individual trim levels
+                            var trimLevelsFound = [];
+                            for (var i = 0; i < possibleTrimLevels.length; i++) {
+                                var possibleTrim = possibleTrimLevels[i];
+                                if (possibleTrim !== trimLevel && updatedContent.indexOf(possibleTrim) !== -1) {
+                                    trimLevelsFound.push(possibleTrim);
+                                    replaced = true;
+                                }
+                            }
+                            
+                            if (trimLevelsFound.length > 0) {
+                                // Sort by length (longest first) to avoid partial matches
+                                trimLevelsFound.sort(function(a, b) { return b.length - a.length; });
+                                
+                                // Replace each trim level with word boundaries
+                                for (var j = 0; j < trimLevelsFound.length; j++) {
+                                    var trimToReplace = trimLevelsFound[j];
+                                    var wordBoundaryPattern = '\\b' + trimToReplace.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b';
+                                    updatedContent = updatedContent.replace(new RegExp(wordBoundaryPattern, 'g'), trimLevel);
+                                }
+                                console.log('🔄 Fallback: Replaced trim levels [' + trimLevelsFound.join(', ') + '] with "' + trimLevel + '"');
+                            }
                         }
                         
                         if (!replaced) {
