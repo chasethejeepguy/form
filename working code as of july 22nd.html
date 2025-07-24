@@ -8599,6 +8599,21 @@ function processCT5TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
                 checked: $input.is(':checked'),
                 labelText: $input.next('label').text().substring(0, 100)
             });
+        } else if (model === 'SIERRA 3500' || model === 'SIERRA 3500HD') {
+            // For SIERRA 3500/3500HD, get feature from the global mapping using the checkbox value
+            var checkboxValue = $input.attr('value') || '';
+            feature = window.sierra3500FeatureMap && window.sierra3500FeatureMap[checkboxValue] ? window.sierra3500FeatureMap[checkboxValue] : '';
+            // No need to unescape since we're not storing escaped values anymore
+            
+            console.log('SIERRA 3500 checkbox debug:', {
+                id: $input.attr('id'),
+                checkboxValue: checkboxValue,
+                mappedFeature: feature,
+                featureLength: feature.length,
+                name: $input.attr('name'),
+                checked: $input.is(':checked'),
+                labelText: $input.next('label').text().substring(0, 100)
+            });
         } else if (model === 'ACADIA') {
             // For ACADIA, get feature from the global mapping using the checkbox value
             var checkboxValue = $input.attr('value') || '';
