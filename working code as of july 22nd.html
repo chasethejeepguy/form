@@ -8252,6 +8252,57 @@ function processCT5TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
             // Sierra 2500 features already have their icons from initial HTML building, so skip them entirely
             console.log('Skipping Sierra 2500 feature icon addition since Sierra 2500 already has styled icons from initial HTML building:', feature);
         });
+    } else if (model === 'SIERRA 3500' || model === 'SIERRA 3500HD') {
+        // For SIERRA 3500/3500HD, handle the different structure
+        checkboxField.find('.gchoice').each(function() {
+            var $div = $(this);
+            var $input = $div.find('input[type="checkbox"]');
+            var $label = $div.find('label');
+            var feature = $input.attr('value') || '';
+            
+            if (!feature || !$input.length) {
+                console.warn('Invalid SIERRA 3500 checkbox structure in field (ID: ' + sierra3500HtmlBlockFieldId + ')', {
+                    feature: feature,
+                    inputExists: $input.length > 0,
+                    labelExists: $label.length > 0,
+                    divHtml: $div.html(),
+                    inputId: $input.attr('id'),
+                    labelClasses: $label.attr('class'),
+                    parentClasses: $div.attr('class')
+                });
+                return;
+            }
+            
+            // Sierra 3500 features already have their icons from initial HTML building, so skip them entirely
+            console.log('Skipping Sierra 3500 feature icon addition since Sierra 3500 already has styled icons from initial HTML building:', feature);
+        });
+    } else if (model === 'CT4') {
+        // For CT4, features already have their icons from initial HTML building, so skip them entirely
+        checkboxField.find('.gchoice').each(function() {
+            var $div = $(this);
+            var $input = $div.find('input[type="checkbox"]');
+            var feature = $input.attr('value') || '';
+            
+            console.log('Skipping CT4 feature icon addition since CT4 already has styled icons from initial HTML building:', feature);
+        });
+    } else if (model === 'CT4 V-SERIES') {
+        // For CT4 V-SERIES, features already have their icons from initial HTML building, so skip them entirely
+        checkboxField.find('.gchoice').each(function() {
+            var $div = $(this);
+            var $input = $div.find('input[type="checkbox"]');
+            var feature = $input.attr('value') || '';
+            
+            console.log('Skipping CT4 V-SERIES feature icon addition since CT4 V-SERIES already has styled icons from initial HTML building:', feature);
+        });
+    } else if (model === 'CT5') {
+        // For CT5, features already have their icons from initial HTML building, so skip them entirely
+        checkboxField.find('.gchoice').each(function() {
+            var $div = $(this);
+            var $input = $div.find('input[type="checkbox"]');
+            var feature = $input.attr('value') || '';
+            
+            console.log('Skipping CT5 feature icon addition since CT5 already has styled icons from initial HTML building:', feature);
+        });
     } else {
         // For other models, use existing logic
         checkboxField.find('.gfield_checkbox > div, .gfield-choice-wrapper').each(function() {
@@ -10777,57 +10828,56 @@ function initFormBindings() {
                     { key: 'WindowSticker', label: 'Window Sticker' }
                 ];
 
-                var tableHtml = `
-                    <div class="trim-table-container">
-                        <table class="trim-table" id="trimLevelsTable">
-                            <thead>
-                                <tr>' +
-                                columns.map(function(col, index) {
-                                    return '<th data-column="' + index + '">' + col.label + '<span class="sort-arrow"></span></th>';
-                                }).join('') +
-                                '</tr>
-                            </thead>
-                            <tbody>' +
-                            filteredVehicles.map(function(vehicle, index) {
-                                var dealerId = vehicle['DealerId'] ? vehicle['DealerId'].trim() : 'N/A';
-                                var dealerName = dealerId;
-                                var viewOnlineUrl = '#';
-                                var windowStickerUrl = '#';
-                                var stockNumber = vehicle['Stock #'] ? vehicle['Stock #'].trim() : 'N/A';
-                                if (dealerId === 'MP18519') {
-                                    dealerName = 'Kia of Macon';
-                                    viewOnlineUrl = 'https://www.kiaofmacon.com/new-vehicles/?q=' + encodeURIComponent(vehicle['VIN'] || '');
-                                    windowStickerUrl = 'https://www.kiaofmacon.com/dealer-inspire-inventory/window-stickers/kia?vin=' + encodeURIComponent(vehicle['VIN'] || '');
-                                } else if (dealerId === 'MP19913') {
-                                    dealerName = 'Kia of Albany';
-                                    viewOnlineUrl = 'https://www.hutchinsonkiaofalbany.com/new-vehicles/?q=' + encodeURIComponent(vehicle['VIN'] || '');
-                                    windowStickerUrl = 'https://www.hutchinsonkiaofalbany.com/dealer-inspire-inventory/window-stickers/kia?vin=' + encodeURIComponent(vehicle['VIN'] || '');
-                                } else if (dealerId === 'MP18517') {
-                                    dealerName = 'Hutchinson GMC Cadillac';
-                                    viewOnlineUrl = vehicle['Make'].toLowerCase() === 'cadillac'
-                                        ? 'https://www.hutchinsoncadillac.com/new-vehicles/?q=' + encodeURIComponent(vehicle['VIN'] || '')
-                                        : 'https://www.hutchinsongmc.com/new-vehicles/?q=' + encodeURIComponent(vehicle['VIN'] || '');
-                                    windowStickerUrl = 'https://cws.gm.com/vs-cws/vehshop/v2/vehicle/windowsticker?vin=' + encodeURIComponent(vehicle['VIN'] || '');
-                                }
-                                return '<tr>' +
-                                    columns.map(function(col) {
-                                        if (col.key === 'DealerId') {
-                                            return '<td>' + dealerName + '</td>';
-                                        } else if (col.key === 'ViewOnline') {
-                                            return '<td><a href="' + viewOnlineUrl + '" target="_blank">View Vehicle Online</a></td>';
-                                        } else if (col.key === 'WindowSticker') {
-                                            return '<td><a href="' + windowStickerUrl + '" target="_blank">Window Sticker</a></td>';
-                                        } else if (col.key === 'Stock #') {
-                                            return '<td>' + stockNumber + ' <a href="#" class="copy-stock-link" data-stock="' + stockNumber + '" data-index="' + index + '">Copy Stock #</a></td>';
-                                        } else {
-                                            return '<td>' + (vehicle[col.key] ? vehicle[col.key].trim() : 'N/A') + '</td>';
-                                        }
-                                    }).join('') +
-                                    '</tr>';
+                var tableHtml = '<div class="trim-table-container">' +
+                    '<table class="trim-table" id="trimLevelsTable">' +
+                        '<thead>' +
+                            '<tr>' +
+                            columns.map(function(col, index) {
+                                return '<th data-column="' + index + '">' + col.label + '<span class="sort-arrow"></span></th>';
                             }).join('') +
-                            '</tbody>
-                        </table>
-                    </div>`;
+                            '</tr>' +
+                        '</thead>' +
+                        '<tbody>' +
+                        filteredVehicles.map(function(vehicle, index) {
+                            var dealerId = vehicle['DealerId'] ? vehicle['DealerId'].trim() : 'N/A';
+                            var dealerName = dealerId;
+                            var viewOnlineUrl = '#';
+                            var windowStickerUrl = '#';
+                            var stockNumber = vehicle['Stock #'] ? vehicle['Stock #'].trim() : 'N/A';
+                            if (dealerId === 'MP18519') {
+                                dealerName = 'Kia of Macon';
+                                viewOnlineUrl = 'https://www.kiaofmacon.com/new-vehicles/?q=' + encodeURIComponent(vehicle['VIN'] || '');
+                                windowStickerUrl = 'https://www.kiaofmacon.com/dealer-inspire-inventory/window-stickers/kia?vin=' + encodeURIComponent(vehicle['VIN'] || '');
+                            } else if (dealerId === 'MP19913') {
+                                dealerName = 'Kia of Albany';
+                                viewOnlineUrl = 'https://www.hutchinsonkiaofalbany.com/new-vehicles/?q=' + encodeURIComponent(vehicle['VIN'] || '');
+                                windowStickerUrl = 'https://www.hutchinsonkiaofalbany.com/dealer-inspire-inventory/window-stickers/kia?vin=' + encodeURIComponent(vehicle['VIN'] || '');
+                            } else if (dealerId === 'MP18517') {
+                                dealerName = 'Hutchinson GMC Cadillac';
+                                viewOnlineUrl = vehicle['Make'].toLowerCase() === 'cadillac'
+                                    ? 'https://www.hutchinsoncadillac.com/new-vehicles/?q=' + encodeURIComponent(vehicle['VIN'] || '')
+                                    : 'https://www.hutchinsongmc.com/new-vehicles/?q=' + encodeURIComponent(vehicle['VIN'] || '');
+                                windowStickerUrl = 'https://cws.gm.com/vs-cws/vehshop/v2/vehicle/windowsticker?vin=' + encodeURIComponent(vehicle['VIN'] || '');
+                            }
+                            return '<tr>' +
+                                columns.map(function(col) {
+                                    if (col.key === 'DealerId') {
+                                        return '<td>' + dealerName + '</td>';
+                                    } else if (col.key === 'ViewOnline') {
+                                        return '<td><a href="' + viewOnlineUrl + '" target="_blank">View Vehicle Online</a></td>';
+                                    } else if (col.key === 'WindowSticker') {
+                                        return '<td><a href="' + windowStickerUrl + '" target="_blank">Window Sticker</a></td>';
+                                    } else if (col.key === 'Stock #') {
+                                        return '<td>' + stockNumber + ' <a href="#" class="copy-stock-link" data-stock="' + stockNumber + '" data-index="' + index + '">Copy Stock #</a></td>';
+                                    } else {
+                                        return '<td>' + (vehicle[col.key] ? vehicle[col.key].trim() : 'N/A') + '</td>';
+                                    }
+                                }).join('') +
+                                '</tr>';
+                        }).join('') +
+                        '</tbody>' +
+                    '</table>' +
+                '</div>';
 
                 var popupHtml = `
                     <div id="trimLevelsPopup">
@@ -12929,19 +12979,39 @@ function getModelDescriptionMap(model) {
 
     // Utility function to set up collapsible group functionality for any model
     function setupCollapsibleGroups(htmlBlock, modelName) {
-        // Set up collapsible group functionality
-        htmlBlock.find('.feature-group-toggle').off('click.toggleGroup').on('click.toggleGroup', function(e) {
+        console.log('🔧 Setting up collapsible groups for ' + modelName);
+        
+        // Remove any existing event handlers to prevent conflicts
+        htmlBlock.find('.feature-group-toggle').off('click');
+        
+        // Set up collapsible group functionality with proper event handling
+        htmlBlock.find('.feature-group-toggle').on('click', function(e) {
             e.preventDefault();
-            var groupId = $(this).data('group');
-            var content = $('#' + groupId);
-            var arrow = $(this).find('.toggle-arrow');
+            e.stopPropagation();
             
+            var $button = $(this);
+            var groupId = $button.data('group');
+            var content = $('#' + groupId);
+            var arrow = $button.find('.toggle-arrow');
+            
+            console.log('🔧 Collapsible button clicked for group:', groupId);
+            
+            if (content.length === 0) {
+                console.error('🔧 Collapsible content not found for group:', groupId);
+                return;
+            }
+            
+            // Toggle the content
             if (content.is(':visible')) {
-                content.slideUp(200);
-                arrow.text('▼');
+                content.slideUp(200, function() {
+                    arrow.text('▼');
+                    console.log('🔧 Collapsed group:', groupId);
+                });
             } else {
-                content.slideDown(200);
-                arrow.text('▲');
+                content.slideDown(200, function() {
+                    arrow.text('▲');
+                    console.log('🔧 Expanded group:', groupId);
+                });
             }
         });
 
@@ -12952,7 +13022,7 @@ function getModelDescriptionMap(model) {
             updateTrimLevels(modelName);
         });
         
-        console.log('✅ Collapsible groups set up for ' + modelName);
+        console.log('✅ Collapsible groups set up for ' + modelName + ' - found ' + htmlBlock.find('.feature-group-toggle').length + ' toggle buttons');
     }
 
     console.log('✅ Clean feature description handler set up successfully');
