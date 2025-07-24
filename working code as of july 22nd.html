@@ -13019,7 +13019,9 @@ function getModelDescriptionMap(model) {
         var eventName = 'change.' + modelName.replace(/\s+/g, '') + 'CollapsibleFeatures';
         htmlBlock.find('.feature-group-content input[type="checkbox"]').off(eventName).on(eventName, function() {
             console.log(modelName + ' collapsible checkbox changed, updating trim levels');
-            updateTrimLevels(modelName);
+            // Convert model name to lowercase for updateTrimLevels function
+            var lowercaseModelName = modelName.toLowerCase().replace(/\s+/g, '').replace(/-/g, '');
+            updateTrimLevels(lowercaseModelName);
         });
         
         console.log('✅ Collapsible groups set up for ' + modelName + ' - found ' + htmlBlock.find('.feature-group-toggle').length + ' toggle buttons');
