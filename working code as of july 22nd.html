@@ -1421,8 +1421,7 @@ jQuery(document).ready(function($) {
     // Global description registry - automatically populated for all models
     window.modelDescriptions = {};
     
-    // Global description backup registry
-    window.modelDescriptionsBackup = {};
+    // Removed backup system - using only real descriptions from CSV files
     
     // Description URL mapping for all models (automatically extensible)
     window.descriptionUrlMap = {
@@ -1502,12 +1501,7 @@ jQuery(document).ready(function($) {
             console.log('✅ SUCCESS:', modelName, 'descriptions loaded:', Object.keys(window.modelDescriptions[modelName]).length, 'entries');
             console.log('First few', modelName, 'descriptions:', Object.keys(window.modelDescriptions[modelName]).slice(0, 3));
             
-            // Create backup
-            if (!window.modelDescriptionsBackup[modelName]) {
-                window.modelDescriptionsBackup[modelName] = {};
-            }
-            window.modelDescriptionsBackup[modelName] = JSON.parse(JSON.stringify(window.modelDescriptions[modelName]));
-            console.log('✅ BACKUP: Created backup for', modelName, 'with', Object.keys(window.modelDescriptionsBackup[modelName]).length, 'entries');
+            // No backup system - using only real descriptions from CSV files
             
             return window.modelDescriptions[modelName];
         })
@@ -1989,7 +1983,6 @@ jQuery(document).ready(function($) {
                 
                 // Create backup after successful loading
                 setTimeout(function() {
-                    backupDescriptions();
                 }, 100);
             }
         }).catch(function(error) {
@@ -2071,7 +2064,6 @@ jQuery(document).ready(function($) {
                 
                 // Create backup after successful loading
                 setTimeout(function() {
-                    backupDescriptions();
                 }, 100);
             }
         }).catch(function(error) {
@@ -2080,26 +2072,7 @@ jQuery(document).ready(function($) {
         });
     }
 
-    // Backup descriptions function
-    function backupDescriptions() {
-        try {
-            // Backup CT5 descriptions
-            if (typeof window.ct5FeatureDescriptions !== 'undefined' && Object.keys(window.ct5FeatureDescriptions).length > 0) {
-                window.ct5DescriptionsBackup = JSON.parse(JSON.stringify(window.ct5FeatureDescriptions));
-                console.log('✅ CT5 descriptions backed up:', Object.keys(window.ct5DescriptionsBackup).length, 'entries');
-            }
-            
-            // Backup CT4 V-Series descriptions
-            if (typeof window.ct4VSeriesFeatureDescriptions !== 'undefined' && Object.keys(window.ct4VSeriesFeatureDescriptions).length > 0) {
-                window.ct4VSeriesDescriptionsBackup = JSON.parse(JSON.stringify(window.ct4VSeriesFeatureDescriptions));
-                console.log('✅ CT4 V-Series descriptions backed up:', Object.keys(window.ct4VSeriesDescriptionsBackup).length, 'entries');
-            }
-            
-            console.log('✅ All descriptions backed up successfully');
-        } catch (error) {
-            console.error('❌ Error backing up descriptions:', error);
-        }
-    }
+    // Removed backup system - using only real descriptions from CSV files
 
     // Fuzzy matching function with exact matching for K4 and validation
     function fuzzyMatch(str1, str2, model, feature) {
@@ -2697,7 +2670,7 @@ jQuery(document).ready(function($) {
             if (!feature) return;
             
             console.log('🚀 BULLETPROOF (Trim Walk - ' + modelName + '): Feature icon clicked:', feature);
-            var description = getBulletproofDescription(feature);
+            var description = getFeatureDescription(feature);
             showFeatureDescription(feature, description);
         });
         
@@ -3664,7 +3637,7 @@ jQuery(document).ready(function($) {
                     if (!feature) return;
                     
                     console.log('🚀 BULLETPROOF (Terrain): Feature icon clicked:', feature);
-                    var description = getBulletproofDescription(feature);
+                    var description = getFeatureDescription(feature);
                     showFeatureDescription(feature, description);
                 });
             },
@@ -3941,7 +3914,7 @@ function populateSierra1500Features() {
                     if (!feature) return;
                     
                     console.log('🚀 BULLETPROOF (Sierra 1500): Feature icon clicked:', feature);
-                    var description = getBulletproofDescription(feature);
+                    var description = getFeatureDescription(feature);
                     showFeatureDescription(feature, description);
                 });
             },
@@ -4155,7 +4128,7 @@ function populateSierra2500Features() {
                     if (!feature) return;
                     
                     console.log('🚀 BULLETPROOF (Sierra 2500): Feature icon clicked:', feature);
-                    var description = getBulletproofDescription(feature);
+                    var description = getFeatureDescription(feature);
                     showFeatureDescription(feature, description);
                 });
             },
@@ -4372,7 +4345,7 @@ function populateSierra3500Features() {
                     if (!feature) return;
                     
                     console.log('🚀 BULLETPROOF (Sierra 3500): Feature icon clicked:', feature);
-                    var description = getBulletproofDescription(feature);
+                    var description = getFeatureDescription(feature);
                     showFeatureDescription(feature, description);
                 });
             },
@@ -4611,7 +4584,7 @@ function populateCT4Features() {
                     if (!feature) return;
                     
                     console.log('🚀 BULLETPROOF (CT4): Feature icon clicked:', feature);
-                    var description = getBulletproofDescription(feature);
+                    var description = getFeatureDescription(feature);
                     showFeatureDescription(feature, description);
                 });
             },
@@ -4855,7 +4828,7 @@ function populateCT4VSeriesFeatures() {
                     if (!feature) return;
                     
                     console.log('🚀 BULLETPROOF (CT4 V-Series): Feature icon clicked:', feature);
-                    var description = getBulletproofDescription(feature);
+                    var description = getFeatureDescription(feature);
                     showFeatureDescription(feature, description);
                 });
             },
@@ -5094,7 +5067,7 @@ function populateCT5Features() {
                     if (!feature) return;
                     
                     console.log('🚀 BULLETPROOF (CT5): Feature icon clicked:', feature);
-                    var description = getBulletproofDescription(feature);
+                    var description = getFeatureDescription(feature);
                     showFeatureDescription(feature, description);
                 });
             },
@@ -5409,7 +5382,7 @@ function populateAcadiaFeatures() {
                     if (!feature) return;
                     
                     console.log('🚀 BULLETPROOF (Acadia): Feature icon clicked:', feature);
-                    var description = getBulletproofDescription(feature);
+                    var description = getFeatureDescription(feature);
                     showFeatureDescription(feature, description);
                 });
             },
@@ -5720,7 +5693,7 @@ function populateYukonFeatures() {
                     if (!feature) return;
                     
                     console.log('🚀 BULLETPROOF (Yukon): Feature icon clicked:', feature);
-                    var description = getBulletproofDescription(feature);
+                    var description = getFeatureDescription(feature);
                     showFeatureDescription(feature, description);
                 });
             },
@@ -6023,7 +5996,7 @@ function populateCanyonFeatures() {
                     if (!feature) return;
                     
                     console.log('🚀 BULLETPROOF (Canyon): Feature icon clicked:', feature);
-                    var description = getBulletproofDescription(feature);
+                    var description = getFeatureDescription(feature);
                     showFeatureDescription(feature, description);
                 });
             },
@@ -8368,7 +8341,7 @@ function processCT5TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
         if (!feature) return;
         
         console.log('🚀 BULLETPROOF (Checkbox Field - ' + model + '): Feature icon clicked:', feature);
-        var description = getBulletproofDescription(feature);
+        var description = getFeatureDescription(feature);
         showFeatureDescription(feature, description);
     });
 
@@ -12498,6 +12471,10 @@ function showVehicleInfo(isKiaField) {
     loadTerrainFeatureDescriptions();
     loadAcadiaFeatureDescriptions();
     loadYukonFeatureDescriptions();
+    // Load all model descriptions using the new centralized system
+    loadAllModelDescriptions();
+    
+    // Also load individual models for backward compatibility
     loadCanyonFeatureDescriptions();
     loadSierra1500FeatureDescriptions();
     loadSierra2500FeatureDescriptions();
@@ -12884,126 +12861,59 @@ $(document).on('click', '.feature-info-icon', function(e) {
     console.log('🚀 BULLETPROOF: Feature icon clicked:', feature);
     
     // BULLETPROOF DESCRIPTION LOOKUP - TRIES EVERYTHING
-    var description = getBulletproofDescription(feature);
+    var description = getFeatureDescription(feature);
     
     console.log('📖 BULLETPROOF: Showing description for:', feature);
     showFeatureDescription(feature, description);
 });
 
-// BULLETPROOF DESCRIPTION FUNCTION - NEVER FAILS
-function getBulletproofDescription(feature) {
-    var originalFeature = feature;
+// SIMPLE DESCRIPTION LOOKUP - Shows exactly what's in the CSV files
+function getFeatureDescription(feature) {
     var featureUpper = feature.toUpperCase();
     var description = null;
     
-    console.log('🔍 BULLETPROOF: Looking up description for:', featureUpper);
-    console.log('🔍 BULLETPROOF: Called at timestamp:', new Date().toISOString());
+    console.log('🔍 DESCRIPTION LOOKUP: Looking for:', featureUpper);
     
-    // Special handling for CT5 - if descriptions aren't loaded yet, try to use backup or reload them
-    if (featureUpper.includes('SUPER CRUISE') || featureUpper.includes('CT5')) {
-        if (typeof window.ct5FeatureDescriptions === 'undefined' || Object.keys(window.ct5FeatureDescriptions).length === 0) {
-            console.log('🚨 CT5 descriptions not loaded, checking backup and attempting reload...');
-            
-            // Try to use backup if available
-            if (typeof window.ct5DescriptionsBackup !== 'undefined' && Object.keys(window.ct5DescriptionsBackup).length > 0) {
-                console.log('🚨 Using CT5 descriptions backup with', Object.keys(window.ct5DescriptionsBackup).length, 'entries');
-                window.ct5FeatureDescriptions = window.ct5DescriptionsBackup;
-            } else {
-                console.log('🚨 No CT5 backup available, reloading descriptions...');
-                loadCT5FeatureDescriptions();
-                // For now, continue with existing logic, but this will help for future lookups
-            }
-        }
-    }
-    
-    // STEP 1: Try all description objects with direct lookup
+    // Try all description sources with direct lookup only
     var allDescriptionSources = [
-        typeof window.ct5FeatureDescriptions !== 'undefined' ? window.ct5FeatureDescriptions : {},
-        typeof window.ct4VSeriesFeatureDescriptions !== 'undefined' ? window.ct4VSeriesFeatureDescriptions : {},
-        typeof window.ct4FeatureDescriptions !== 'undefined' ? window.ct4FeatureDescriptions : {},
-        typeof window.terrainFeatureDescriptions !== 'undefined' ? window.terrainFeatureDescriptions : {},
-        typeof window.acadiaFeatureDescriptions !== 'undefined' ? window.acadiaFeatureDescriptions : {},
-        typeof window.yukonFeatureDescriptions !== 'undefined' ? window.yukonFeatureDescriptions : {},
-        typeof window.canyonFeatureDescriptions !== 'undefined' ? window.canyonFeatureDescriptions : {},
-        typeof window.sierra1500FeatureDescriptions !== 'undefined' ? window.sierra1500FeatureDescriptions : {},
-        typeof window.sierra2500FeatureDescriptions !== 'undefined' ? window.sierra2500FeatureDescriptions : {},
-        typeof window.sierra3500FeatureDescriptions !== 'undefined' ? window.sierra3500FeatureDescriptions : {},
-        typeof featureDescriptions !== 'undefined' ? featureDescriptions : {}
+        { name: 'CT5', data: typeof window.ct5FeatureDescriptions !== 'undefined' ? window.ct5FeatureDescriptions : {} },
+        { name: 'CT4 V-Series', data: typeof window.ct4VSeriesFeatureDescriptions !== 'undefined' ? window.ct4VSeriesFeatureDescriptions : {} },
+        { name: 'CT4', data: typeof window.ct4FeatureDescriptions !== 'undefined' ? window.ct4FeatureDescriptions : {} },
+        { name: 'Terrain', data: typeof window.terrainFeatureDescriptions !== 'undefined' ? window.terrainFeatureDescriptions : {} },
+        { name: 'Acadia', data: typeof window.acadiaFeatureDescriptions !== 'undefined' ? window.acadiaFeatureDescriptions : {} },
+        { name: 'Yukon', data: typeof window.yukonFeatureDescriptions !== 'undefined' ? window.yukonFeatureDescriptions : {} },
+        { name: 'Canyon', data: typeof window.canyonFeatureDescriptions !== 'undefined' ? window.canyonFeatureDescriptions : {} },
+        { name: 'Sierra 1500', data: typeof window.sierra1500FeatureDescriptions !== 'undefined' ? window.sierra1500FeatureDescriptions : {} },
+        { name: 'Sierra 2500', data: typeof window.sierra2500FeatureDescriptions !== 'undefined' ? window.sierra2500FeatureDescriptions : {} },
+        { name: 'Sierra 3500', data: typeof window.sierra3500FeatureDescriptions !== 'undefined' ? window.sierra3500FeatureDescriptions : {} },
+        { name: 'Kia Generic', data: typeof featureDescriptions !== 'undefined' ? featureDescriptions : {} }
     ];
+
     
-    // DEBUG: Log the state of CT5 descriptions
-    console.log('🔍 BULLETPROOF DEBUG: ct5FeatureDescriptions exists?', typeof window.ct5FeatureDescriptions !== 'undefined');
-    console.log('🔍 BULLETPROOF DEBUG: ct5FeatureDescriptions keys count:', typeof window.ct5FeatureDescriptions !== 'undefined' ? Object.keys(window.ct5FeatureDescriptions).length : 0);
-    if (typeof window.ct5FeatureDescriptions !== 'undefined' && Object.keys(window.ct5FeatureDescriptions).length > 0) {
-        console.log('🔍 BULLETPROOF DEBUG: ct5FeatureDescriptions sample keys:', Object.keys(window.ct5FeatureDescriptions).slice(0, 5));
-        console.log('🔍 BULLETPROOF DEBUG: Looking for exact key:', featureUpper, 'in ct5FeatureDescriptions:', window.ct5FeatureDescriptions.hasOwnProperty(featureUpper));
+    // Log the state of all description sources
+    allDescriptionSources.forEach(function(source, index) {
+        var keyCount = Object.keys(source.data).length;
+        console.log('🔍 Source', index, '(' + source.name + '):', keyCount, 'keys');
         
-        // Special debug for SUPER CRUISE
-        if (featureUpper.includes('SUPER CRUISE')) {
-            console.log('🚨 SUPER CRUISE DEBUG: All CT5 keys containing SUPER CRUISE:');
-            Object.keys(window.ct5FeatureDescriptions).forEach(function(key) {
-                if (key.includes('SUPER CRUISE')) {
-                    console.log('🚨 Found CT5 key:', key, '=', window.ct5FeatureDescriptions[key].substring(0, 100) + '...');
-                }
-            });
+        if (keyCount > 0 && source.data[featureUpper]) {
+            description = source.data[featureUpper];
+            console.log('✅ FOUND: Description in', source.name, 'for:', featureUpper);
+            console.log('📝 Description:', description.substring(0, 100) + '...');
+            return; // Exit the forEach early
         }
-    }
+    });
     
-    for (var i = 0; i < allDescriptionSources.length; i++) {
-        console.log('🔍 BULLETPROOF: Checking source', i, 'with', Object.keys(allDescriptionSources[i]).length, 'keys');
-        if (allDescriptionSources[i][featureUpper]) {
-            description = allDescriptionSources[i][featureUpper];
-            console.log('✅ BULLETPROOF: Direct match found in source', i);
-            return description;
-        }
-    }
-    
-    // STEP 2: Try fuzzy matching with VERY LOW threshold (0.2) on all sources
-    console.log('🔍 BULLETPROOF: No direct match, trying fuzzy matching...');
-    for (var j = 0; j < allDescriptionSources.length; j++) {
-        if (Object.keys(allDescriptionSources[j]).length > 0) {
-            description = bulletproofFuzzyMatch(featureUpper, allDescriptionSources[j]);
-            if (description) {
-                console.log('✅ BULLETPROOF: Fuzzy match found in source', j);
-                return description;
+    if (!description) {
+        console.log('❌ NOT FOUND: No description found for:', featureUpper);
+        console.log('🔍 Available keys in each source:');
+        allDescriptionSources.forEach(function(source, index) {
+            if (Object.keys(source.data).length > 0) {
+                console.log('  ' + source.name + ':', Object.keys(source.data).slice(0, 3).join(', ') + '...');
             }
-        }
+        });
+        return 'Description not available for: ' + feature;
     }
     
-    // STEP 3: Try common feature name variations
-    console.log('🔍 BULLETPROOF: No fuzzy match, trying variations...');
-    var variations = generateFeatureVariations(featureUpper);
-    for (var k = 0; k < variations.length; k++) {
-        for (var l = 0; l < allDescriptionSources.length; l++) {
-            if (allDescriptionSources[l][variations[k]]) {
-                description = allDescriptionSources[l][variations[k]];
-                console.log('✅ BULLETPROOF: Variation match found:', variations[k]);
-                return description;
-            }
-        }
-    }
-    
-    // STEP 4: Hardcoded fallbacks for specific features
-    console.log('🔍 BULLETPROOF: No variation match, checking hardcoded fallbacks...');
-    
-    // Hardcoded fallbacks for specific CT5 features
-    if (featureUpper === 'SUPER CRUISE 1PACKAGE') {
-        description = 'Experience hands-free driving with the Cadillac CT5\'s Super Cruise 1 Package, featuring Super Cruise technology and 3 Years of Super Cruise and Digital Services by OnStar for a connected, premium experience.';
-        console.log('✅ BULLETPROOF: Hardcoded fallback used for SUPER CRUISE 1PACKAGE');
-        return description;
-    }
-    
-    if (featureUpper === 'SUPER CRUISE STEERING WHEEL') {
-        description = 'Enhance hands-free driving with the Cadillac CT5\'s Super Cruise steering wheel, featuring a leather-wrapped design with a light bar for Super Cruise status (late availability).';
-        console.log('✅ BULLETPROOF: Hardcoded fallback used for SUPER CRUISE STEERING WHEEL');
-        return description;
-    }
-    
-    // STEP 5: Generate intelligent description based on feature name
-    console.log('🔍 BULLETPROOF: No hardcoded fallback, generating smart description...');
-    description = generateSmartDescription(originalFeature);
-    
-    console.log('✅ BULLETPROOF: Smart description generated');
     return description;
 }
 
