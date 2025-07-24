@@ -4037,33 +4037,47 @@ function populateSierra2500Features() {
                 } else {
                     console.warn('❌ No sierra 2500 placeholder found in HTML block!');
                     console.warn('📝 SOLUTION: Add {sierra 2500 feature checkboxes} to your HTML block field (ID 142)');
-                    console.warn('🔧 For now, replacing entire HTML block content with checkboxes');
-                    console.log('📋 HTML Block Content:', currentHtml);
-                    htmlBlock.html(html);
+                    
+                    // Instead of replacing entire content, append checkboxes after existing content
+                    console.warn('🔧 Appending checkboxes to existing HTML content to preserve trim walks and other functionality');
+                    
+                    // Remove any existing sierra 2500 feature content to avoid duplicates
+                    htmlBlock.find('.sierra2500-features, .feature-groups[data-model="sierra2500"]').remove();
+                    
+                    // Append the new checkboxes while preserving existing content
+                    var wrappedHtml = `<div class="sierra2500-features" data-model="sierra2500">${html}</div>`;
+                    htmlBlock.append(wrappedHtml);
+                    
+                    console.log('✅ Appended Sierra 2500 checkboxes while preserving existing HTML content');
                 }
 
                 sierra2500Populated = true;
                 console.log('Sierra 2500 features populated into 5 columns in field 142');
 
-                // Bind change events and add info icons
-                htmlBlock.find('input[type="checkbox"]').off('change.SIERRA2500Features').on('change.SIERRA2500Features', function() {
+                // Bind change events and add info icons - target the sierra2500-specific checkboxes
+                htmlBlock.find('.sierra2500-features input[type="checkbox"], input[type="checkbox"][id*="sierra2500"]').off('change.SIERRA2500Features').on('change.SIERRA2500Features', function() {
                     console.log('SIERRA 2500 checkbox changed, updating trim levels');
                     updateTrimLevels('sierra2500');
                 });
 
-                // Set up collapsible group functionality
-                setupCollapsibleGroups(htmlBlock, 'SIERRA 2500');
+                // Set up collapsible group functionality - target the sierra2500-specific container
+                var sierra2500Container = htmlBlock.find('.sierra2500-features');
+                if (sierra2500Container.length > 0) {
+                    setupCollapsibleGroups(sierra2500Container, 'SIERRA 2500');
+                } else {
+                    setupCollapsibleGroups(htmlBlock, 'SIERRA 2500');
+                }
 
-                // BULLETPROOF: Use global bulletproof handler instead of model-specific logic
-                htmlBlock.find('.feature-info-icon').off('click.featureInfo').on('click.featureInfo', function(e) {
+                // BULLETPROOF: Use global bulletproof handler instead of model-specific logic - target sierra2500-specific icons
+                htmlBlock.find('.sierra2500-features .feature-info-icon, .feature-info-icon[data-feature*="sierra2500"]').off('click.featureInfo').on('click.featureInfo', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     var feature = $(this).data('feature');
                     if (!feature) return;
                     
-                                    console.log('🚀 BULLETPROOF (Sierra 2500): Feature icon clicked:', feature);
-                var description = getFeatureDescription(feature, 'SIERRA 2500');
-                showFeatureDescription(feature, description);
+                    console.log('🚀 BULLETPROOF (Sierra 2500): Feature icon clicked:', feature);
+                    var description = getFeatureDescription(feature, 'SIERRA 2500');
+                    showFeatureDescription(feature, description);
                 });
             },
             error: function(error) {
@@ -4257,33 +4271,47 @@ function populateSierra3500Features() {
                 } else {
                     console.warn('❌ No sierra 3500 placeholder found in HTML block!');
                     console.warn('📝 SOLUTION: Add {sierra 3500 feature checkboxes} to your HTML block field (ID 144)');
-                    console.warn('🔧 For now, replacing entire HTML block content with checkboxes');
-                    console.log('📋 HTML Block Content:', currentHtml);
-                    htmlBlock.html(html);
+                    
+                    // Instead of replacing entire content, append checkboxes after existing content
+                    console.warn('🔧 Appending checkboxes to existing HTML content to preserve trim walks and other functionality');
+                    
+                    // Remove any existing sierra 3500 feature content to avoid duplicates
+                    htmlBlock.find('.sierra3500-features, .feature-groups[data-model="sierra3500"]').remove();
+                    
+                    // Append the new checkboxes while preserving existing content
+                    var wrappedHtml = `<div class="sierra3500-features" data-model="sierra3500">${html}</div>`;
+                    htmlBlock.append(wrappedHtml);
+                    
+                    console.log('✅ Appended Sierra 3500 checkboxes while preserving existing HTML content');
                 }
 
                 sierra3500Populated = true;
                 console.log('Sierra 3500 features populated into 5 columns in field 144');
 
-                // Bind change events and add info icons
-                htmlBlock.find('input[type="checkbox"]').off('change.SIERRA3500Features').on('change.SIERRA3500Features', function() {
+                // Bind change events and add info icons - target the sierra3500-specific checkboxes
+                htmlBlock.find('.sierra3500-features input[type="checkbox"], input[type="checkbox"][id*="sierra3500"]').off('change.SIERRA3500Features').on('change.SIERRA3500Features', function() {
                     console.log('SIERRA 3500 checkbox changed, updating trim levels');
                     updateTrimLevels('sierra3500');
                 });
 
-                // Set up collapsible group functionality
-                setupCollapsibleGroups(htmlBlock, 'SIERRA 3500');
+                // Set up collapsible group functionality - target the sierra3500-specific container
+                var sierra3500Container = htmlBlock.find('.sierra3500-features');
+                if (sierra3500Container.length > 0) {
+                    setupCollapsibleGroups(sierra3500Container, 'SIERRA 3500');
+                } else {
+                    setupCollapsibleGroups(htmlBlock, 'SIERRA 3500');
+                }
 
-                // BULLETPROOF: Use global bulletproof handler instead of model-specific logic
-                htmlBlock.find('.feature-info-icon').off('click.featureInfo').on('click.featureInfo', function(e) {
+                // BULLETPROOF: Use global bulletproof handler instead of model-specific logic - target sierra3500-specific icons
+                htmlBlock.find('.sierra3500-features .feature-info-icon, .feature-info-icon[data-feature*="sierra3500"]').off('click.featureInfo').on('click.featureInfo', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     var feature = $(this).data('feature');
                     if (!feature) return;
                     
-                                    console.log('🚀 BULLETPROOF (Sierra 3500): Feature icon clicked:', feature);
-                var description = getFeatureDescription(feature, 'SIERRA 3500');
-                showFeatureDescription(feature, description);
+                    console.log('🚀 BULLETPROOF (Sierra 3500): Feature icon clicked:', feature);
+                    var description = getFeatureDescription(feature, 'SIERRA 3500');
+                    showFeatureDescription(feature, description);
                 });
             },
             error: function(error) {
