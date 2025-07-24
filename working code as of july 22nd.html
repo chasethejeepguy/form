@@ -10265,8 +10265,33 @@ function initFormBindings() {
                 console.log('Current field 69 content:', currentContent);
                 
                 if (checkbox.is(':checked')) {
-                    // Replace {TRIM LEVELS} with the actual trim level
-                    var updatedContent = currentContent.replace(/{TRIM LEVELS}/g, trimLevel);
+                    // BULLETPROOF: Replace {TRIM LEVELS} OR any existing trim level with the new trim level
+                    var updatedContent = currentContent;
+                    
+                    // First, try to replace {TRIM LEVELS} placeholder
+                    if (updatedContent.indexOf('{TRIM LEVELS}') !== -1) {
+                        updatedContent = updatedContent.replace(/{TRIM LEVELS}/g, trimLevel);
+                    } else {
+                        // If no placeholder, find and replace any existing trim level
+                        // Get all possible trim levels for this model and replace any found
+                        var possibleTrimLevels = ['PRO', 'SLE', 'SLT', 'AT4', 'AT4X', 'DENALI', 'DENALI ULTIMATE', 'ELEVATION', 'SPORT', 'PREMIUM LUXURY', 'V-SERIES', 'LUXURY', 'PREMIUM'];
+                        var replaced = false;
+                        
+                        for (var i = 0; i < possibleTrimLevels.length; i++) {
+                            var possibleTrim = possibleTrimLevels[i];
+                            if (possibleTrim !== trimLevel && updatedContent.indexOf(possibleTrim) !== -1) {
+                                // Replace the found trim level with the new one
+                                updatedContent = updatedContent.replace(new RegExp(possibleTrim, 'g'), trimLevel);
+                                replaced = true;
+                                console.log('🔄 Replaced existing trim level "' + possibleTrim + '" with "' + trimLevel + '"');
+                                break;
+                            }
+                        }
+                        
+                        if (!replaced) {
+                            console.warn('⚠️ No {TRIM LEVELS} placeholder or existing trim level found to replace');
+                        }
+                    }
                     
                     // Update the content in the appropriate element
                     if (field69.find('p').length > 0) {
