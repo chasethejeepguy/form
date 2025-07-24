@@ -7772,27 +7772,30 @@ function processCT5TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
 			var foundInTrimLevel = false;
 			console.log('  🔎 Checking feature: ' + selectedFeature);
 			
-			// Check each category for this feature in this trim level
-			categories.forEach(function(category) {
-				if (trimLevelRowsByCategory[category] && trimLevelRowsByCategory[category][trimLevel]) {
-					var trimRow = trimLevelRowsByCategory[category][trimLevel];
-					var featureColumn = featureToColumnMap[selectedFeature];
+			// Get the correct category for this feature
+			var featureCategory = featureToCategoryMap[selectedFeature];
+			console.log('  📂 Feature belongs to category: ' + featureCategory);
+			
+			if (featureCategory && trimLevelRowsByCategory[featureCategory] && trimLevelRowsByCategory[featureCategory][trimLevel]) {
+				var trimRow = trimLevelRowsByCategory[featureCategory][trimLevel];
+				var featureColumn = featureToColumnMap[selectedFeature];
+				
+				if (featureColumn && trimRow[featureColumn]) {
+					var featureValue = trimRow[featureColumn].toUpperCase();
+					console.log('    📋 Category: ' + featureCategory + ', Column: ' + featureColumn + ', Value: ' + featureValue);
 					
-					if (featureColumn && trimRow[featureColumn]) {
-						var featureValue = trimRow[featureColumn].toUpperCase();
-						console.log('    📋 Category: ' + category + ', Column: ' + featureColumn + ', Value: ' + featureValue);
-						
-						if (featureValue === 'YES') {
-							foundInTrimLevel = true;
-							console.log('    ✅ FOUND YES for ' + selectedFeature + ' in ' + trimLevel + ' (' + category + ')');
-						} else {
-							console.log('    ❌ NO for ' + selectedFeature + ' in ' + trimLevel + ' (' + category + ')');
-						}
+					if (featureValue === 'YES') {
+						foundInTrimLevel = true;
+						console.log('    ✅ FOUND YES for ' + selectedFeature + ' in ' + trimLevel + ' (' + featureCategory + ')');
 					} else {
-						console.log('    ⚠️ Feature not found in category: ' + category + ' (column: ' + featureColumn + ')');
+						console.log('    ❌ NO for ' + selectedFeature + ' in ' + trimLevel + ' (' + featureCategory + ')');
 					}
+				} else {
+					console.log('    ⚠️ Feature not found in category: ' + featureCategory + ' (column: ' + featureColumn + ')');
 				}
-			});
+			} else {
+				console.log('    ❌ Category not found or no trim level data: ' + featureCategory);
+			}
 			
 			if (!foundInTrimLevel) {
 				hasAllFeatures = false;
