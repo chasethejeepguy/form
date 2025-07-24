@@ -3825,8 +3825,8 @@ function populateSierra1500Features() {
                 sierra1500Populated = true;
                 console.log('Sierra 1500 features populated into 5 columns in field 141');
 
-                // Bind change events and add info icons
-                htmlBlock.find('input[type="checkbox"]').off('change.SIERRA1500Features').on('change.SIERRA1500Features', function() {
+                // Bind change events and add info icons - target ONLY feature checkboxes, NOT trim walk checkboxes
+                htmlBlock.find('input[type="checkbox"][id*="sierra1500_feature_"]').not('.trim-level-checkbox').off('change.SIERRA1500Features').on('change.SIERRA1500Features', function() {
                     console.log('SIERRA 1500 checkbox changed, updating trim levels');
                     updateTrimLevels('sierra1500');
                 });
@@ -4079,8 +4079,8 @@ function populateSierra2500Features() {
                 // Clear the global population flag
                 window.sierra2500PopulationInProgress = false;
 
-                // Bind change events and add info icons - target the sierra2500-specific checkboxes
-                htmlBlock.find('.sierra2500-features input[type="checkbox"], input[type="checkbox"][id*="sierra2500"]').off('change.SIERRA2500Features').on('change.SIERRA2500Features', function() {
+                // Bind change events and add info icons - target ONLY feature checkboxes, NOT trim walk checkboxes
+                htmlBlock.find('.sierra2500-features input[type="checkbox"], input[type="checkbox"][id*="sierra2500_feature_"]').not('.trim-level-checkbox').off('change.SIERRA2500Features').on('change.SIERRA2500Features', function() {
                     console.log('SIERRA 2500 checkbox changed, updating trim levels');
                     updateTrimLevels('sierra2500');
                 });
@@ -4341,8 +4341,8 @@ function populateSierra3500Features() {
                 // Clear the global population flag
                 window.sierra3500PopulationInProgress = false;
 
-                // Bind change events and add info icons - target the sierra3500-specific checkboxes
-                htmlBlock.find('.sierra3500-features input[type="checkbox"], input[type="checkbox"][id*="sierra3500"]').off('change.SIERRA3500Features').on('change.SIERRA3500Features', function() {
+                // Bind change events and add info icons - target ONLY feature checkboxes, NOT trim walk checkboxes
+                htmlBlock.find('.sierra3500-features input[type="checkbox"], input[type="checkbox"][id*="sierra3500_feature_"]').not('.trim-level-checkbox').off('change.SIERRA3500Features').on('change.SIERRA3500Features', function() {
                     console.log('SIERRA 3500 checkbox changed, updating trim levels');
                     updateTrimLevels('sierra3500');
                 });
