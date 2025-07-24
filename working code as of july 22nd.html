@@ -10279,15 +10279,24 @@ function initFormBindings() {
                         var possibleTrimLevels = ['PRO', 'SLE', 'SLT', 'AT4', 'AT4X', 'DENALI', 'DENALI ULTIMATE', 'ELEVATION', 'SPORT', 'PREMIUM LUXURY', 'V-SERIES', 'LUXURY', 'PREMIUM'];
                         var replaced = false;
                         
+                        // FIXED: Replace ALL existing trim levels, not just the first one found
+                        var trimLevelsFound = [];
                         for (var i = 0; i < possibleTrimLevels.length; i++) {
                             var possibleTrim = possibleTrimLevels[i];
                             if (possibleTrim !== trimLevel && updatedContent.indexOf(possibleTrim) !== -1) {
-                                // Replace the found trim level with the new one
-                                updatedContent = updatedContent.replace(new RegExp(possibleTrim, 'g'), trimLevel);
+                                trimLevelsFound.push(possibleTrim);
                                 replaced = true;
-                                console.log('🔄 Replaced existing trim level "' + possibleTrim + '" with "' + trimLevel + '"');
-                                break;
                             }
+                        }
+                        
+                        // Replace all found trim levels with the new single trim level
+                        if (trimLevelsFound.length > 0) {
+                            // Create a pattern that matches any of the found trim levels
+                            var trimPattern = trimLevelsFound.join('|');
+                            // Also match common separators and conjunctions around trim levels
+                            var fullPattern = '(?:' + trimPattern + ')(?:\\s*,\\s*(?:' + trimPattern + '))*(?:\\s*(?:,\\s*)?(?:and\\s+)?(?:' + trimPattern + '))?';
+                            updatedContent = updatedContent.replace(new RegExp(fullPattern, 'gi'), trimLevel);
+                            console.log('🔄 Replaced existing trim levels [' + trimLevelsFound.join(', ') + '] with "' + trimLevel + '"');
                         }
                         
                         if (!replaced) {
