@@ -10317,8 +10317,11 @@ function initFormBindings() {
                     console.log('Setting trim levels data for model:', modelName, 'with trim level:', trimLevel);
                     
                     // Clear any selected feature checkboxes for this model (only one selection type at a time)
-                    $('input[type="checkbox"][id*="' + modelPrefix + '"][data-category]').prop('checked', false);
-                    console.log('Cleared feature checkboxes for model:', modelPrefix, '(trim walk takes precedence)');
+                    var featureCheckboxes = $('input[type="checkbox"][id*="' + modelPrefix + '"][data-category]');
+                    var clearedCount = featureCheckboxes.length;
+                    featureCheckboxes.prop('checked', false);
+                    console.log('🔄 TRIM WALK OVERRIDE: Cleared', clearedCount, 'feature checkboxes for model:', modelPrefix, '(trim walk takes precedence)');
+                    console.log('🔍 Feature checkbox selector used:', 'input[type="checkbox"][id*="' + modelPrefix + '"][data-category]');
                     
                     // Store the selected trim level for this model
                     if (!window.trimLevelsData) {
@@ -10434,8 +10437,11 @@ function initFormBindings() {
                  
                  if (selectedFeatures.length > 0) {
                      // Clear any selected trim walk checkboxes for this model (only one selection type at a time)
-                     $('.trim-level-checkbox[data-model="' + modelPrefix + '"]').prop('checked', false);
-                     console.log('Cleared trim walk checkboxes for model:', modelPrefix, '(features take precedence)');
+                     var trimWalkCheckboxes = $('.trim-level-checkbox[data-model="' + modelPrefix + '"]');
+                     var clearedTrimCount = trimWalkCheckboxes.length;
+                     trimWalkCheckboxes.prop('checked', false);
+                     console.log('🔄 FEATURE OVERRIDE: Cleared', clearedTrimCount, 'trim walk checkboxes for model:', modelPrefix, '(features take precedence)');
+                     console.log('🔍 Trim walk checkbox selector used:', '.trim-level-checkbox[data-model="' + modelPrefix + '"]');
                      
                      // Dynamically trigger the appropriate model's trim level processing (future-proof)
                      var updateModelName = getUpdateTrimLevelsModelName(modelPrefix);
