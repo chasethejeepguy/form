@@ -3871,10 +3871,15 @@ function populateSierra2500Features() {
         htmlBlock = $('#field_' + formId + '_142');
     }
     
-    var hasExistingFeatures = htmlBlock.find('.sierra2500-features, [id*="sierra2500_feature_"]').length > 0;
+    // More comprehensive DOM check for existing features
+    var hasExistingFeatures = htmlBlock.find('.sierra2500-features, [id*="sierra2500_feature_"], .feature-columns, input[id*="sierra2500"], .collapsible-toggle[data-category]').length > 0;
     
-    if (sierra2500Populated || hasExistingFeatures) {
-        console.log('Sierra 2500 features already populated, skipping (flag:', sierra2500Populated, ', DOM check:', hasExistingFeatures, ')');
+    // Also check if the HTML content already contains feature checkboxes (after placeholder replacement)
+    var htmlContent = htmlBlock.html();
+    var hasFeatureContent = htmlContent && (htmlContent.indexOf('sierra2500_feature_') !== -1 || htmlContent.indexOf('SIERRA 2500') !== -1 && htmlContent.indexOf('checkbox') !== -1);
+    
+    if (sierra2500Populated || hasExistingFeatures || hasFeatureContent) {
+        console.log('Sierra 2500 features already populated, skipping (flag:', sierra2500Populated, ', DOM check:', hasExistingFeatures, ', content check:', hasFeatureContent, ')');
         return;
     }
 
@@ -4109,10 +4114,15 @@ function populateSierra3500Features() {
         htmlBlock = $('#field_' + formId + '_144');
     }
     
-    var hasExistingFeatures = htmlBlock.find('.sierra3500-features, [id*="sierra3500_feature_"]').length > 0;
+    // More comprehensive DOM check for existing features
+    var hasExistingFeatures = htmlBlock.find('.sierra3500-features, [id*="sierra3500_feature_"], .feature-columns, input[id*="sierra3500"], .collapsible-toggle[data-category]').length > 0;
     
-    if (sierra3500Populated || hasExistingFeatures) {
-        console.log('Sierra 3500 features already populated, skipping (flag:', sierra3500Populated, ', DOM check:', hasExistingFeatures, ')');
+    // Also check if the HTML content already contains feature checkboxes (after placeholder replacement)
+    var htmlContent = htmlBlock.html();
+    var hasFeatureContent = htmlContent && (htmlContent.indexOf('sierra3500_feature_') !== -1 || htmlContent.indexOf('SIERRA 3500') !== -1 && htmlContent.indexOf('checkbox') !== -1);
+    
+    if (sierra3500Populated || hasExistingFeatures || hasFeatureContent) {
+        console.log('Sierra 3500 features already populated, skipping (flag:', sierra3500Populated, ', DOM check:', hasExistingFeatures, ', content check:', hasFeatureContent, ')');
         return;
     }
 
