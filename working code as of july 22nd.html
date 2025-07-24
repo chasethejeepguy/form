@@ -1008,46 +1008,7 @@ jQuery(document).ready(function($) {
         return bestMatch;
     }
     
-    // Function to calculate similarity between two strings
-    function calculateSimilarity(str1, str2) {
-        // Simple Levenshtein distance based similarity
-        var longer = str1.length > str2.length ? str1 : str2;
-        var shorter = str1.length > str2.length ? str2 : str1;
-        
-        if (longer.length === 0) return 1.0;
-        
-        var distance = levenshteinDistance(longer, shorter);
-        return (longer.length - distance) / longer.length;
-    }
-    
-    // Function to calculate Levenshtein distance between two strings
-    function levenshteinDistance(str1, str2) {
-        var matrix = [];
-        
-        for (var i = 0; i <= str2.length; i++) {
-            matrix[i] = [i];
-        }
-        
-        for (var j = 0; j <= str1.length; j++) {
-            matrix[0][j] = j;
-        }
-        
-        for (i = 1; i <= str2.length; i++) {
-            for (j = 1; j <= str1.length; j++) {
-                if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-                    matrix[i][j] = matrix[i - 1][j - 1];
-                } else {
-                    matrix[i][j] = Math.min(
-                        matrix[i - 1][j - 1] + 1, // substitution
-                        matrix[i][j - 1] + 1,     // insertion
-                        matrix[i - 1][j] + 1      // deletion
-                    );
-                }
-            }
-        }
-        
-        return matrix[str2.length][str1.length];
-    }
+
 
     // Model to field ID, CSV URL, and model filter mappings
     var modelConfigs = {
@@ -2074,10 +2035,10 @@ jQuery(document).ready(function($) {
 
     // Removed backup system - using only real descriptions from CSV files
 
-    // Fuzzy matching function with exact matching for K4 and validation
+    // Exact matching function only - no fuzzy matching
     function fuzzyMatch(str1, str2, model, feature) {
         if (!str1 || !str2 || typeof str1 !== 'string' || typeof str2 !== 'string' || str1.trim() === '' || str2.trim() === '') {
-            console.warn(`Fuzzy match aborted: invalid inputs for ${model} feature`, {
+            console.warn(`Exact match aborted: invalid inputs for ${model} feature`, {
                 str1: str1,
                 str2: str2,
                 feature: feature
@@ -2085,7 +2046,7 @@ jQuery(document).ready(function($) {
             return false;
         }
 
-        // Canyon-specific feature normalization before fuzzy matching
+        // Canyon-specific feature normalization before exact matching
         if (model === 'CANYON') {
             var canyonNormalizations = {
                 'VENTILATED DRIVER AND FRONT PASSENGER SEATS': 'VENTILATED FRONT SEATS',
@@ -2105,7 +2066,7 @@ jQuery(document).ready(function($) {
             }
         }
 
-        // Sierra 1500-specific feature normalization before fuzzy matching
+        // Sierra 1500-specific feature normalization before exact matching
         if (model === 'SIERRA 1500') {
             var sierra1500Normalizations = {
                 'WIRELESS APPLE CAR PLAY AND WIRELESS ANDROID AUTO CAPABILITY FOR COMPATIBLE PHONES': 'WIRELESS APPLE CARPLAY AND WIRELESS ANDROID AUTO CAPABILITY FOR COMPATIBLE PHONES',
@@ -2133,44 +2094,8 @@ jQuery(document).ready(function($) {
             return false;
         }
 
-        if (model === 'K4') {
-            console.log(`Exact match for ${model} feature "${str1}" vs "${str2}"`);
-            return str1 === str2;
-        }
-
-        // Use lower threshold for Canyon and Sierra 1500 descriptions (0.4 vs 0.8)
-        var threshold = (model === 'CANYON' || model === 'SIERRA 1500') ? 0.4 : 0.8;
-
-        function levenshtein(a, b) {
-            var matrix = [];
-            for (var i = 0; i <= b.length; i++) {
-                matrix[i] = [i];
-            }
-            for (var j = 0; j <= a.length; j++) {
-                matrix[0][j] = j;
-            }
-            for (i = 1; i <= b.length; i++) {
-                for (j = 1; j <= a.length; j++) {
-                    if (b.charAt(i-1) === a.charAt(j-1)) {
-                        matrix[i][j] = matrix[i-1][j-1];
-                    } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i-1][j-1] + 1,
-                            matrix[i][j-1] + 1,
-                            matrix[i-1][j] + 1
-                        );
-                    }
-                }
-            }
-            return matrix[b.length][a.length];
-        }
-
-        if (str1 === str2) return true;
-        var distance = levenshtein(str1, str2);
-        var maxLength = Math.max(str1.length, str2.length);
-        var similarity = 1 - distance / maxLength;
-        console.log(`Fuzzy match for ${model} feature "${str1}" vs "${str2}": similarity=${similarity}, threshold=${threshold}`);
-        return similarity >= threshold;
+        console.log(`Exact match for ${model} feature "${str1}" vs "${str2}"`);
+        return str1 === str2;
     }
 
     // Function to show feature description popup
@@ -2669,9 +2594,9 @@ jQuery(document).ready(function($) {
             var feature = $(this).data('feature');
             if (!feature) return;
             
-            console.log('🚀 BULLETPROOF (Trim Walk - ' + modelName + '): Feature icon clicked:', feature);
-            var description = getFeatureDescription(feature);
-            showFeatureDescription(feature, description);
+                            console.log('🚀 BULLETPROOF (Trim Walk - ' + modelName + '): Feature icon clicked:', feature);
+                var description = getFeatureDescription(feature, modelName);
+                showFeatureDescription(feature, description);
         });
         
         // Set up event handlers for navigation buttons
@@ -3626,6 +3551,9 @@ jQuery(document).ready(function($) {
                     updateTrimLevels('TERRAIN');
                 });
 
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'TERRAIN');
+
                 // Info icons are already included in the initial HTML generation above
                 // No need to prepend additional icons to avoid duplicates
 
@@ -3636,9 +3564,9 @@ jQuery(document).ready(function($) {
                     var feature = $(this).data('feature');
                     if (!feature) return;
                     
-                    console.log('🚀 BULLETPROOF (Terrain): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature);
-                    showFeatureDescription(feature, description);
+                                    console.log('🚀 BULLETPROOF (Terrain): Feature icon clicked:', feature);
+                var description = getFeatureDescription(feature, 'TERRAIN');
+                showFeatureDescription(feature, description);
                 });
             },
             error: function(error) {
@@ -3903,6 +3831,9 @@ function populateSierra1500Features() {
                     updateTrimLevels('SIERRA 1500');
                 });
 
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'SIERRA 1500');
+
                 // Info icons are already included in the initial HTML generation above
                 // No need to prepend additional icons to avoid duplicates
 
@@ -3913,9 +3844,9 @@ function populateSierra1500Features() {
                     var feature = $(this).data('feature');
                     if (!feature) return;
                     
-                    console.log('🚀 BULLETPROOF (Sierra 1500): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature);
-                    showFeatureDescription(feature, description);
+                                    console.log('🚀 BULLETPROOF (Sierra 1500): Feature icon clicked:', feature);
+                var description = getFeatureDescription(feature, 'SIERRA 1500');
+                showFeatureDescription(feature, description);
                 });
             },
             error: function(error) {
@@ -4120,6 +4051,9 @@ function populateSierra2500Features() {
                     updateTrimLevels('SIERRA 2500');
                 });
 
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'SIERRA 2500');
+
                 // BULLETPROOF: Use global bulletproof handler instead of model-specific logic
                 htmlBlock.find('.feature-info-icon').off('click.featureInfo').on('click.featureInfo', function(e) {
                     e.preventDefault();
@@ -4127,9 +4061,9 @@ function populateSierra2500Features() {
                     var feature = $(this).data('feature');
                     if (!feature) return;
                     
-                    console.log('🚀 BULLETPROOF (Sierra 2500): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature);
-                    showFeatureDescription(feature, description);
+                                    console.log('🚀 BULLETPROOF (Sierra 2500): Feature icon clicked:', feature);
+                var description = getFeatureDescription(feature, 'SIERRA 2500');
+                showFeatureDescription(feature, description);
                 });
             },
             error: function(error) {
@@ -4337,6 +4271,9 @@ function populateSierra3500Features() {
                     updateTrimLevels('SIERRA 3500');
                 });
 
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'SIERRA 3500');
+
                 // BULLETPROOF: Use global bulletproof handler instead of model-specific logic
                 htmlBlock.find('.feature-info-icon').off('click.featureInfo').on('click.featureInfo', function(e) {
                     e.preventDefault();
@@ -4344,9 +4281,9 @@ function populateSierra3500Features() {
                     var feature = $(this).data('feature');
                     if (!feature) return;
                     
-                    console.log('🚀 BULLETPROOF (Sierra 3500): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature);
-                    showFeatureDescription(feature, description);
+                                    console.log('🚀 BULLETPROOF (Sierra 3500): Feature icon clicked:', feature);
+                var description = getFeatureDescription(feature, 'SIERRA 3500');
+                showFeatureDescription(feature, description);
                 });
             },
             error: function(error) {
@@ -4576,6 +4513,9 @@ function populateCT4Features() {
                     updateTrimLevels('CT4');
                 });
 
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'CT4');
+
                 // BULLETPROOF: Use global bulletproof handler instead of model-specific logic
                 htmlBlock.find('.feature-info-icon').off('click.featureInfo').on('click.featureInfo', function(e) {
                     e.preventDefault();
@@ -4583,9 +4523,9 @@ function populateCT4Features() {
                     var feature = $(this).data('feature');
                     if (!feature) return;
                     
-                    console.log('🚀 BULLETPROOF (CT4): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature);
-                    showFeatureDescription(feature, description);
+                                    console.log('🚀 BULLETPROOF (CT4): Feature icon clicked:', feature);
+                var description = getFeatureDescription(feature, 'CT4');
+                showFeatureDescription(feature, description);
                 });
             },
             error: function(error) {
@@ -4817,6 +4757,9 @@ function populateCT4VSeriesFeatures() {
                     updateTrimLevels('CT4 V-SERIES');
                 });
 
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'CT4 V-SERIES');
+
                 // Info icons are already included in the initial HTML generation above
                 // No need to prepend additional icons to avoid duplicates
 
@@ -4827,9 +4770,9 @@ function populateCT4VSeriesFeatures() {
                     var feature = $(this).data('feature');
                     if (!feature) return;
                     
-                    console.log('🚀 BULLETPROOF (CT4 V-Series): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature);
-                    showFeatureDescription(feature, description);
+                                    console.log('🚀 BULLETPROOF (CT4 V-Series): Feature icon clicked:', feature);
+                var description = getFeatureDescription(feature, 'CT4 V-SERIES');
+                showFeatureDescription(feature, description);
                 });
             },
             error: function(error) {
@@ -5056,6 +4999,9 @@ function populateCT5Features() {
                     updateTrimLevels('CT5');
                 });
 
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'CT5');
+
                 // Info icons are already included in the initial HTML generation above
                 // No need to prepend additional icons to avoid duplicates
 
@@ -5066,9 +5012,9 @@ function populateCT5Features() {
                     var feature = $(this).data('feature');
                     if (!feature) return;
                     
-                    console.log('🚀 BULLETPROOF (CT5): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature);
-                    showFeatureDescription(feature, description);
+                                    console.log('🚀 BULLETPROOF (CT5): Feature icon clicked:', feature);
+                var description = getFeatureDescription(feature, 'CT5');
+                showFeatureDescription(feature, description);
                 });
             },
             error: function(error) {
@@ -5371,6 +5317,9 @@ function populateAcadiaFeatures() {
                     updateTrimLevels('ACADIA');
                 });
 
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'ACADIA');
+
                 // Info icons are already included in the initial HTML generation above
                 // No need to prepend additional icons to avoid duplicates
 
@@ -5381,9 +5330,9 @@ function populateAcadiaFeatures() {
                     var feature = $(this).data('feature');
                     if (!feature) return;
                     
-                    console.log('🚀 BULLETPROOF (Acadia): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature);
-                    showFeatureDescription(feature, description);
+                                    console.log('🚀 BULLETPROOF (Acadia): Feature icon clicked:', feature);
+                var description = getFeatureDescription(feature, 'ACADIA');
+                showFeatureDescription(feature, description);
                 });
             },
             error: function(error) {
@@ -5685,6 +5634,9 @@ function populateYukonFeatures() {
                     updateTrimLevels('YUKON');
                 });
 
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'YUKON');
+
                 // BULLETPROOF: Use global bulletproof handler instead of model-specific logic
                 htmlBlock.find('.feature-info-icon').off('click.featureInfo').on('click.featureInfo', function(e) {
                     e.preventDefault();
@@ -5692,9 +5644,9 @@ function populateYukonFeatures() {
                     var feature = $(this).data('feature');
                     if (!feature) return;
                     
-                    console.log('🚀 BULLETPROOF (Yukon): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature);
-                    showFeatureDescription(feature, description);
+                                    console.log('🚀 BULLETPROOF (Yukon): Feature icon clicked:', feature);
+                var description = getFeatureDescription(feature, 'YUKON');
+                showFeatureDescription(feature, description);
                 });
             },
             error: function(error) {
@@ -5988,6 +5940,9 @@ function populateCanyonFeatures() {
                     updateTrimLevels('CANYON');
                 });
 
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'CANYON');
+
                 // BULLETPROOF: Use global bulletproof handler instead of model-specific logic
                 htmlBlock.find('.feature-info-icon').off('click.featureInfo').on('click.featureInfo', function(e) {
                     e.preventDefault();
@@ -5995,9 +5950,9 @@ function populateCanyonFeatures() {
                     var feature = $(this).data('feature');
                     if (!feature) return;
                     
-                    console.log('🚀 BULLETPROOF (Canyon): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature);
-                    showFeatureDescription(feature, description);
+                                    console.log('🚀 BULLETPROOF (Canyon): Feature icon clicked:', feature);
+                var description = getFeatureDescription(feature, 'CANYON');
+                showFeatureDescription(feature, description);
                 });
             },
             error: function(error) {
@@ -8341,7 +8296,7 @@ function processCT5TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
         if (!feature) return;
         
         console.log('🚀 BULLETPROOF (Checkbox Field - ' + model + '): Feature icon clicked:', feature);
-        var description = getFeatureDescription(feature);
+        var description = getFeatureDescription(feature, model);
         showFeatureDescription(feature, description);
     });
 
@@ -10878,10 +10833,10 @@ function initFormBindings() {
                     <div id="trimLevelsPopup">
                         <div id="trimLevelsPopupContent">
                             <div class="trim-header">
-                                <h2>Available Trim Levels for ' + modelFilter + '</h2>
-                            </div>' +
-                            tableHtml +
-                        '</div>
+                                <h2>Available Trim Levels for ${modelFilter}</h2>
+                            </div>
+                            ${tableHtml}
+                        </div>
                         <button type="button" class="trim-close-popup" style="margin: 10px; padding: 8px 16px; background: #007cba; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">Close</button>
                     </div>
                     <div id="trimLevelsOverlay"></div>`;
@@ -12861,20 +12816,37 @@ $(document).on('click', '.feature-info-icon', function(e) {
     console.log('🚀 BULLETPROOF: Feature icon clicked:', feature);
     
     // BULLETPROOF DESCRIPTION LOOKUP - TRIES EVERYTHING
-    var description = getFeatureDescription(feature);
+    var description = getFeatureDescription(feature, null);
     
     console.log('📖 BULLETPROOF: Showing description for:', feature);
     showFeatureDescription(feature, description);
 });
 
 // SIMPLE DESCRIPTION LOOKUP - Shows exactly what's in the CSV files
-function getFeatureDescription(feature) {
+function getFeatureDescription(feature, model) {
     var featureUpper = feature.toUpperCase();
     var description = null;
     
-    console.log('🔍 DESCRIPTION LOOKUP: Looking for:', featureUpper);
+    console.log('🔍 DESCRIPTION LOOKUP: Looking for:', featureUpper, 'in model:', model || 'ALL');
     
-    // Try all description sources with direct lookup only
+    // If model is specified, try that model's descriptions first
+    if (model) {
+        var modelDescriptionMap = getModelDescriptionMap(model);
+        if (modelDescriptionMap && Object.keys(modelDescriptionMap).length > 0) {
+            if (modelDescriptionMap[featureUpper]) {
+                description = modelDescriptionMap[featureUpper];
+                console.log('✅ FOUND: Description in', model, 'for:', featureUpper);
+                console.log('📝 Description:', description.substring(0, 100) + '...');
+                return description;
+            } else {
+                console.log('❌ NOT FOUND in', model, 'descriptions for:', featureUpper);
+            }
+        } else {
+            console.log('⚠️ WARNING:', model, 'descriptions not loaded or empty');
+        }
+    }
+    
+    // Fallback: Try all description sources with direct lookup only
     var allDescriptionSources = [
         { name: 'CT5', data: typeof window.ct5FeatureDescriptions !== 'undefined' ? window.ct5FeatureDescriptions : {} },
         { name: 'CT4 V-Series', data: typeof window.ct4VSeriesFeatureDescriptions !== 'undefined' ? window.ct4VSeriesFeatureDescriptions : {} },
@@ -12889,174 +12861,103 @@ function getFeatureDescription(feature) {
         { name: 'Kia Generic', data: typeof featureDescriptions !== 'undefined' ? featureDescriptions : {} }
     ];
 
-    
+    console.log('🔍 FALLBACK: Searching all description sources...');
     // Log the state of all description sources
-    allDescriptionSources.forEach(function(source, index) {
+    for (var i = 0; i < allDescriptionSources.length; i++) {
+        var source = allDescriptionSources[i];
         var keyCount = Object.keys(source.data).length;
-        console.log('🔍 Source', index, '(' + source.name + '):', keyCount, 'keys');
+        console.log('🔍 Source', i, '(' + source.name + '):', keyCount, 'keys');
         
         if (keyCount > 0 && source.data[featureUpper]) {
             description = source.data[featureUpper];
             console.log('✅ FOUND: Description in', source.name, 'for:', featureUpper);
             console.log('📝 Description:', description.substring(0, 100) + '...');
-            return; // Exit the forEach early
+            break; // Exit the loop early
         }
-    });
+    }
     
     if (!description) {
         console.log('❌ NOT FOUND: No description found for:', featureUpper);
         console.log('🔍 Available keys in each source:');
-        allDescriptionSources.forEach(function(source, index) {
-            if (Object.keys(source.data).length > 0) {
-                console.log('  ' + source.name + ':', Object.keys(source.data).slice(0, 3).join(', ') + '...');
+        for (var j = 0; j < allDescriptionSources.length; j++) {
+            var src = allDescriptionSources[j];
+            if (Object.keys(src.data).length > 0) {
+                console.log('  ' + src.name + ':', Object.keys(src.data).slice(0, 3).join(', ') + '...');
             }
-        });
+        }
         return 'Description not available for: ' + feature;
     }
     
     return description;
 }
 
-// BULLETPROOF FUZZY MATCHING - VERY LOW THRESHOLD
-function bulletproofFuzzyMatch(searchFeature, descriptionMap) {
-    var bestMatch = null;
-    var highestSimilarity = 0;
-    var threshold = 0.2; // VERY LOW threshold - almost always finds something
+// Helper function to get the correct description map for a model
+function getModelDescriptionMap(model) {
+    if (!model) return null;
     
-    for (var key in descriptionMap) {
-        var similarity = calculateSimilarity(searchFeature, key);
-        console.log('🔍 BULLETPROOF Fuzzy match for "' + searchFeature + '" vs "' + key + '": similarity=' + similarity + ', threshold=' + threshold);
+    var modelUpper = model.toUpperCase();
+    switch (modelUpper) {
+        case 'CT5':
+            return window.ct5FeatureDescriptions;
+        case 'CT4':
+            return window.ct4FeatureDescriptions;
+        case 'CT4 V-SERIES':
+        case 'CT4V':
+            return window.ct4VSeriesFeatureDescriptions;
+        case 'TERRAIN':
+            return window.terrainFeatureDescriptions;
+        case 'ACADIA':
+            return window.acadiaFeatureDescriptions;
+        case 'YUKON':
+            return window.yukonFeatureDescriptions;
+        case 'CANYON':
+            return window.canyonFeatureDescriptions;
+        case 'SIERRA 1500':
+            return window.sierra1500FeatureDescriptions;
+        case 'SIERRA 2500':
+        case 'SIERRA 2500HD':
+            return window.sierra2500FeatureDescriptions;
+        case 'SIERRA 3500':
+        case 'SIERRA 3500HD':
+            return window.sierra3500FeatureDescriptions;
+        default:
+            return null;
+    }
+}
+
+
+
+    // Utility function to set up collapsible group functionality for any model
+    function setupCollapsibleGroups(htmlBlock, modelName) {
+        // Set up collapsible group functionality
+        htmlBlock.find('.feature-group-toggle').off('click.toggleGroup').on('click.toggleGroup', function(e) {
+            e.preventDefault();
+            var groupId = $(this).data('group');
+            var content = $('#' + groupId);
+            var arrow = $(this).find('.toggle-arrow');
+            
+            if (content.is(':visible')) {
+                content.slideUp(200);
+                arrow.text('▼');
+            } else {
+                content.slideDown(200);
+                arrow.text('▲');
+            }
+        });
+
+        // Ensure checkboxes in collapsible groups also trigger trim level updates
+        var eventName = 'change.' + modelName.replace(/\s+/g, '') + 'CollapsibleFeatures';
+        htmlBlock.find('.feature-group-content input[type="checkbox"]').off(eventName).on(eventName, function() {
+            console.log(modelName + ' collapsible checkbox changed, updating trim levels');
+            updateTrimLevels(modelName);
+        });
         
-        if (similarity > highestSimilarity && similarity >= threshold) {
-            highestSimilarity = similarity;
-            bestMatch = descriptionMap[key];
-            console.log('✅ BULLETPROOF: New best fuzzy match: "' + key + '" with similarity ' + similarity);
-        }
+        console.log('✅ Collapsible groups set up for ' + modelName);
     }
-    
-    return bestMatch;
-}
 
-// GENERATE FEATURE NAME VARIATIONS
-function generateFeatureVariations(feature) {
-    var variations = [];
-    
-    // Remove common prefixes/suffixes
-    var cleaned = feature.replace(/^(AVAILABLE\s+|STANDARD\s+|OPTIONAL\s+)/, '');
-    cleaned = cleaned.replace(/(\s+PACKAGE|\s+SYSTEM|\s+FEATURE)$/, '');
-    if (cleaned !== feature) variations.push(cleaned);
-    
-    // Add/remove plurals
-    if (feature.endsWith('S')) variations.push(feature.slice(0, -1));
-    else variations.push(feature + 'S');
-    
-    // Replace common word variations
-    var replacements = {
-        'ALUMINUM': 'ALLOY',
-        'ALLOY': 'ALUMINUM',
-        'LEATHER': 'LEATHER-APPOINTED',
-        'LEATHER-APPOINTED': 'LEATHER',
-        'WIRELESS': 'WIRELESS',
-        'CARPLAY': 'APPLE CARPLAY',
-        'ANDROID AUTO': 'ANDROID AUTO',
-        'SEATS': 'SEATING',
-        'SEATING': 'SEATS',
-        'WHEELS': 'WHEEL',
-        'WHEEL': 'WHEELS'
-    };
-    
-    for (var old in replacements) {
-        if (feature.includes(old)) {
-            variations.push(feature.replace(old, replacements[old]));
-        }
-    }
-    
-    return variations;
-}
+    console.log('✅ Clean feature description handler set up successfully');
 
-// GENERATE SMART DESCRIPTIONS BASED ON FEATURE NAME
-function generateSmartDescription(feature) {
-    var featureLower = feature.toLowerCase();
-    
-    // Comprehensive feature descriptions based on common automotive features
-    if (featureLower.includes('wheel') || featureLower.includes('rim')) {
-        return 'Premium wheels designed to enhance both the appearance and performance of your vehicle. These wheels are specifically engineered to complement your vehicle\'s design while providing optimal handling characteristics.';
-    }
-    
-    if (featureLower.includes('seat') || featureLower.includes('seating')) {
-        if (featureLower.includes('leather')) {
-            return 'Premium leather-appointed seating surfaces that provide luxury, comfort, and durability. These seats are designed to enhance your driving experience with superior materials and craftsmanship.';
-        } else if (featureLower.includes('heated')) {
-            return 'Heated seating feature that provides warmth and comfort during cold weather conditions. This system allows you to adjust the temperature of your seats for optimal comfort.';
-        } else if (featureLower.includes('ventilated') || featureLower.includes('cooled')) {
-            return 'Ventilated seating feature that provides cooling airflow through perforated seat surfaces, keeping you comfortable during warm weather conditions.';
-        }
-        return 'Comfortable seating designed to provide support and comfort during your driving experience. These seats are engineered with quality materials and ergonomic design.';
-    }
-    
-    if (featureLower.includes('sunroof') || featureLower.includes('moonroof')) {
-        return 'Power sunroof that opens to let in natural light and fresh air, creating an open-air driving experience. Features tilt and slide functionality for customizable ventilation.';
-    }
-    
-    if (featureLower.includes('navigation') || featureLower.includes('gps')) {
-        return 'Advanced navigation system with GPS technology that provides turn-by-turn directions, real-time traffic information, and points of interest to help you reach your destination efficiently.';
-    }
-    
-    if (featureLower.includes('carplay') || featureLower.includes('android auto')) {
-        return 'Smartphone integration technology that allows you to connect your compatible iPhone or Android device to access apps, music, messages, and navigation through your vehicle\'s infotainment system.';
-    }
-    
-    if (featureLower.includes('camera') || featureLower.includes('backup') || featureLower.includes('rearview')) {
-        return 'Advanced camera system that provides enhanced visibility and safety assistance. This technology helps you navigate tight spaces and provides additional awareness of your surroundings.';
-    }
-    
-    if (featureLower.includes('blind spot') || featureLower.includes('lane') || featureLower.includes('collision')) {
-        return 'Advanced safety technology designed to help detect potential hazards and assist the driver in avoiding accidents. This system uses sensors and alerts to enhance overall driving safety.';
-    }
-    
-    if (featureLower.includes('engine') || featureLower.includes('motor') || featureLower.includes('v6') || featureLower.includes('v8') || featureLower.includes('turbo')) {
-        return 'Advanced powertrain technology designed to deliver optimal performance, efficiency, and reliability. This engine is engineered to provide the power and capability you need for your driving requirements.';
-    }
-    
-    if (featureLower.includes('transmission') || featureLower.includes('automatic') || featureLower.includes('manual')) {
-        return 'Advanced transmission system designed to deliver smooth, efficient power delivery and optimal fuel economy. This transmission is engineered for reliability and performance.';
-    }
-    
-    if (featureLower.includes('suspension') || featureLower.includes('shock') || featureLower.includes('strut')) {
-        return 'Advanced suspension system designed to provide optimal ride comfort and handling performance. This system is tuned to deliver a smooth ride while maintaining excellent vehicle control.';
-    }
-    
-    if (featureLower.includes('brake') || featureLower.includes('braking')) {
-        return 'Advanced braking system designed to provide superior stopping power and safety. This system includes features to enhance braking performance and driver confidence.';
-    }
-    
-    if (featureLower.includes('mirror') || featureLower.includes('side view')) {
-        return 'Advanced mirror system designed to enhance visibility and safety. These mirrors may include features such as heating, power adjustment, and integrated turn signals.';
-    }
-    
-    if (featureLower.includes('lighting') || featureLower.includes('headlight') || featureLower.includes('led') || featureLower.includes('hid')) {
-        return 'Advanced lighting technology designed to provide superior illumination and visibility. This lighting system enhances safety and adds a premium appearance to your vehicle.';
-    }
-    
-    if (featureLower.includes('audio') || featureLower.includes('sound') || featureLower.includes('speaker') || featureLower.includes('stereo')) {
-        return 'Premium audio system designed to deliver exceptional sound quality and entertainment experience. This system includes advanced speakers and audio processing technology.';
-    }
-    
-    if (featureLower.includes('climate') || featureLower.includes('air conditioning') || featureLower.includes('heating')) {
-        return 'Advanced climate control system designed to maintain optimal cabin temperature and comfort. This system provides precise temperature control and air distribution.';
-    }
-    
-    if (featureLower.includes('package') || featureLower.includes('trim')) {
-        return 'Comprehensive feature package that includes multiple premium amenities and technologies designed to enhance your vehicle\'s capability, comfort, and style. This package represents excellent value by bundling complementary features together.';
-    }
-    
-    // Default description for any feature not caught above
-    return 'This is a premium feature designed to enhance your vehicle\'s performance, comfort, safety, or convenience. ' + feature + ' represents advanced automotive technology engineered to improve your driving experience and provide additional value to your vehicle.';
-}
-
-console.log('✅ Clean feature description handler set up successfully');
-
-// Feature descriptions are now working with clean, simple handler
+    // Feature descriptions are now working with clean, simple handler
 
 // Comments for Part 5/5
 /*
