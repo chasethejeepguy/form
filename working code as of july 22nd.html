@@ -3894,18 +3894,8 @@ function populateSierra2500Features() {
     if (sierra2500Populated || hasExistingFeatures || hasFeatureContent || isDuplicated) {
         console.log('Sierra 2500 features already populated, skipping (flag:', sierra2500Populated, ', DOM check:', hasExistingFeatures, ', content check:', hasFeatureContent, ', checkbox count:', totalCheckboxes, ')');
         
-        // Even if we skip population, ensure click handlers are attached to existing icons
-        console.log('🔧 SIERRA 2500 FIX: Ensuring click handlers are attached to existing icons');
-        htmlBlock.find('.feature-info-icon').off('click.featureInfo').on('click.featureInfo', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var feature = $(this).data('feature');
-            if (!feature) return;
-            
-            console.log('🚀 BULLETPROOF (Sierra 2500 - Existing Icons): Feature icon clicked:', feature);
-            var description = getFeatureDescription(feature, 'SIERRA 2500');
-            showFeatureDescription(feature, description);
-        });
+        // Even if we skip population, the universal feature icon handler will work
+        console.log('🔧 SIERRA 2500 FIX: Skipping population but universal handler will work');
         
         return;
     }
@@ -4174,18 +4164,8 @@ function populateSierra3500Features() {
     if (sierra3500Populated || hasExistingFeatures || hasFeatureContent || isDuplicated) {
         console.log('Sierra 3500 features already populated, skipping (flag:', sierra3500Populated, ', DOM check:', hasExistingFeatures, ', content check:', hasFeatureContent, ', checkbox count:', totalCheckboxes, ')');
         
-        // Even if we skip population, ensure click handlers are attached to existing icons
-        console.log('🔧 SIERRA 3500 FIX: Ensuring click handlers are attached to existing icons');
-        htmlBlock.find('.feature-info-icon').off('click.featureInfo').on('click.featureInfo', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var feature = $(this).data('feature');
-            if (!feature) return;
-            
-            console.log('🚀 BULLETPROOF (Sierra 3500 - Existing Icons): Feature icon clicked:', feature);
-            var description = getFeatureDescription(feature, 'SIERRA 3500');
-            showFeatureDescription(feature, description);
-        });
+        // Even if we skip population, the universal feature icon handler will work
+        console.log('🔧 SIERRA 3500 FIX: Skipping population but universal handler will work');
         
         return;
     }
