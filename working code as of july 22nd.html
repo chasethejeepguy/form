@@ -2098,8 +2098,8 @@ jQuery(document).ready(function($) {
         return str1 === str2;
     }
 
-    // Function to show feature description popup
-    function showFeatureDescription(feature, description) {
+    // Function to show feature description popup - Make it globally accessible
+    window.showFeatureDescription = function(feature, description) {
         console.log('🟡 showFeatureDescription called for:', feature);
         
         $('#featurePopup, #featureOverlay').remove();
@@ -2134,7 +2134,7 @@ jQuery(document).ready(function($) {
             console.log('🟡 Feature close button clicked, closing popup');
             $('#featurePopup, #featureOverlay').remove();
         });
-    }
+    };
 
     // Comments for Part 1/5
     /*
