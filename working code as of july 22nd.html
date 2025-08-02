@@ -4103,17 +4103,8 @@ function populateSierra2500Features() {
                     setupCollapsibleGroups(htmlBlock, 'SIERRA 2500');
                 }
 
-                // BULLETPROOF: Use global bulletproof handler instead of model-specific logic - target sierra2500-specific icons
-                htmlBlock.find('.sierra2500-features .feature-info-icon, .feature-info-icon[data-feature*="sierra2500"]').off('click.featureInfo').on('click.featureInfo', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    var feature = $(this).data('feature');
-                    if (!feature) return;
-                    
-                    console.log('🚀 BULLETPROOF (Sierra 2500): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature, 'SIERRA 2500');
-                    showFeatureDescription(feature, description);
-                });
+                // BULLETPROOF: Let the universal handler at line ~13074 handle all feature icon clicks
+                console.log('🔧 SIERRA 2500: Relying on universal feature icon handler for all clicks');
             },
             error: function(error) {
                 console.error('Papa Parse error for Sierra 2500 population: ' + error);
@@ -4372,17 +4363,8 @@ function populateSierra3500Features() {
                     setupCollapsibleGroups(htmlBlock, 'SIERRA 3500');
                 }
 
-                // BULLETPROOF: Use global bulletproof handler instead of model-specific logic - target sierra3500-specific icons
-                htmlBlock.find('.sierra3500-features .feature-info-icon, .feature-info-icon[data-feature*="sierra3500"]').off('click.featureInfo').on('click.featureInfo', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    var feature = $(this).data('feature');
-                    if (!feature) return;
-                    
-                    console.log('🚀 BULLETPROOF (Sierra 3500): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature, 'SIERRA 3500');
-                    showFeatureDescription(feature, description);
-                });
+                // BULLETPROOF: Let the universal handler at line ~13074 handle all feature icon clicks
+                console.log('🔧 SIERRA 3500: Relying on universal feature icon handler for all clicks');
             },
             error: function(error) {
                 console.error('Papa Parse error for Sierra 3500 population: ' + error);
