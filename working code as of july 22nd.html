@@ -1746,6 +1746,12 @@ jQuery(document).ready(function($) {
             } else {
                 console.log('SUCCESS: GMC Sierra 2500 descriptions loaded successfully!');
                 console.log('First few Sierra 2500 descriptions:', Object.keys(window.sierra2500FeatureDescriptions).slice(0, 5));
+                
+                // 🔧 ADD MISSING DESCRIPTIONS: Add any missing feature descriptions
+                if (!window.sierra2500FeatureDescriptions['AUXILIARY TRAILER CAMERA']) {
+                    window.sierra2500FeatureDescriptions['AUXILIARY TRAILER CAMERA'] = 'Enhance your towing experience with the GMC Sierra 2500\'s Auxiliary Trailer Camera, providing a clear rear view of your trailer and surroundings for safer backing and maneuvering.';
+                    console.log('🔧 ADDED MISSING: AUXILIARY TRAILER CAMERA description for Sierra 2500');
+                }
             }
         }).catch(function(error) {
             console.error('Fetch error for GMC Sierra 2500 Feature Descriptions:', error.message);
@@ -1811,6 +1817,12 @@ jQuery(document).ready(function($) {
             } else {
                 console.log('SUCCESS: GMC Sierra 3500 descriptions loaded successfully!');
                 console.log('First few Sierra 3500 descriptions:', Object.keys(window.sierra3500FeatureDescriptions).slice(0, 5));
+                
+                // 🔧 ADD MISSING DESCRIPTIONS: Add any missing feature descriptions
+                if (!window.sierra3500FeatureDescriptions['AUXILIARY TRAILER CAMERA']) {
+                    window.sierra3500FeatureDescriptions['AUXILIARY TRAILER CAMERA'] = 'Enhance your towing experience with the GMC Sierra 3500\'s Auxiliary Trailer Camera, providing a clear rear view of your trailer and surroundings for safer backing and maneuvering.';
+                    console.log('🔧 ADDED MISSING: AUXILIARY TRAILER CAMERA description for Sierra 3500');
+                }
             }
         }).catch(function(error) {
             console.error('Fetch error for GMC Sierra 3500 Feature Descriptions:', error.message);
@@ -13059,6 +13071,13 @@ $(document).on('click', '.feature-info-icon', function(e) {
 // SIMPLE DESCRIPTION LOOKUP - Shows exactly what's in the CSV files
 function getFeatureDescription(feature, model) {
     var featureUpper = feature.toUpperCase();
+    
+    // 🔧 FIX TYPOS: Correct common misspellings in feature names
+    if (featureUpper === 'AUXILIARY TRAILER CAMEREA') {
+        featureUpper = 'AUXILIARY TRAILER CAMERA';
+        console.log('🔧 TYPO FIXED: Corrected "CAMEREA" to "CAMERA"');
+    }
+    
     var description = null;
     
     console.log('🔍 DESCRIPTION LOOKUP: Looking for:', featureUpper, 'in model:', model || 'ALL');
