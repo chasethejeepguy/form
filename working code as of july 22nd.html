@@ -5409,10 +5409,20 @@ function populateCT5VSeriesFeatures() {
                 // Replace the placeholder in the HTML block
                 var currentHtml = htmlBlock.html();
                 console.log('Current HTML content:', currentHtml);
+                console.log('🔍 Searching for placeholder: {ct5 v series feature checkboxes}');
+                console.log('🔍 Searching for placeholder: {CT5 V SERIES FEATURE CHECKBOXES}');
                 console.log('🔍 Searching for placeholder: {ct5 v-series feature checkboxes}');
                 console.log('🔍 Searching for placeholder: {CT5 V-SERIES FEATURE CHECKBOXES}');
                 
-                if (currentHtml.indexOf('{ct5 v-series feature checkboxes}') !== -1) {
+                if (currentHtml.indexOf('{ct5 v series feature checkboxes}') !== -1) {
+                    var newHtml = currentHtml.replace('{ct5 v series feature checkboxes}', html);
+                    htmlBlock.html(newHtml);
+                    console.log('✅ Replaced {ct5 v series feature checkboxes} with generated HTML');
+                } else if (currentHtml.indexOf('{CT5 V SERIES FEATURE CHECKBOXES}') !== -1) {
+                    var newHtml = currentHtml.replace('{CT5 V SERIES FEATURE CHECKBOXES}', html);
+                    htmlBlock.html(newHtml);
+                    console.log('✅ Replaced {CT5 V SERIES FEATURE CHECKBOXES} with generated HTML');
+                } else if (currentHtml.indexOf('{ct5 v-series feature checkboxes}') !== -1) {
                     var newHtml = currentHtml.replace('{ct5 v-series feature checkboxes}', html);
                     htmlBlock.html(newHtml);
                     console.log('✅ Replaced {ct5 v-series feature checkboxes} with generated HTML');
@@ -5422,7 +5432,7 @@ function populateCT5VSeriesFeatures() {
                     console.log('✅ Replaced {CT5 V-SERIES FEATURE CHECKBOXES} with generated HTML');
                 } else {
                     console.warn('❌ No CT5 V-Series placeholder found in HTML block!');
-                    console.warn('📝 SOLUTION: Add {ct5 v-series feature checkboxes} to your HTML block field (ID 151)');
+                    console.warn('📝 SOLUTION: Add {ct5 v series feature checkboxes} to your HTML block field (ID 151)');
                     console.warn('Available placeholders in HTML:', currentHtml.match(/\{[^}]+\}/g) || 'None found');
                     htmlBlock.html(html);
                 }
