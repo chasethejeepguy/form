@@ -5225,14 +5225,14 @@ function populateCT5VSeriesFeatures() {
     
     if (ct5VSeriesPopulated) {
         console.log('CT5 V-Series features already populated, skipping');
-        return;
+        return Promise.resolve();
     }
 
     var config = modelConfigs['CT5 V-SERIES'];
     if (!config) {
         console.warn('CT5 V-Series configuration not found');
         console.log('Available modelConfigs:', Object.keys(modelConfigs));
-        return;
+        return Promise.reject(new Error('CT5 V-Series configuration not found'));
     }
     console.log('CT5 V-Series config found:', config);
 
@@ -5266,11 +5266,11 @@ function populateCT5VSeriesFeatures() {
     
     if (!htmlBlock.length) {
         console.warn('CT5 V-Series HTML block field (ID: 151) not found');
-        return;
+        return Promise.reject(new Error('CT5 V-Series HTML block field not found'));
     }
 
     console.log('Fetching CT5 V-Series CSV from:', config.csvUrl);
-    fetchCsvWithRetry(config.csvUrl, 'CT5 V-Series', 3, 1000).then(function(csvText) {
+    return fetchCsvWithRetry(config.csvUrl, 'CT5 V-Series', 3, 1000).then(function(csvText) {
         console.log('CT5 V-Series CSV fetched successfully, length:', csvText.length);
         console.log('CSV preview (first 500 chars):', csvText.substring(0, 500));
         
@@ -10649,8 +10649,11 @@ function initFormBindings() {
                             var ct5VSeriesRadioButton = $('input[type="radio"][value="CT5 V-SERIES"]');
                             if (ct5VSeriesRadioButton.is(':checked')) {
                                 console.log('CT5 V-SERIES radio button checked, calling populateCT5VSeriesFeatures and updateTrimLevels');
-                                populateCT5VSeriesFeatures();
-                                updateTrimLevels('CT5 V-SERIES');
+                                populateCT5VSeriesFeatures().then(function() {
+                                    updateTrimLevels('CT5 V-SERIES');
+                                }).catch(function(error) {
+                                    console.error('Error in CT5 V-Series population chain:', error);
+                                });
                             } else {
                                 console.log('CT5 V-SERIES radio button not checked or not found');
                             }
@@ -10764,8 +10767,11 @@ function initFormBindings() {
                             var ct5VSeriesRadioButton = $('input[type="radio"][value="CT5 V-SERIES"]');
                             if (ct5VSeriesRadioButton.is(':checked')) {
                                 console.log('CT5 V-SERIES radio button checked, calling populateCT5VSeriesFeatures and updateTrimLevels');
-                                populateCT5VSeriesFeatures();
-                                updateTrimLevels('CT5 V-SERIES');
+                                populateCT5VSeriesFeatures().then(function() {
+                                    updateTrimLevels('CT5 V-SERIES');
+                                }).catch(function(error) {
+                                    console.error('Error in CT5 V-Series population chain:', error);
+                                });
                             } else {
                                 console.log('CT5 V-SERIES radio button not checked or not found');
                             }
