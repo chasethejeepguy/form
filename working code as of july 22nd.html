@@ -1746,6 +1746,12 @@ jQuery(document).ready(function($) {
             } else {
                 console.log('SUCCESS: GMC Sierra 2500 descriptions loaded successfully!');
                 console.log('First few Sierra 2500 descriptions:', Object.keys(window.sierra2500FeatureDescriptions).slice(0, 5));
+                
+                // 🔧 ADD MISSING DESCRIPTIONS: Add any missing feature descriptions
+                if (!window.sierra2500FeatureDescriptions['AUXILIARY TRAILER CAMERA']) {
+                    window.sierra2500FeatureDescriptions['AUXILIARY TRAILER CAMERA'] = 'Enhance your towing experience with the GMC Sierra 2500\'s Auxiliary Trailer Camera, providing a clear rear view of your trailer and surroundings for safer backing and maneuvering.';
+                    console.log('🔧 ADDED MISSING: AUXILIARY TRAILER CAMERA description for Sierra 2500');
+                }
             }
         }).catch(function(error) {
             console.error('Fetch error for GMC Sierra 2500 Feature Descriptions:', error.message);
@@ -1811,6 +1817,12 @@ jQuery(document).ready(function($) {
             } else {
                 console.log('SUCCESS: GMC Sierra 3500 descriptions loaded successfully!');
                 console.log('First few Sierra 3500 descriptions:', Object.keys(window.sierra3500FeatureDescriptions).slice(0, 5));
+                
+                // 🔧 ADD MISSING DESCRIPTIONS: Add any missing feature descriptions
+                if (!window.sierra3500FeatureDescriptions['AUXILIARY TRAILER CAMERA']) {
+                    window.sierra3500FeatureDescriptions['AUXILIARY TRAILER CAMERA'] = 'Enhance your towing experience with the GMC Sierra 3500\'s Auxiliary Trailer Camera, providing a clear rear view of your trailer and surroundings for safer backing and maneuvering.';
+                    console.log('🔧 ADDED MISSING: AUXILIARY TRAILER CAMERA description for Sierra 3500');
+                }
             }
         }).catch(function(error) {
             console.error('Fetch error for GMC Sierra 3500 Feature Descriptions:', error.message);
@@ -2098,8 +2110,8 @@ jQuery(document).ready(function($) {
         return str1 === str2;
     }
 
-    // Function to show feature description popup
-    function showFeatureDescription(feature, description) {
+    // Function to show feature description popup - Make it globally accessible
+    window.showFeatureDescription = function(feature, description) {
         console.log('🟡 showFeatureDescription called for:', feature);
         
         $('#featurePopup, #featureOverlay').remove();
@@ -2134,7 +2146,7 @@ jQuery(document).ready(function($) {
             console.log('🟡 Feature close button clicked, closing popup');
             $('#featurePopup, #featureOverlay').remove();
         });
-    }
+    };
 
     // Comments for Part 1/5
     /*
@@ -2180,7 +2192,7 @@ jQuery(document).ready(function($) {
                 { name: 'AEV', keywords: ['aev'] },
                 { name: 'Bed', keywords: ['bed', 'bedliner'] },
                 { name: 'Black', keywords: ['black'] },
-                { name: 'Body', keywords: ['body'] },
+                { name: 'Body', keywords: ['body', 'decals', 'wrap', 'spoiler', 'carbon fiber'] },
                 { name: 'Chrome', keywords: ['chrome'] },
                 { name: 'Grille', keywords: ['grille'] },
                 { name: 'Liftgate', keywords: ['liftgate'] },
@@ -2197,6 +2209,7 @@ jQuery(document).ready(function($) {
                 { name: 'All Weather', keywords: ['all weather'] },
                 { name: 'Alloy', keywords: ['alloy'] },
                 { name: 'Assist', keywords: ['assist'] },
+                { name: 'Cadillac', keywords: ['cadillac'] },
                 { name: 'Cameras', keywords: ['camera', 'hd surround vision'] },
                 { name: 'Cloth Seats', keywords: ['cloth'] },
                 { name: 'Cruise', keywords: ['cruise', 'super cruise'] },
@@ -2208,6 +2221,7 @@ jQuery(document).ready(function($) {
                 { name: 'Leather Seats', keywords: ['leather'] },
                 { name: 'MobileService Plus', keywords: ['mobileservice plus'] },
                 { name: 'OnStar', keywords: ['onstar'] },
+                { name: 'Performance', keywords: ['performance'] },
                 { name: 'Power', keywords: ['power'] },
                 { name: 'Remote', keywords: ['remote'] },
                 { name: 'Safety', keywords: ['highway safety kit', 'traffic sign'] },
@@ -2231,6 +2245,7 @@ jQuery(document).ready(function($) {
                 { name: 'Exhaust', keywords: ['exhaust'] },
                 { name: 'GVWR', keywords: ['gvwr'] },
                 { name: 'Heavy Duty', keywords: ['heavy duty'] },
+                { name: 'Kit', keywords: ['kit'] },
                 { name: 'Performance', keywords: ['performance'] },
                 { name: 'Skid Plate', keywords: ['skid'] },
                 { name: 'Suspension', keywords: ['suspension', 'ride'] },
@@ -2246,20 +2261,27 @@ jQuery(document).ready(function($) {
                 { name: 'Hitch', keywords: ['hitch'] },
                 { name: 'Kits', keywords: ['kit'] },
                 { name: 'MobileService Plus', keywords: ['mobileservice'] },
-                { name: 'OnStar', keywords: ['onstar'] }
+                { name: 'OnStar', keywords: ['onstar'] },
+                { name: 'Performance', keywords: ['performance'] }
             ],
             'PACKAGES': [
                 { name: 'AT4', keywords: ['at4'] },
                 { name: 'Black', keywords: ['black'] },
+                { name: 'Carbon Fiber', keywords: ['carbon fiber'] },
                 { name: 'Color Packages', keywords: ['blue accent', 'bronze accent', 'red accent'] },
                 { name: 'Convenience', keywords: ['convenience'] },
                 { name: 'Denali', keywords: ['denali'] },
+                { name: 'Driver', keywords: ['driver'] },
                 { name: 'Elevation', keywords: ['elevation'] },
                 { name: 'Off Road', keywords: ['off road'] },
                 { name: 'Pro', keywords: ['pro'] },
+                { name: 'Safety Plus', keywords: ['safety plus'] },
                 { name: 'SLE', keywords: ['sle'] },
                 { name: 'SLT', keywords: ['slt'] },
-                { name: 'Technology', keywords: ['technology'] }
+                { name: 'Technology', keywords: ['technology'] },
+                { name: 'Trailering', keywords: ['trailering'] },
+                { name: 'Utility', keywords: ['utility'] },
+                { name: 'Weather and Climate', keywords: ['climate', 'weather'] }
             ]
         };
         
@@ -3893,6 +3915,10 @@ function populateSierra2500Features() {
     
     if (sierra2500Populated || hasExistingFeatures || hasFeatureContent || isDuplicated) {
         console.log('Sierra 2500 features already populated, skipping (flag:', sierra2500Populated, ', DOM check:', hasExistingFeatures, ', content check:', hasFeatureContent, ', checkbox count:', totalCheckboxes, ')');
+        
+        // Even if we skip population, the universal feature icon handler will work
+        console.log('🔧 SIERRA 2500 FIX: Skipping population but universal handler will work');
+        
         return;
     }
     
@@ -4099,17 +4125,8 @@ function populateSierra2500Features() {
                     setupCollapsibleGroups(htmlBlock, 'SIERRA 2500');
                 }
 
-                // BULLETPROOF: Use global bulletproof handler instead of model-specific logic - target sierra2500-specific icons
-                htmlBlock.find('.sierra2500-features .feature-info-icon, .feature-info-icon[data-feature*="sierra2500"]').off('click.featureInfo').on('click.featureInfo', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    var feature = $(this).data('feature');
-                    if (!feature) return;
-                    
-                    console.log('🚀 BULLETPROOF (Sierra 2500): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature, 'SIERRA 2500');
-                    showFeatureDescription(feature, description);
-                });
+                // BULLETPROOF: Let the universal handler at line ~13074 handle all feature icon clicks
+                console.log('🔧 SIERRA 2500: Relying on universal feature icon handler for all clicks');
             },
             error: function(error) {
                 console.error('Papa Parse error for Sierra 2500 population: ' + error);
@@ -4159,6 +4176,10 @@ function populateSierra3500Features() {
     
     if (sierra3500Populated || hasExistingFeatures || hasFeatureContent || isDuplicated) {
         console.log('Sierra 3500 features already populated, skipping (flag:', sierra3500Populated, ', DOM check:', hasExistingFeatures, ', content check:', hasFeatureContent, ', checkbox count:', totalCheckboxes, ')');
+        
+        // Even if we skip population, the universal feature icon handler will work
+        console.log('🔧 SIERRA 3500 FIX: Skipping population but universal handler will work');
+        
         return;
     }
     
@@ -4364,17 +4385,8 @@ function populateSierra3500Features() {
                     setupCollapsibleGroups(htmlBlock, 'SIERRA 3500');
                 }
 
-                // BULLETPROOF: Use global bulletproof handler instead of model-specific logic - target sierra3500-specific icons
-                htmlBlock.find('.sierra3500-features .feature-info-icon, .feature-info-icon[data-feature*="sierra3500"]').off('click.featureInfo').on('click.featureInfo', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    var feature = $(this).data('feature');
-                    if (!feature) return;
-                    
-                    console.log('🚀 BULLETPROOF (Sierra 3500): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature, 'SIERRA 3500');
-                    showFeatureDescription(feature, description);
-                });
+                // BULLETPROOF: Let the universal handler at line ~13074 handle all feature icon clicks
+                console.log('🔧 SIERRA 3500: Relying on universal feature icon handler for all clicks');
             },
             error: function(error) {
                 console.error('Papa Parse error for Sierra 3500 population: ' + error);
@@ -9936,15 +9948,15 @@ function initFormBindings() {
                 } else if (radioValue === 'SIERRA 1500' && isChecked) {
                     console.log('SIERRA 1500 radio button detected, calling populateSierra1500Features');
                     populateSierra1500Features();
-                    updateTrimLevels('sierra1500');
+                    updateTrimLevels(radioValue);
                 } else if ((radioValue === 'SIERRA 2500' || radioValue === 'SIERRA 2500HD') && isChecked) {
                     console.log('SIERRA 2500/2500HD radio button detected, calling populateSierra2500Features');
                     populateSierra2500Features();
-                    updateTrimLevels('sierra2500');
+                    updateTrimLevels(radioValue);
                 } else if ((radioValue === 'SIERRA 3500' || radioValue === 'SIERRA 3500HD') && isChecked) {
                     console.log('SIERRA 3500/3500HD radio button detected, calling populateSierra3500Features');
                     populateSierra3500Features();
-                    updateTrimLevels('sierra3500');
+                    updateTrimLevels(radioValue);
                 } else if (radioValue === 'CT4' && isChecked) {
                     console.log('CT4 radio button detected, calling populateCT4Features');
                     populateCT4Features();
@@ -13069,6 +13081,13 @@ $(document).on('click', '.feature-info-icon', function(e) {
 // SIMPLE DESCRIPTION LOOKUP - Shows exactly what's in the CSV files
 function getFeatureDescription(feature, model) {
     var featureUpper = feature.toUpperCase();
+    
+    // 🔧 FIX TYPOS: Correct common misspellings in feature names
+    if (featureUpper === 'AUXILIARY TRAILER CAMEREA') {
+        featureUpper = 'AUXILIARY TRAILER CAMERA';
+        console.log('🔧 TYPO FIXED: Corrected "CAMEREA" to "CAMERA"');
+    }
+    
     var description = null;
     
     console.log('🔍 DESCRIPTION LOOKUP: Looking for:', featureUpper, 'in model:', model || 'ALL');
