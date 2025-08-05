@@ -5880,10 +5880,10 @@ function populateEscaladeFeatures() {
                 });
                 
                 // Now populate the feature-to-trim-levels mapping using Cadillac function
-                populateFeatureTrimLevelsMapCadillac('Escalade', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+                populateFeatureTrimLevelsMapCadillac('ESCALADE', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
 
                 // Create global mappings for trim walk functionality
-                window.escaladeTrimLevelMap = featureToTrimLevelsMap['Escalade'];
+                window.escaladeTrimLevelMap = featureToTrimLevelsMap['ESCALADE'];
                 window.escaladeFeatureToCategoryMap = featureToCategoryMap;
 
                 console.log('Building HTML for Escalade features...');
@@ -9116,10 +9116,10 @@ function processEscaladeTrimLevels(csvData, selectedFeatures, htmlBlock, trimLev
 	}
 	
 	// Populate feature-to-trim-levels mapping for display
-	populateFeatureTrimLevelsMapCadillac('Escalade', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+	populateFeatureTrimLevelsMapCadillac('ESCALADE', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
 	
 	// Create global mappings for trim walk functionality
-	window.escaladeTrimLevelMap = featureToTrimLevelsMap['Escalade'];
+	window.escaladeTrimLevelMap = featureToTrimLevelsMap['ESCALADE'];
 	window.escaladeFeatureToCategoryMap = featureToCategoryMap;
 }
 
