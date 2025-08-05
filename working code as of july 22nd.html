@@ -13652,6 +13652,14 @@ $(document).on('change', 'input[type="radio"]', function() {
         console.log('🚨 CT5 DETECTED IN GLOBAL LISTENER - FORCING POPULATE');
         ct5Populated = false;
         populateCT5Features();
+    } else if ($(this).val() === 'CT5 V-SERIES' && $(this).is(':checked')) {
+        console.log('🚨 CT5 V-SERIES DETECTED IN GLOBAL LISTENER - FORCING POPULATE');
+        ct5VSeriesPopulated = false;
+        populateCT5VSeriesFeatures().then(function() {
+            console.log('✅ CT5 V-SERIES population completed from global listener');
+        }).catch(function(error) {
+            console.error('❌ CT5 V-SERIES population failed from global listener:', error);
+        });
     }
 });
 
