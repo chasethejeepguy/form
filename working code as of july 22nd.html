@@ -352,7 +352,7 @@ jQuery(document).ready(function($) {
             background: #ffffff;
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-            z-index: 1003;
+            z-index: 10001;
             overflow-y: auto;
             padding: 25px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
@@ -368,7 +368,7 @@ jQuery(document).ready(function($) {
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.7);
-            z-index: 1002;
+            z-index: 10000;
             cursor: pointer;
         }
         .feature-close-popup {
@@ -2786,7 +2786,7 @@ jQuery(document).ready(function($) {
         html += '<label style="font-size: 14px; font-weight: 600; color: #1e293b;">Left Trim Level:</label>';
         html += '<select id="' + modelPrefix + '_comparison_left" class="comparison-dropdown" ';
         html += 'data-model="' + modelPrefix + '" data-side="left" ';
-        html += 'style="padding: 8px 12px; border: 2px solid #d1d5db; border-radius: 4px; font-size: 14px; background: white; cursor: pointer; min-width: 150px;">';
+        html += 'style="padding: 6px 8px; border: 2px solid #d1d5db; border-radius: 4px; font-size: 12px; background: white; cursor: pointer; min-width: 150px;">';
         html += '<option value="">Select Trim Level</option>';
         orderedTrimLevels.forEach(function(trimLevel) {
             html += '<option value="' + trimLevel + '">' + trimLevel + '</option>';
@@ -2799,7 +2799,7 @@ jQuery(document).ready(function($) {
         html += '<label style="font-size: 14px; font-weight: 600; color: #1e293b;">Right Trim Level:</label>';
         html += '<select id="' + modelPrefix + '_comparison_right" class="comparison-dropdown" ';
         html += 'data-model="' + modelPrefix + '" data-side="right" ';
-        html += 'style="padding: 8px 12px; border: 2px solid #d1d5db; border-radius: 4px; font-size: 14px; background: white; cursor: pointer; min-width: 150px;">';
+        html += 'style="padding: 6px 8px; border: 2px solid #d1d5db; border-radius: 4px; font-size: 12px; background: white; cursor: pointer; min-width: 150px;">';
         html += '<option value="">Select Trim Level</option>';
         orderedTrimLevels.forEach(function(trimLevel) {
             html += '<option value="' + trimLevel + '">' + trimLevel + '</option>';
@@ -3148,13 +3148,19 @@ jQuery(document).ready(function($) {
         popup.append(content);
         
         // Add info icon click handlers
-        popup.find('.comparison-info-icon').on('click', function(e) {
+        popup.find('.comparison-info-icon').on('click.comparisonInfo', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
+            
             var feature = $(this).data('feature');
             var model = $(this).data('model');
             var description = getFeatureDescription(feature, model);
-            showFeatureDescription(feature, description);
+            
+            // Ensure the feature popup appears on top of comparison popups
+            setTimeout(function() {
+                showFeatureDescription(feature, description);
+            }, 10);
         });
         
         return popup;
