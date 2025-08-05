@@ -2774,7 +2774,53 @@ jQuery(document).ready(function($) {
             html += '</div>'; // Close trim-walk-item
         });
         
-        html += '</div></div>';
+        html += '</div>';
+        
+        // Add Side by Side Comparison section
+        html += '<div class="side-by-side-comparison-section" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e5e7eb;">';
+        html += '<h3 style="margin-bottom: 15px; font-size: 18px; color: #1e293b;">Side by Side Comparison:</h3>';
+        html += '<div class="comparison-dropdowns" style="display: flex; justify-content: center; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">';
+        
+        // Left dropdown
+        html += '<div class="comparison-dropdown-container" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">';
+        html += '<label style="font-size: 14px; font-weight: 600; color: #1e293b;">Left Trim Level:</label>';
+        html += '<select id="' + modelPrefix + '_comparison_left" class="comparison-dropdown" ';
+        html += 'data-model="' + modelPrefix + '" data-side="left" ';
+        html += 'style="padding: 8px 12px; border: 2px solid #d1d5db; border-radius: 4px; font-size: 14px; background: white; cursor: pointer; min-width: 150px;">';
+        html += '<option value="">Select Trim Level</option>';
+        orderedTrimLevels.forEach(function(trimLevel) {
+            html += '<option value="' + trimLevel + '">' + trimLevel + '</option>';
+        });
+        html += '</select>';
+        html += '</div>';
+        
+        // Right dropdown
+        html += '<div class="comparison-dropdown-container" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">';
+        html += '<label style="font-size: 14px; font-weight: 600; color: #1e293b;">Right Trim Level:</label>';
+        html += '<select id="' + modelPrefix + '_comparison_right" class="comparison-dropdown" ';
+        html += 'data-model="' + modelPrefix + '" data-side="right" ';
+        html += 'style="padding: 8px 12px; border: 2px solid #d1d5db; border-radius: 4px; font-size: 14px; background: white; cursor: pointer; min-width: 150px;">';
+        html += '<option value="">Select Trim Level</option>';
+        orderedTrimLevels.forEach(function(trimLevel) {
+            html += '<option value="' + trimLevel + '">' + trimLevel + '</option>';
+        });
+        html += '</select>';
+        html += '</div>';
+        
+        html += '</div>'; // Close comparison-dropdowns
+        
+        // Compare button
+        html += '<div class="comparison-button-container" style="text-align: center;">';
+        html += '<button type="button" id="' + modelPrefix + '_compare_button" class="compare-trim-levels-btn" ';
+        html += 'data-model="' + modelPrefix + '" ';
+        html += 'style="background: #dc3545; color: white; border: none; padding: 12px 24px; border-radius: 4px; ';
+        html += 'cursor: pointer; font-size: 16px; font-weight: 600; opacity: 0.5; pointer-events: none;">';
+        html += 'Compare Trim Levels Side by Side';
+        html += '</button>';
+        html += '</div>';
+        
+        html += '</div>'; // Close side-by-side-comparison-section
+        html += '</div>'; // Close trim-walk-section
         return html;
     }
     
@@ -2971,6 +3017,186 @@ jQuery(document).ready(function($) {
             $('#trim-walk-popup, #overlay').remove();
             showTrimWalkPopup(nextTrim, modelPrefix, nextIndex, allTrimLevels);
         });
+    }
+    
+    /**
+     * Shows side-by-side comparison popup for two trim levels
+     * @param {string} leftTrim - Left trim level name
+     * @param {string} rightTrim - Right trim level name
+     * @param {string} modelPrefix - Model prefix
+     */
+    function showSideBySideComparison(leftTrim, rightTrim, modelPrefix) {
+        console.log('Creating side-by-side comparison for:', leftTrim, 'vs', rightTrim);
+        
+        // Get features for both trim levels
+        var leftFeatures = getTrimLevelFeatures(leftTrim, modelPrefix);
+        var rightFeatures = getTrimLevelFeatures(rightTrim, modelPrefix);
+        
+        // Find unique features for highlighting
+        var leftUniqueFeatures = leftFeatures.filter(function(feature) {
+            return rightFeatures.indexOf(feature) === -1;
+        });
+        var rightUniqueFeatures = rightFeatures.filter(function(feature) {
+            return leftFeatures.indexOf(feature) === -1;
+        });
+        
+        console.log('Left unique features:', leftUniqueFeatures);
+        console.log('Right unique features:', rightUniqueFeatures);
+        
+        // Create overlay
+        var overlay = $('<div id="comparison-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; justify-content: center; align-items: center;"></div>');
+        
+        // Create comparison container (side by side)
+        var comparisonContainer = $('<div id="comparison-container" style="display: flex; gap: 20px; max-width: 95%; max-height: 90%; overflow: hidden;"></div>');
+        
+        // Create left popup
+        var leftPopup = createComparisonPopup(leftTrim, leftFeatures, leftUniqueFeatures, modelPrefix, 'left');
+        
+        // Create right popup
+        var rightPopup = createComparisonPopup(rightTrim, rightFeatures, rightUniqueFeatures, modelPrefix, 'right');
+        
+        comparisonContainer.append(leftPopup);
+        comparisonContainer.append(rightPopup);
+        overlay.append(comparisonContainer);
+        
+        // Add to body
+        $('body').append(overlay);
+        
+        // Close on overlay click
+        overlay.on('click', function(e) {
+            if (e.target === this) {
+                overlay.remove();
+            }
+        });
+        
+        // Close on Escape key
+        $(document).on('keydown.comparison', function(e) {
+            if (e.key === 'Escape') {
+                overlay.remove();
+                $(document).off('keydown.comparison');
+            }
+        });
+    }
+    
+    /**
+     * Creates a single comparison popup for one trim level
+     * @param {string} trimLevel - Trim level name
+     * @param {Array} features - All features for this trim level
+     * @param {Array} uniqueFeatures - Features unique to this trim level
+     * @param {string} modelPrefix - Model prefix
+     * @param {string} side - 'left' or 'right'
+     */
+    function createComparisonPopup(trimLevel, features, uniqueFeatures, modelPrefix, side) {
+        var popup = $('<div class="comparison-popup" style="background: white; border-radius: 8px; width: 45vw; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.3);"></div>');
+        
+        // Header
+        var header = $('<div class="comparison-header" style="background: #1e293b; color: white; padding: 15px; border-radius: 8px 8px 0 0; text-align: center; position: sticky; top: 0; z-index: 1;"></div>');
+        header.append('<h3 style="margin: 0; font-size: 18px;">' + trimLevel + '</h3>');
+        header.append('<p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.8;">Total Features: ' + features.length + '</p>');
+        popup.append(header);
+        
+        // Content
+        var content = $('<div class="comparison-content" style="padding: 20px;"></div>');
+        
+        // Group features by category
+        var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
+        var featuresByCategory = {};
+        
+        // Initialize categories
+        categories.forEach(function(category) {
+            featuresByCategory[category] = [];
+        });
+        
+        // Categorize features
+        features.forEach(function(feature) {
+            var category = getFeatureCategoryForModel(feature, modelPrefix);
+            if (category && featuresByCategory[category]) {
+                featuresByCategory[category].push(feature);
+            } else {
+                // Default to EXTERIOR if category not found
+                featuresByCategory['EXTERIOR'].push(feature);
+            }
+        });
+        
+        // Build category sections
+        categories.forEach(function(category) {
+            var categoryFeatures = featuresByCategory[category];
+            if (categoryFeatures.length > 0) {
+                // Category header
+                var categoryHeader = $('<h4 style="margin: 20px 0 10px 0; padding-bottom: 5px; border-bottom: 2px solid #e5e7eb; color: #1e293b;">' + category + ' (' + categoryFeatures.length + ')</h4>');
+                content.append(categoryHeader);
+                
+                // Features list
+                categoryFeatures.sort().forEach(function(feature) {
+                    var isUnique = uniqueFeatures.indexOf(feature) !== -1;
+                    var featureDiv = $('<div class="comparison-feature" style="margin: 8px 0; padding: 8px; border-radius: 4px; display: flex; align-items: center; gap: 8px; ' + 
+                        (isUnique ? 'background: #fef3c7; border: 1px solid #f59e0b;' : 'background: #f9fafb; border: 1px solid #e5e7eb;') + '"></div>');
+                    
+                    // Feature name
+                    var featureName = $('<span style="flex: 1; font-size: 13px; ' + (isUnique ? 'font-weight: 600;' : '') + '">' + feature + '</span>');
+                    featureDiv.append(featureName);
+                    
+                    // Info icon
+                    var infoIcon = $('<span class="comparison-info-icon" data-feature="' + feature + '" data-model="' + modelPrefix + '" style="color: #3b82f6; cursor: pointer; font-size: 14px; font-weight: bold; width: 18px; height: 18px; border: 1px solid #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: white;">i</span>');
+                    featureDiv.append(infoIcon);
+                    
+                    content.append(featureDiv);
+                });
+            }
+        });
+        
+        popup.append(content);
+        
+        // Add info icon click handlers
+        popup.find('.comparison-info-icon').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var feature = $(this).data('feature');
+            var model = $(this).data('model');
+            var description = getFeatureDescription(feature, model);
+            showFeatureDescription(feature, description);
+        });
+        
+        return popup;
+    }
+    
+    /**
+     * Gets the category for a feature for a specific model
+     * @param {string} feature - Feature name
+     * @param {string} modelPrefix - Model prefix
+     * @returns {string} - Category name
+     */
+    function getFeatureCategoryForModel(feature, modelPrefix) {
+        // Try to get category from the model's feature to category map
+        var categoryMapName = modelPrefix + 'FeatureToCategoryMap';
+        var categoryMap = window[categoryMapName];
+        
+        if (categoryMap && categoryMap[feature]) {
+            return categoryMap[feature];
+        }
+        
+        // Fallback: try to determine category by keywords
+        var featureLower = feature.toLowerCase();
+        
+        if (featureLower.includes('wheel') || featureLower.includes('light') || featureLower.includes('grille') || 
+            featureLower.includes('bumper') || featureLower.includes('exterior') || featureLower.includes('paint') ||
+            featureLower.includes('roof') || featureLower.includes('step') || featureLower.includes('mirror')) {
+            return 'EXTERIOR';
+        } else if (featureLower.includes('seat') || featureLower.includes('interior') || featureLower.includes('screen') ||
+                   featureLower.includes('audio') || featureLower.includes('speaker') || featureLower.includes('climate') ||
+                   featureLower.includes('carpet') || featureLower.includes('console')) {
+            return 'INTERIOR';
+        } else if (featureLower.includes('engine') || featureLower.includes('transmission') || featureLower.includes('brake') ||
+                   featureLower.includes('suspension') || featureLower.includes('differential') || featureLower.includes('axle')) {
+            return 'MECHANICAL';
+        } else if (featureLower.includes('safety') || featureLower.includes('alert') || featureLower.includes('assist') ||
+                   featureLower.includes('camera') || featureLower.includes('sensor')) {
+            return 'SAFETY';
+        } else if (featureLower.includes('package') || featureLower.includes('kit')) {
+            return 'PACKAGES';
+        }
+        
+        return 'EXTERIOR'; // Default fallback
     }
     
     /**
@@ -11616,6 +11842,60 @@ function initFormBindings() {
             
             // Process immediately for instant checkbox response
             processTrimCheckboxChange(checkbox, trimLevel, modelPrefix);
+        });
+
+        // Handle comparison dropdown changes
+        $(document).off('change.comparisonDropdown').on('change.comparisonDropdown', '.comparison-dropdown', function(e) {
+            var dropdown = $(this);
+            var modelPrefix = dropdown.data('model');
+            var side = dropdown.data('side');
+            var selectedTrim = dropdown.val();
+            
+            console.log('Comparison dropdown changed:', side, 'side for model:', modelPrefix, 'selected:', selectedTrim);
+            
+            // Check if both dropdowns have selections to enable/disable compare button
+            var leftDropdown = $('#' + modelPrefix + '_comparison_left');
+            var rightDropdown = $('#' + modelPrefix + '_comparison_right');
+            var compareButton = $('#' + modelPrefix + '_compare_button');
+            
+            var leftValue = leftDropdown.val();
+            var rightValue = rightDropdown.val();
+            
+            if (leftValue && rightValue && leftValue !== rightValue) {
+                // Enable compare button
+                compareButton.css({
+                    'opacity': '1',
+                    'pointer-events': 'auto'
+                });
+            } else {
+                // Disable compare button
+                compareButton.css({
+                    'opacity': '0.5',
+                    'pointer-events': 'none'
+                });
+            }
+        });
+
+        // Handle compare button click
+        $(document).off('click.compareButton').on('click.compareButton', '.compare-trim-levels-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var button = $(this);
+            var modelPrefix = button.data('model');
+            
+            var leftDropdown = $('#' + modelPrefix + '_comparison_left');
+            var rightDropdown = $('#' + modelPrefix + '_comparison_right');
+            
+            var leftTrim = leftDropdown.val();
+            var rightTrim = rightDropdown.val();
+            
+            if (leftTrim && rightTrim && leftTrim !== rightTrim) {
+                console.log('Starting side-by-side comparison:', leftTrim, 'vs', rightTrim, 'for model:', modelPrefix);
+                showSideBySideComparison(leftTrim, rightTrim, modelPrefix);
+            } else {
+                console.warn('Cannot compare: both trim levels must be selected and different');
+            }
         });
         
                  // Separate function to handle the heavy processing for trim checkboxes
