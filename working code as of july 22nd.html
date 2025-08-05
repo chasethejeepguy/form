@@ -2266,7 +2266,7 @@ jQuery(document).ready(function($) {
      * @param {number} startIndex - Starting global index for checkbox IDs
      * @returns {Object} - Object with html string and updated globalIndex
      */
-    function buildCollapsibleFeatureGroups(features, category, modelPrefix, startIndex) {
+    function buildCollapsibleFeatureGroups(features, category, modelPrefix, startIndex, customGroups) {
         var html = '';
         var globalIndex = startIndex;
         
@@ -2276,7 +2276,7 @@ jQuery(document).ready(function($) {
                 { name: 'AEV', keywords: ['aev'] },
                 { name: 'Bed', keywords: ['bed', 'bedliner'] },
                 { name: 'Black', keywords: ['black'] },
-                { name: 'Body', keywords: ['body', 'decals', 'wrap', 'spoiler', 'carbon fiber'] },
+                { name: 'Body', keywords: ['body', 'decals', 'wrap', 'spoiler', 'carbon fiber', 'glass', 'wipers', 'handles'] },
                 { name: 'Chrome', keywords: ['chrome'] },
                 { name: 'Grille', keywords: ['grille'] },
                 { name: 'Liftgate', keywords: ['liftgate'] },
@@ -2298,17 +2298,20 @@ jQuery(document).ready(function($) {
                 { name: 'Cloth Seats', keywords: ['cloth'] },
                 { name: 'Cruise', keywords: ['cruise', 'super cruise'] },
                 { name: 'Displays', keywords: ['infotainment', 'screen', 'display', 'diagonal'] },
-                { name: 'Entertainment', keywords: ['wifi', 'apple', 'android', 'phone', 'navigation', 'sirius', 'siriusxm'] },
+                { name: 'Entertainment', keywords: ['wifi', 'apple', 'android', 'phone', 'navigation', 'sirius', 'siriusxm', 'google'] },
                 { name: 'Floor', keywords: ['floor'] },
                 { name: 'Heat', keywords: ['heat', 'heated'] },
                 { name: 'Hitch', keywords: ['hitch'] },
                 { name: 'Leather Seats', keywords: ['leather'] },
-                { name: 'MobileService Plus', keywords: ['mobileservice plus'] },
+                { name: 'Lighting', keywords: ['lighting', 'illuminating'] },
+                { name: 'MobileService Plus', keywords: ['mobileservice plus', 'mobile service'] },
+                { name: 'MicroFiber', keywords: ['microfiber'] },
                 { name: 'OnStar', keywords: ['onstar'] },
                 { name: 'Performance', keywords: ['performance'] },
                 { name: 'Power', keywords: ['power'] },
                 { name: 'Remote', keywords: ['remote'] },
                 { name: 'Safety', keywords: ['highway safety kit', 'traffic sign'] },
+                { name: 'Settings', keywords: ['compass', '5g', 'memory', 'settings'] },
                 { name: 'Speakers', keywords: ['speaker', 'bose', 'audio'] },
                 { name: 'Ventilated', keywords: ['ventilate', 'ventilated'] },
                 { name: 'Vinyl Seats', keywords: ['vinyl'] },
@@ -2325,6 +2328,7 @@ jQuery(document).ready(function($) {
                 { name: 'Control', keywords: ['control'] },
                 { name: 'Differential', keywords: ['differential'] },
                 { name: 'Drive', keywords: ['drive'] },
+                { name: 'Electronic', keywords: ['electronic'] },
                 { name: 'Engine', keywords: ['engine'] },
                 { name: 'Exhaust', keywords: ['exhaust'] },
                 { name: 'GVWR', keywords: ['gvwr'] },
@@ -2344,9 +2348,10 @@ jQuery(document).ready(function($) {
                 { name: 'Control', keywords: ['control'] },
                 { name: 'Hitch', keywords: ['hitch'] },
                 { name: 'Kits', keywords: ['kit'] },
-                { name: 'MobileService Plus', keywords: ['mobileservice'] },
+                { name: 'MobileService Plus', keywords: ['mobileservice', 'mobile service'] },
                 { name: 'OnStar', keywords: ['onstar'] },
-                { name: 'Performance', keywords: ['performance'] }
+                { name: 'Performance', keywords: ['performance'] },
+                { name: 'Sensor', keywords: ['sensor'] }
             ],
             'PACKAGES': [
                 { name: 'AT4', keywords: ['at4'] },
@@ -2370,6 +2375,18 @@ jQuery(document).ready(function($) {
         };
         
         var categoryGroups = collapsibleGroups[category] || [];
+        
+        // Add custom groups if provided
+        if (customGroups) {
+            Object.keys(customGroups).forEach(function(groupName) {
+                // Only add if not already exists
+                var existingGroup = categoryGroups.find(function(g) { return g.name === groupName; });
+                if (!existingGroup) {
+                    categoryGroups.push({ name: groupName, keywords: [] }); // Custom groups use direct feature matching
+                }
+            });
+        }
+        
         var groupedFeatures = {};
         var ungroupedFeatures = [];
         
@@ -2378,13 +2395,31 @@ jQuery(document).ready(function($) {
             groupedFeatures[group.name] = [];
         });
         
+        // Add custom group features directly if provided
+        if (customGroups) {
+            Object.keys(customGroups).forEach(function(groupName) {
+                if (groupedFeatures[groupName]) {
+                    groupedFeatures[groupName] = customGroups[groupName] || [];
+                }
+            });
+        }
+        
         // Sort and group features
         features.forEach(function(feature) {
             var featureLower = feature.toLowerCase();
             var grouped = false;
             
+            // Check if feature is already in a custom group
+            if (customGroups) {
+                Object.keys(customGroups).forEach(function(groupName) {
+                    if (customGroups[groupName].indexOf(feature) !== -1) {
+                        grouped = true;
+                    }
+                });
+            }
+            
             // Special priority handling for EXTERIOR category: wheels override everything
-            if (category === 'EXTERIOR' && (featureLower.includes('wheel') || featureLower.includes('wheels'))) {
+            if (!grouped && category === 'EXTERIOR' && (featureLower.includes('wheel') || featureLower.includes('wheels'))) {
                 groupedFeatures['Wheels'].push(feature);
                 grouped = true;
             }
@@ -3573,7 +3608,7 @@ jQuery(document).ready(function($) {
                     html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
                     
                     // Build collapsible groups and regular features
-                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'terrain', globalIndex);
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'terrain', globalIndex, undefined);
                     html += categoryHtml.html;
                     globalIndex = categoryHtml.globalIndex;
                     
@@ -3881,7 +3916,7 @@ function populateSierra1500Features() {
                     html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
                     
                     // Build collapsible groups and regular features
-                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'sierra1500', globalIndex);
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'sierra1500', globalIndex, undefined);
                     html += categoryHtml.html;
                     globalIndex = categoryHtml.globalIndex;
                     html += '</div></div>';
@@ -4148,7 +4183,7 @@ function populateSierra2500Features() {
                     });
                     
                     html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
-                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'sierra2500', globalIndex);
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'sierra2500', globalIndex, undefined);
                     html += categoryHtml.html;
                     globalIndex = categoryHtml.globalIndex;
                     html += '</div></div>';
@@ -4408,7 +4443,7 @@ function populateSierra3500Features() {
                     });
                     
                     html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
-                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'sierra3500', globalIndex);
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'sierra3500', globalIndex, undefined);
                     html += categoryHtml.html;
                     globalIndex = categoryHtml.globalIndex;
                     html += '</div></div>';
@@ -4665,7 +4700,7 @@ function populateCT4Features() {
                     });
                     
                     html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
-                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'ct4', globalIndex);
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'ct4', globalIndex, undefined);
                     html += categoryHtml.html;
                     globalIndex = categoryHtml.globalIndex;
                     html += '</div></div>';
@@ -4907,7 +4942,7 @@ function populateCT4VSeriesFeatures() {
                     html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
                     
                     // Build collapsible groups and regular features
-                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'ct4vseries', globalIndex);
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'ct4vseries', globalIndex, undefined);
                     html += categoryHtml.html;
                     globalIndex = categoryHtml.globalIndex;
                     html += '</div></div>';
@@ -5154,7 +5189,7 @@ function populateCT5Features() {
                     html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
                     
                     // Build collapsible groups and regular features
-                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'ct5', globalIndex);
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'ct5', globalIndex, undefined);
                     html += categoryHtml.html;
                     globalIndex = categoryHtml.globalIndex;
                     html += '</div></div>';
@@ -5393,69 +5428,10 @@ function populateCT5VSeriesFeatures() {
                         return a.toLowerCase().localeCompare(b.toLowerCase());
                     });
                     
-                    // Add custom feature groupings for CT5 V-Series
-                    var customGroups = {};
-                    if (category === 'EXTERIOR') {
-                        // Body button: features with glass, wipers, handles
-                        customGroups['Body'] = catFeatures.filter(function(feature) {
-                            var lowerFeature = feature.toLowerCase();
-                            return lowerFeature.includes('glass') || lowerFeature.includes('wipers') || lowerFeature.includes('handles');
-                        });
-                    } else if (category === 'INTERIOR') {
-                        // MobileService Plus button: features with mobile service
-                        customGroups['MobileService Plus'] = catFeatures.filter(function(feature) {
-                            var lowerFeature = feature.toLowerCase();
-                            return lowerFeature.includes('mobile service');
-                        });
-                        
-                        // Lighting button: features with lighting, illuminating
-                        customGroups['Lighting'] = catFeatures.filter(function(feature) {
-                            var lowerFeature = feature.toLowerCase();
-                            return lowerFeature.includes('lighting') || lowerFeature.includes('illuminating');
-                        });
-                        
-                        // MicroFiber button: features with microfiber
-                        customGroups['MicroFiber'] = catFeatures.filter(function(feature) {
-                            var lowerFeature = feature.toLowerCase();
-                            return lowerFeature.includes('microfiber');
-                        });
-                        
-                        // Settings button: features with compass, 5g, memory, settings
-                        customGroups['Settings'] = catFeatures.filter(function(feature) {
-                            var lowerFeature = feature.toLowerCase();
-                            return lowerFeature.includes('compass') || lowerFeature.includes('5g') || 
-                                   lowerFeature.includes('memory') || lowerFeature.includes('settings');
-                        });
-                        
-                        // Entertainment button: features with google
-                        customGroups['Entertainment'] = catFeatures.filter(function(feature) {
-                            var lowerFeature = feature.toLowerCase();
-                            return lowerFeature.includes('google');
-                        });
-                    } else if (category === 'MECHANICAL') {
-                        // Electronic button: features with electronic
-                        customGroups['Electronic'] = catFeatures.filter(function(feature) {
-                            var lowerFeature = feature.toLowerCase();
-                            return lowerFeature.includes('electronic');
-                        });
-                    } else if (category === 'SAFETY') {
-                        // Mobile Service Plus button: features with mobile service
-                        customGroups['Mobile Service Plus'] = catFeatures.filter(function(feature) {
-                            var lowerFeature = feature.toLowerCase();
-                            return lowerFeature.includes('mobile service');
-                        });
-                        
-                        // Sensor button: features with sensor
-                        customGroups['Sensor'] = catFeatures.filter(function(feature) {
-                            var lowerFeature = feature.toLowerCase();
-                            return lowerFeature.includes('sensor');
-                        });
-                    }
-                    
                     html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
                     
                     // Build collapsible groups and regular features
-                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'ct5vseries', globalIndex, customGroups);
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'ct5vseries', globalIndex, undefined);
                     html += categoryHtml.html;
                     globalIndex = categoryHtml.globalIndex;
                     html += '</div></div>';
@@ -5739,7 +5715,7 @@ function populateAcadiaFeatures() {
                     html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
                     
                     // Build collapsible groups and regular features
-                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'acadia', globalIndex);
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'acadia', globalIndex, undefined);
                     html += categoryHtml.html;
                     globalIndex = categoryHtml.globalIndex;
                     
@@ -6056,7 +6032,7 @@ function populateYukonFeatures() {
                     html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
                     
                     // Build collapsible groups and regular features
-                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'yukon', globalIndex);
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'yukon', globalIndex, undefined);
                     html += categoryHtml.html;
                     globalIndex = categoryHtml.globalIndex;
                     
@@ -6362,7 +6338,7 @@ function populateCanyonFeatures() {
                     html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
                     
                     // Build collapsible groups and regular features
-                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'canyon', globalIndex);
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'canyon', globalIndex, undefined);
                     html += categoryHtml.html;
                     globalIndex = categoryHtml.globalIndex;
                     
