@@ -684,6 +684,12 @@ jQuery(document).ready(function($) {
             margin-bottom: 4% !important;
             padding-bottom: 4px;
         }
+        
+        /* Cadillac Escalade checkbox spacing */
+        .gchoice[class*="gchoice_escalade_"] {
+            margin-bottom: 4% !important;
+            padding-bottom: 4px;
+        }
         /* Trim levels left alignment - force override any parent centering */
         .trim-levels-display {
             text-align: left !important;
@@ -910,6 +916,10 @@ jQuery(document).ready(function($) {
     // Cadillac CT5 V-Series Model Field IDs
     var ct5VSeriesCheckboxFieldId = 151;
     var ct5VSeriesHtmlBlockFieldId = 151;
+    
+    // Cadillac Escalade Model Field IDs
+    var escaladeCheckboxFieldId = 153;
+    var escaladeHtmlBlockFieldId = 153;
 
     /*
     📋 STEP 1B: POPULATED FLAGS - Add your model's populated flag here
@@ -937,6 +947,7 @@ jQuery(document).ready(function($) {
     var ct4VSeriesPopulated = false;
     var ct5Populated = false;
     var ct5VSeriesPopulated = false;
+    var escaladePopulated = false;
     
     // Function to find best description match with fuzzy matching for typos
     function findBestDescriptionMatch(searchFeature, descriptionMap) {
@@ -1127,7 +1138,8 @@ jQuery(document).ready(function($) {
         'CT4': { fieldId: ct4CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/ct4.csv', modelFilter: 'CT4', isCadillac: true },
         'CT4 V-SERIES': { fieldId: ct4VSeriesCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/ct4v.csv', modelFilter: 'CT4', isCadillac: true },
         'CT5': { fieldId: ct5CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/ct5.csv', modelFilter: 'CT5', isCadillac: true },
-        'CT5 V-SERIES': { fieldId: ct5VSeriesCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/ct5v.csv', modelFilter: 'CT5', isCadillac: true }
+        'CT5 V-SERIES': { fieldId: ct5VSeriesCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/ct5v.csv', modelFilter: 'CT5', isCadillac: true },
+        'ESCALADE': { fieldId: escaladeCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/escalade.csv', modelFilter: 'Escalade', isCadillac: true }
     };
 
     // Email mappings
@@ -1465,6 +1477,9 @@ jQuery(document).ready(function($) {
     // Global variable for Cadillac CT5 V-Series feature descriptions
     window.ct5VSeriesFeatureDescriptions = {};
     
+    // Global variable for Cadillac Escalade feature descriptions
+    window.escaladeFeatureDescriptions = {};
+    
     // ============================================================================
     // FUTURE-PROOF DESCRIPTION SYSTEM
     // ============================================================================
@@ -1500,6 +1515,7 @@ jQuery(document).ready(function($) {
         'CT4 V-SERIES': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacct4vdescriptions.csv',
         'CT5': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacct5descriptions.csv',
         'CT5 V-SERIES': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacct5vdescriptions.csv',
+        'ESCALADE': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacescaladedescriptions.csv',
         
         // Kia Models (using generic pattern - can be customized per model)
         'K4': 'https://hutchinsonautoteam.com/kiamodels/KIAMODELDESCRIPTIONS.CSV',
@@ -1618,6 +1634,9 @@ jQuery(document).ready(function($) {
                 break;
             case 'CT5 V-SERIES':
                 window.ct5VSeriesFeatureDescriptions[featureUpper] = description;
+                break;
+            case 'ESCALADE':
+                window.escaladeFeatureDescriptions[featureUpper] = description;
                 break;
         }
     }
@@ -2138,6 +2157,72 @@ jQuery(document).ready(function($) {
         }).catch(function(error) {
             console.error('Fetch error for Cadillac CT5 V-Series Feature Descriptions:', error.message);
             window.ct5VSeriesFeatureDescriptions = {};
+        });
+    }
+    
+    // Load Cadillac Escalade feature descriptions
+    function loadEscaladeFeatureDescriptions() {
+        var escaladeDescriptionsUrl = 'https://hutchinsonautoteam.com/cadillacmodels/cadillacescaladedescriptions.csv';
+        console.log('Loading Cadillac Escalade feature descriptions from:', escaladeDescriptionsUrl);
+        
+        fetch(escaladeDescriptionsUrl)
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text();
+        })
+        .then(function(csvText) {
+            console.log('Raw Escalade descriptions CSV:', csvText);
+            console.log('Raw Escalade descriptions CSV length:', csvText.length);
+            console.log('Raw Escalade descriptions CSV preview (first 500 chars):', csvText.substring(0, 500));
+            
+            window.escaladeFeatureDescriptions = {};
+            
+            // Parse CSV text line by line
+            var lines = csvText.split('\n');
+            console.log('Escalade descriptions total lines:', lines.length);
+            
+            lines.forEach(function(line, index) {
+                if (line.trim() && line.includes('{') && line.includes('}') && line.includes(':')) {
+                    console.log('Processing Escalade description line', index, ':', line.substring(0, 100) + '...');
+                    
+                    // Find the closing brace
+                    var closingBraceIndex = line.indexOf('}');
+                    if (closingBraceIndex !== -1) {
+                        var content = line.substring(1, closingBraceIndex);
+                        var colonIndex = content.indexOf(':');
+                        
+                        if (colonIndex !== -1) {
+                            var feature = content.substring(0, colonIndex).trim();
+                            var description = content.substring(colonIndex + 1).trim();
+                            
+                            if (feature && description) {
+                                var featureUpper = feature.toUpperCase();
+                                window.escaladeFeatureDescriptions[featureUpper] = description;
+                                console.log('Added Escalade description:', featureUpper, '=', description.substring(0, 100) + '...');
+                            }
+                        }
+                    }
+                }
+            });
+            
+            console.log('Parsed Escalade feature descriptions:', window.escaladeFeatureDescriptions);
+            console.log('Total Escalade descriptions loaded:', Object.keys(window.escaladeFeatureDescriptions).length);
+            
+            if (Object.keys(window.escaladeFeatureDescriptions).length === 0) {
+                console.warn('WARNING: No Escalade feature descriptions loaded!');
+                console.warn('Sample lines from Escalade descriptions CSV:');
+                lines.slice(0, 5).forEach(function(line, index) {
+                    console.warn('Line', index, ':', line);
+                });
+            } else {
+                console.log('SUCCESS: Cadillac Escalade descriptions loaded successfully at:', new Date().toISOString());
+                console.log('First few Escalade descriptions:', Object.keys(window.escaladeFeatureDescriptions).slice(0, 5));
+            }
+        }).catch(function(error) {
+            console.error('Fetch error for Cadillac Escalade Feature Descriptions:', error.message);
+            window.escaladeFeatureDescriptions = {};
         });
     }
 
@@ -2829,6 +2914,10 @@ jQuery(document).ready(function($) {
                 featureDescriptions = window.ct5VSeriesFeatureDescriptions;
                 modelName = 'CT5 V-Series';
                 break;
+            case 'escalade':
+                featureDescriptions = window.escaladeFeatureDescriptions;
+                modelName = 'Escalade';
+                break;
             default:
                 console.warn('Unknown model prefix for trim walk popup:', modelPrefix);
                 return;
@@ -3358,6 +3447,8 @@ jQuery(document).ready(function($) {
                 return 'CT4 V-SERIES';
             case 'CT5VSERIES':
                 return 'CT5 V-SERIES';
+            case 'ESCALADE':
+                return 'ESCALADE';
             default:
                  return modelName;
          }
@@ -5631,6 +5722,253 @@ function populateCT5VSeriesFeatures() {
         });
     }).catch(function(error) {
         console.error('Fetch error for CT5 V-Series population: ' + error.message);
+    });
+}
+
+// Cadillac Escalade population function
+function populateEscaladeFeatures() {
+    console.log('=== populateEscaladeFeatures called ===');
+    console.log('Current escaladePopulated flag:', escaladePopulated);
+    console.log('Form ID:', formId);
+    console.log('escaladeHtmlBlockFieldId:', escaladeHtmlBlockFieldId);
+    
+    if (escaladePopulated) {
+        console.log('Escalade features already populated, skipping');
+        return Promise.resolve();
+    }
+
+    var config = modelConfigs['ESCALADE'];
+    if (!config) {
+        console.warn('Escalade configuration not found');
+        console.log('Available modelConfigs:', Object.keys(modelConfigs));
+        return Promise.reject(new Error('Escalade configuration not found'));
+    }
+    console.log('Escalade config found:', config);
+
+    // Try multiple selectors to find the HTML block field
+    console.log('Searching for HTML block field with multiple selectors...');
+    var htmlBlock = $('#field_' + formId + '_' + escaladeHtmlBlockFieldId);
+    console.log('Selector 1 (#field_' + formId + '_' + escaladeHtmlBlockFieldId + '):', htmlBlock.length);
+    
+    if (!htmlBlock.length) {
+        htmlBlock = $('#field_' + formId + '_153');
+        console.log('Selector 2 (#field_' + formId + '_153):', htmlBlock.length);
+    }
+    if (!htmlBlock.length) {
+        htmlBlock = $('#input_' + formId + '_153');
+        console.log('Selector 3 (#input_' + formId + '_153):', htmlBlock.length);
+    }
+    if (!htmlBlock.length) {
+        htmlBlock = $('[id*="153"]').filter(function() {
+            return $(this).attr('id').includes('field') || $(this).attr('id').includes('input');
+        });
+        console.log('Selector 4 (wildcard [id*="153"]):', htmlBlock.length);
+    }
+    
+    console.log('HTML Block field (ID: 153) debug:', {
+        selector: '#field_' + formId + '_' + escaladeHtmlBlockFieldId,
+        exists: htmlBlock.length > 0,
+        visible: htmlBlock.length ? htmlBlock.is(':visible') : false,
+        content: htmlBlock.length ? htmlBlock.html().substring(0, 200) : 'N/A',
+        actualId: htmlBlock.length ? htmlBlock.attr('id') : 'N/A'
+    });
+    
+    if (!htmlBlock.length) {
+        console.warn('Escalade HTML block field (ID: 153) not found');
+        return Promise.reject(new Error('Escalade HTML block field not found'));
+    }
+
+    console.log('Fetching Escalade CSV from:', config.csvUrl);
+    return fetchCsvWithRetry(config.csvUrl, 'Escalade', 3, 1000).then(function(csvText) {
+        console.log('Escalade CSV fetched successfully, length:', csvText.length);
+        console.log('CSV preview (first 500 chars):', csvText.substring(0, 500));
+        
+        Papa.parse(csvText, {
+            skipEmptyLines: true,
+            complete: function(results) {
+                console.log('Escalade CSV parsed for population, rows: ' + results.data.length);
+                console.log('First few rows:', results.data.slice(0, 3));
+                
+                var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
+                var featureGroups = {};
+                var currentCategory = null;
+                var features = [];
+
+                results.data.forEach(function(row, rowIndex) {
+                    if (row.length > 0) {
+                        var firstCell = row[0] ? row[0].trim() : '';
+                        if (firstCell.startsWith('TRIM LEVELS FOR {')) {
+                            if (currentCategory && features.length > 0) {
+                                featureGroups[currentCategory] = features;
+                                console.log('Stored category: ' + currentCategory + ' with ' + features.length + ' features');
+                            }
+                            currentCategory = firstCell.match(/\{(.+)\}/)[1];
+                            // Clean up features by removing extra quotes and trimming
+                            features = row.slice(1).filter(function(f) { return f && f.trim() !== ''; }).map(function(f) {
+                                // Remove surrounding quotes if present
+                                var cleaned = f.trim();
+                                if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+                                    cleaned = cleaned.slice(1, -1);
+                                }
+                                // Handle double quotes inside the string (CSV escape format)
+                                cleaned = cleaned.replace(/""/g, '"');
+                                return cleaned;
+                            });
+                            console.log('Row ' + rowIndex + ': Parsed category: ' + currentCategory + ', features: ' + features.length);
+                            console.log('Features for ' + currentCategory + ':', features.slice(0, 5)); // Show first 5 features
+                            console.log('Raw features before cleaning:', row.slice(1, 6)); // Show raw features
+                        }
+                    }
+                });
+                if (currentCategory && features.length > 0) {
+                    featureGroups[currentCategory] = features;
+                    console.log('Final stored category: ' + currentCategory + ' with ' + features.length + ' features');
+                }
+
+                console.log('Feature groups summary:', Object.keys(featureGroups).map(function(cat) {
+                    return cat + ': ' + featureGroups[cat].length + ' features';
+                }));
+
+                if (Object.keys(featureGroups).length !== 5) {
+                    console.error('Expected 5 categories, found: ' + Object.keys(featureGroups).length);
+                    console.error('Found categories:', Object.keys(featureGroups));
+                    return;
+                }
+
+                // Populate trim level mapping from CSV data before building checkboxes
+                console.log('Populating trim level mapping for Escalade features...');
+                var trimLevels = discoverTrimLevelsFromCSV(results.data, categories);
+                var featureToColumnMap = {};
+                var featureToCategoryMap = {};
+                var trimLevelRowsByCategory = {};
+                
+                // Parse CSV data to create feature-to-column mapping and find trim level data (Cadillac structure like Sierra)
+                var currentCategory = null;
+                results.data.forEach(function(row, rowIndex) {
+                    if (row && row.length > 0) {
+                        var firstCell = row[0];
+                        
+                        // Check if this is a category header
+                        if (firstCell && firstCell.includes('TRIM LEVELS FOR {')) {
+                            currentCategory = categories.find(function(cat) {
+                                return firstCell.includes(cat);
+                            });
+                            
+                            if (currentCategory) {
+                                trimLevelRowsByCategory[currentCategory] = {};
+                                
+                                // Map features to column indices
+                                var features = row.slice(1).filter(function(f) { return f && f.trim() !== ''; }).map(function(f) {
+                                    var cleaned = f.trim();
+                                    if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+                                        cleaned = cleaned.slice(1, -1);
+                                    }
+                                    cleaned = cleaned.replace(/""/g, '"');
+                                    return cleaned;
+                                });
+                                
+                                features.forEach(function(feature, index) {
+                                    featureToColumnMap[feature] = index + 1;
+                                    featureToCategoryMap[feature] = currentCategory;
+                                });
+                            }
+                        } else if (currentCategory && trimLevels.indexOf(firstCell) !== -1) {
+                            // This is a trim level row for the current category
+                            trimLevelRowsByCategory[currentCategory][firstCell] = row;
+                        }
+                    }
+                });
+                
+                // Now populate the feature-to-trim-levels mapping using Cadillac function
+                populateFeatureTrimLevelsMapCadillac('ESCALADE', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+
+                // Create global mappings for trim walk functionality
+                window.escaladeTrimLevelMap = featureToTrimLevelsMap['ESCALADE'];
+                window.escaladeFeatureToCategoryMap = featureToCategoryMap;
+
+                console.log('Building HTML for Escalade features...');
+                
+                // Build trim level walk buttons
+                var trimLevelButtons = buildTrimLevelWalkButtons(trimLevels, 'escalade');
+                
+                var html = trimLevelButtons + '<div class="feature-groups">';
+                var globalIndex = 0;
+                categories.forEach(function(category) {
+                    var catFeatures = featureGroups[category] || [];
+                    console.log('Building HTML for category: ' + category + ' with ' + catFeatures.length + ' features');
+                    
+                    // Sort features alphabetically within each category
+                    catFeatures.sort(function(a, b) {
+                        return a.toLowerCase().localeCompare(b.toLowerCase());
+                    });
+                    
+                    html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
+                    
+                    // Build collapsible groups and regular features
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'escalade', globalIndex, undefined);
+                    html += categoryHtml.html;
+                    globalIndex = categoryHtml.globalIndex;
+                    html += '</div></div>';
+                });
+                html += '</div>';
+
+                console.log('Generated HTML length:', html.length);
+                console.log('HTML preview (first 500 chars):', html.substring(0, 500));
+
+                // Replace the placeholder in the HTML block
+                var currentHtml = htmlBlock.html();
+                console.log('Current HTML content:', currentHtml);
+                console.log('🔍 Searching for placeholder: {escalade feature checkboxes}');
+                console.log('🔍 Searching for placeholder: {ESCALADE FEATURE CHECKBOXES}');
+                
+                if (currentHtml.indexOf('{escalade feature checkboxes}') !== -1) {
+                    var newHtml = currentHtml.replace('{escalade feature checkboxes}', html);
+                    htmlBlock.html(newHtml);
+                    console.log('✅ Replaced {escalade feature checkboxes} with generated HTML');
+                } else if (currentHtml.indexOf('{ESCALADE FEATURE CHECKBOXES}') !== -1) {
+                    var newHtml = currentHtml.replace('{ESCALADE FEATURE CHECKBOXES}', html);
+                    htmlBlock.html(newHtml);
+                    console.log('✅ Replaced {ESCALADE FEATURE CHECKBOXES} with generated HTML');
+                } else {
+                    console.warn('❌ No Escalade placeholder found in HTML block!');
+                    console.warn('📝 SOLUTION: Add {escalade feature checkboxes} to your HTML block field (ID 153)');
+                    console.warn('Available placeholders in HTML:', currentHtml.match(/\{[^}]+\}/g) || 'None found');
+                    htmlBlock.html(html);
+                }
+
+                escaladePopulated = true;
+                console.log('Escalade features populated into 5 columns in field 153');
+
+                // Bind change events and add info icons
+                htmlBlock.find('input[type="checkbox"]').off('change.EscaladeFeatures').on('change.EscaladeFeatures', function() {
+                    console.log('Escalade checkbox changed, updating trim levels');
+                    updateTrimLevels('ESCALADE');
+                });
+
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'ESCALADE');
+
+                // Info icons are already included in the initial HTML generation above
+                // No need to prepend additional icons to avoid duplicates
+
+                // BULLETPROOF: Use global bulletproof handler instead of model-specific logic
+                htmlBlock.find('.feature-info-icon').off('click.featureInfo').on('click.featureInfo', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var feature = $(this).data('feature');
+                    if (!feature) return;
+                    
+                    console.log('🚀 BULLETPROOF (Escalade): Feature icon clicked:', feature);
+                    var description = getFeatureDescription(feature, 'ESCALADE');
+                    showFeatureDescription(feature, description);
+                });
+            },
+            error: function(error) {
+                console.error('Papa Parse error for Escalade population: ' + error);
+            }
+        });
+    }).catch(function(error) {
+        console.error('Fetch error for Escalade population: ' + error.message);
     });
 }
 
@@ -8624,6 +8962,167 @@ function processCT5VSeriesTrimLevels(csvData, selectedFeatures, htmlBlock, trimL
 	window.ct5vseriesFeatureToCategoryMap = featureToCategoryMap;
 }
 
+function processEscaladeTrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model) {
+	console.log('Processing Escalade trim levels for selected features:', selectedFeatures);
+	
+	var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
+	var trimLevels = discoverTrimLevelsFromCSV(csvData, categories);
+	
+	// Custom ordering for Escalade trim levels: LUXURY, PREMIUM LUXURY, SPORT, PREMIUM LUXURY PLATINUM, SPORT PLATINUM
+	console.log('Escalade processing - trim levels discovered:', trimLevels);
+	var escaladeTrimOrder = ['LUXURY', 'PREMIUM LUXURY', 'SPORT', 'PREMIUM LUXURY PLATINUM', 'SPORT PLATINUM'];
+	var orderedTrimLevels = [];
+	
+	// Add trim levels in the specified order
+	escaladeTrimOrder.forEach(function(orderedTrim) {
+		if (trimLevels.indexOf(orderedTrim) !== -1) {
+			orderedTrimLevels.push(orderedTrim);
+		}
+	});
+	
+	// Add any remaining trim levels that weren't in our custom order
+	trimLevels.forEach(function(trim) {
+		if (orderedTrimLevels.indexOf(trim) === -1) {
+			orderedTrimLevels.push(trim);
+		}
+	});
+	
+	trimLevels = orderedTrimLevels;
+	console.log('Escalade processing - trim levels reordered:', trimLevels);
+	var matchingTrimLevels = [];
+	var featureToColumnMap = {};
+	var featureToCategoryMap = {};
+	var trimLevelRowsByCategory = {};
+	var currentCategory = null;
+	
+	// Parse the CSV data to map features to columns and find trim level rows
+	csvData.forEach(function(row, rowIndex) {
+		if (row && row.length > 0) {
+			var firstCell = row[0];
+			
+			// Check if this is a category header
+			if (firstCell && firstCell.includes('TRIM LEVELS FOR {')) {
+				currentCategory = categories.find(function(cat) {
+					return firstCell.includes(cat);
+				});
+				
+				if (currentCategory) {
+					trimLevelRowsByCategory[currentCategory] = {};
+					
+					// Map features to column indices
+					var features = row.slice(1).filter(function(f) { return f && f.trim() !== ''; }).map(function(f) {
+						var cleaned = f.trim();
+						if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+							cleaned = cleaned.slice(1, -1);
+						}
+						cleaned = cleaned.replace(/""/g, '"');
+						return cleaned;
+					});
+					
+					features.forEach(function(feature, index) {
+						featureToColumnMap[feature] = index + 1;
+						featureToCategoryMap[feature] = currentCategory;
+					});
+				}
+			} else if (currentCategory && trimLevels.includes(firstCell)) {
+				// This is a trim level row
+				trimLevelRowsByCategory[currentCategory][firstCell] = row;
+			}
+		}
+	});
+	
+	// For each trim level, check if it has all the selected features
+	trimLevels.forEach(function(trimLevel) {
+		var hasAllFeatures = true;
+		console.log('🔍 ESCALADE TRIM LEVEL CHECK: ' + trimLevel);
+		
+		selectedFeatures.forEach(function(selectedFeature) {
+			var foundInTrimLevel = false;
+			console.log('  🔎 Checking feature: ' + selectedFeature);
+			
+			// Get the correct category for this feature
+			var featureCategory = featureToCategoryMap[selectedFeature];
+			console.log('  📂 Feature belongs to category: ' + featureCategory);
+			
+			if (featureCategory && trimLevelRowsByCategory[featureCategory] && trimLevelRowsByCategory[featureCategory][trimLevel]) {
+				var trimRow = trimLevelRowsByCategory[featureCategory][trimLevel];
+				var featureColumn = featureToColumnMap[selectedFeature];
+				
+				if (featureColumn && trimRow[featureColumn]) {
+					var featureValue = trimRow[featureColumn].toUpperCase();
+					console.log('    📋 Category: ' + featureCategory + ', Column: ' + featureColumn + ', Value: ' + featureValue);
+					
+					if (featureValue === 'YES') {
+						foundInTrimLevel = true;
+						console.log('    ✅ FOUND YES for ' + selectedFeature + ' in ' + trimLevel + ' (' + featureCategory + ')');
+					} else {
+						console.log('    ❌ NO for ' + selectedFeature + ' in ' + trimLevel + ' (' + featureCategory + ')');
+					}
+				} else {
+					console.log('    ⚠️ Feature not found in category: ' + featureCategory + ' (column: ' + featureColumn + ')');
+				}
+			} else {
+				console.log('    ❌ Category not found or no trim level data: ' + featureCategory);
+			}
+			
+			if (!foundInTrimLevel) {
+				hasAllFeatures = false;
+				console.log('  ❌ Feature ' + selectedFeature + ' NOT FOUND in ' + trimLevel);
+			} else {
+				console.log('  ✅ Feature ' + selectedFeature + ' FOUND in ' + trimLevel);
+			}
+		});
+		
+		if (hasAllFeatures) {
+			matchingTrimLevels.push(trimLevel);
+			console.log('✅ TRIM LEVEL MATCH: ' + trimLevel + ' has ALL features');
+		} else {
+			console.log('❌ TRIM LEVEL MISMATCH: ' + trimLevel + ' missing some features');
+		}
+	});
+	
+	console.log('Final matching Escalade trim levels:', matchingTrimLevels);
+	trimLevelsData['ESCALADE'] = matchingTrimLevels;
+	
+	// Update trim levels button
+	if (trimLevelsButtonBlock && trimLevelsButtonBlock.length) {
+		var buttonText = matchingTrimLevels.length > 0 ? 
+			'View Available Trim Levels (' + matchingTrimLevels.length + ')' :
+			'No Matching Trim Levels';
+		
+		trimLevelsButtonBlock.html('<button type="button" id="viewTrimLevelsButton" class="button">' + buttonText + '</button>');
+		
+		$('#viewTrimLevelsButton').off('click.trimLevels').on('click.trimLevels', function(e) {
+			e.preventDefault();
+			if (matchingTrimLevels.length > 0) {
+				var config = modelConfigs[model];
+				var correctModelFilter = config ? config.modelFilter : 'Escalade';
+				showTrimLevelsPopup(model, matchingTrimLevels, correctModelFilter);
+			} else {
+				alert('No matching trim levels found for the selected features.');
+			}
+		});
+	}
+	
+	// Update field 69 with trim levels
+	if (htmlBlock && htmlBlock.length) {
+		var trimLevelsText = matchingTrimLevels.length > 0 ? matchingTrimLevels.join(', ') : 'No matching trim levels found';
+		var message = 'Wonderful, it sounds like the ' + trimLevelsText + ' would be the best fit, which has all of these features and it is available! One moment while I plug this car in.';
+		
+		htmlBlock.find('p').text(message);
+		console.log('✅ HTML block (ID: 69) updated for Escalade with:', message);
+	} else {
+		console.warn('❌ HTML block (ID: 69) not found for Escalade');
+	}
+	
+	// Populate feature-to-trim-levels mapping for display
+	populateFeatureTrimLevelsMapCadillac('ESCALADE', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+	
+	// Create global mappings for trim walk functionality
+	window.escaladeTrimLevelMap = featureToTrimLevelsMap['ESCALADE'];
+	window.escaladeFeatureToCategoryMap = featureToCategoryMap;
+}
+
 	function updateTrimLevels(model) {
     var config = modelConfigs[model];
     if (!config) {
@@ -8885,6 +9384,29 @@ function processCT5VSeriesTrimLevels(csvData, selectedFeatures, htmlBlock, trimL
         
         htmlBlock = $('#field_' + formId + '_' + htmlBlockFieldId);
         trimLevelsButtonBlock = $('#field_' + formId + '_' + trimLevelsButtonFieldId);
+    } else if (model === 'ESCALADE') {
+        // For ESCALADE, checkboxes are in field 153 (HTML block)
+        checkboxField = $('#field_' + formId + '_' + escaladeHtmlBlockFieldId);
+        if (!checkboxField.length) {
+            checkboxField = $('#field_' + formId + '_153');
+        }
+        if (!checkboxField.length) {
+            checkboxField = $('[id*="153"]').filter(function() {
+                return $(this).attr('id').includes('field') || $(this).attr('id').includes('input');
+            });
+        }
+        
+        console.log('ESCALADE checkboxField debug:', {
+            escaladeHtmlBlockFieldId: escaladeHtmlBlockFieldId,
+            selector1: '#field_' + formId + '_' + escaladeHtmlBlockFieldId,
+            selector2: '#field_' + formId + '_153',
+            found: checkboxField.length,
+            actualId: checkboxField.attr('id'),
+            hasCheckboxes: checkboxField.find('input[type="checkbox"]').length
+        });
+        
+        htmlBlock = $('#field_' + formId + '_' + htmlBlockFieldId);
+        trimLevelsButtonBlock = $('#field_' + formId + '_' + trimLevelsButtonFieldId);
     } else {
         // For other models, checkboxes are in their respective fields
         checkboxField = $('#field_' + formId + '_' + config.fieldId);
@@ -8896,7 +9418,7 @@ function processCT5VSeriesTrimLevels(csvData, selectedFeatures, htmlBlock, trimL
     var defaultButtonText = '<button id="viewTrimLevelsButton">View Trim Levels</button>';
     var noMatchText = 'No matching trim levels found. Please adjust your feature selections or contact support.';
 
-    console.log('Checking ' + model + ' checkbox field (ID: ' + (model === 'TERRAIN' ? terrainHtmlBlockFieldId : model === 'ACADIA' ? acadiaHtmlBlockFieldId : model === 'YUKON' ? yukonHtmlBlockFieldId : model === 'CANYON' ? canyonHtmlBlockFieldId : model === 'SIERRA 1500' ? sierra1500HtmlBlockFieldId : (model === 'SIERRA 2500' || model === 'SIERRA 2500HD') ? sierra2500HtmlBlockFieldId : (model === 'SIERRA 3500' || model === 'SIERRA 3500HD') ? sierra3500HtmlBlockFieldId : model === 'CT4' ? ct4HtmlBlockFieldId : model === 'CT4 V-SERIES' ? ct4VSeriesHtmlBlockFieldId : model === 'CT5' ? ct5HtmlBlockFieldId : model === 'CT5 V-SERIES' ? ct5VSeriesHtmlBlockFieldId : config.fieldId) + '):', {
+    console.log('Checking ' + model + ' checkbox field (ID: ' + (model === 'TERRAIN' ? terrainHtmlBlockFieldId : model === 'ACADIA' ? acadiaHtmlBlockFieldId : model === 'YUKON' ? yukonHtmlBlockFieldId : model === 'CANYON' ? canyonHtmlBlockFieldId : model === 'SIERRA 1500' ? sierra1500HtmlBlockFieldId : (model === 'SIERRA 2500' || model === 'SIERRA 2500HD') ? sierra2500HtmlBlockFieldId : (model === 'SIERRA 3500' || model === 'SIERRA 3500HD') ? sierra3500HtmlBlockFieldId : model === 'CT4' ? ct4HtmlBlockFieldId : model === 'CT4 V-SERIES' ? ct4VSeriesHtmlBlockFieldId : model === 'CT5' ? ct5HtmlBlockFieldId : model === 'CT5 V-SERIES' ? ct5VSeriesHtmlBlockFieldId : model === 'ESCALADE' ? escaladeHtmlBlockFieldId : config.fieldId) + '):', {
         fieldExists: checkboxField.length > 0,
         fieldVisible: checkboxField.is(':visible'),
         fieldClasses: checkboxField.attr('class'),
@@ -9124,6 +9646,15 @@ function processCT5VSeriesTrimLevels(csvData, selectedFeatures, htmlBlock, trimL
             var feature = $input.attr('value') || '';
             
             console.log('Skipping CT5 V-SERIES feature icon addition since CT5 V-SERIES already has styled icons from initial HTML building:', feature);
+        });
+    } else if (model === 'ESCALADE') {
+        // For ESCALADE, features already have their icons from initial HTML building, so skip them entirely
+        checkboxField.find('.gchoice').each(function() {
+            var $div = $(this);
+            var $input = $div.find('input[type="checkbox"]');
+            var feature = $input.attr('value') || '';
+            
+            console.log('Skipping ESCALADE feature icon addition since ESCALADE already has styled icons from initial HTML building:', feature);
         });
     } else {
         // For other models, use existing logic
@@ -9411,6 +9942,23 @@ function processCT5VSeriesTrimLevels(csvData, selectedFeatures, htmlBlock, trimL
                 hasFeatureMap: !!window.ct5vseriesFeatureMap,
                 featureMapKeys: window.ct5vseriesFeatureMap ? Object.keys(window.ct5vseriesFeatureMap).slice(0, 5) : []
             });
+        } else if (model === 'ESCALADE') {
+            // For ESCALADE, get feature from the global mapping using the checkbox value
+            var checkboxValue = $input.attr('value') || '';
+            feature = window.escaladeFeatureMap && window.escaladeFeatureMap[checkboxValue] ? window.escaladeFeatureMap[checkboxValue] : checkboxValue;
+            // If no mapping found, use the checkbox value directly as fallback
+            
+            console.log('ESCALADE checkbox debug:', {
+                id: $input.attr('id'),
+                checkboxValue: checkboxValue,
+                mappedFeature: feature,
+                featureLength: feature.length,
+                name: $input.attr('name'),
+                checked: $input.is(':checked'),
+                labelText: $input.next('label').text().substring(0, 100),
+                hasFeatureMap: !!window.escaladeFeatureMap,
+                featureMapKeys: window.escaladeFeatureMap ? Object.keys(window.escaladeFeatureMap).slice(0, 5) : []
+            });
         } else {
             // For other models, use the existing logic
             var $div = $input.closest('.gfield_checkbox > div, .gfield-choice-wrapper');
@@ -9654,6 +10202,24 @@ function processCT5VSeriesTrimLevels(csvData, selectedFeatures, htmlBlock, trimL
                     console.log(model + ' CSV parsed, rows: ' + results.data.length);
                     console.log('First 10 rows of parsed data:', results.data.slice(0, 10));
                     processCT5VSeriesTrimLevels(results.data, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model);
+                }
+            });
+            return;
+        }
+        
+        // Special handling for ESCALADE model
+        if (model === 'ESCALADE') {
+            // Log the full CSV content to debug data issues
+            console.log('=== FULL ESCALADE CSV CONTENT ===');
+            console.log(csvText);
+            console.log('=== END ESCALADE CSV CONTENT ===');
+            
+            Papa.parse(csvText, {
+                skipEmptyLines: true,
+                complete: function(results) {
+                    console.log(model + ' CSV parsed, rows: ' + results.data.length);
+                    console.log('First 10 rows of parsed data:', results.data.slice(0, 10));
+                    processEscaladeTrimLevels(results.data, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model);
                 }
             });
             return;
@@ -10825,7 +11391,24 @@ function initFormBindings() {
                             } else {
                                 console.log('CT5 V-SERIES radio button not checked or not found');
                             }
-                        } else if (model !== 'TERRAIN' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && model !== 'CT4 V-SERIES' && model !== 'CT5' && model !== 'CT5 V-SERIES') {
+                        } else if (model === 'ESCALADE') {
+                            console.log('🔍 ESCALADE model detected, debugging radio button...');
+                            console.log('All radio buttons:', $('input[type="radio"]').map(function() { return $(this).attr('value'); }).get());
+                            console.log('Checked radio buttons:', $('input[type="radio"]:checked').map(function() { return $(this).attr('value'); }).get());
+                            var escaladeRadioButton = $('input[type="radio"][value="ESCALADE"]');
+                            console.log('ESCALADE radio button found:', escaladeRadioButton.length);
+                            console.log('ESCALADE radio button checked:', escaladeRadioButton.is(':checked'));
+                            if (escaladeRadioButton.is(':checked')) {
+                                console.log('ESCALADE radio button checked, calling populateEscaladeFeatures and updateTrimLevels');
+                                populateEscaladeFeatures().then(function() {
+                                    updateTrimLevels('ESCALADE');
+                                }).catch(function(error) {
+                                    console.error('Error in ESCALADE population chain:', error);
+                                });
+                            } else {
+                                console.log('ESCALADE radio button not checked or not found');
+                            }
+                        } else if (model !== 'TERRAIN' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && model !== 'CT4 V-SERIES' && model !== 'CT5' && model !== 'CT5 V-SERIES' && model !== 'ESCALADE') {
                             updateTrimLevels(model);
                         }
                     });
@@ -10950,7 +11533,24 @@ function initFormBindings() {
                             } else {
                                 console.log('CT5 V-SERIES radio button not checked or not found');
                             }
-                        } else if (model !== 'TERRAIN' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && model !== 'CT4 V-SERIES' && model !== 'CT5' && model !== 'CT5 V-SERIES') {
+                        } else if (model === 'ESCALADE') {
+                            console.log('🔍 ESCALADE model detected, debugging radio button...');
+                            console.log('All radio buttons:', $('input[type="radio"]').map(function() { return $(this).attr('value'); }).get());
+                            console.log('Checked radio buttons:', $('input[type="radio"]:checked').map(function() { return $(this).attr('value'); }).get());
+                            var escaladeRadioButton = $('input[type="radio"][value="ESCALADE"]');
+                            console.log('ESCALADE radio button found:', escaladeRadioButton.length);
+                            console.log('ESCALADE radio button checked:', escaladeRadioButton.is(':checked'));
+                            if (escaladeRadioButton.is(':checked')) {
+                                console.log('ESCALADE radio button checked, calling populateEscaladeFeatures and updateTrimLevels');
+                                populateEscaladeFeatures().then(function() {
+                                    updateTrimLevels('ESCALADE');
+                                }).catch(function(error) {
+                                    console.error('Error in ESCALADE population chain:', error);
+                                });
+                            } else {
+                                console.log('ESCALADE radio button not checked or not found');
+                            }
+                        } else if (model !== 'TERRAIN' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && model !== 'CT4 V-SERIES' && model !== 'CT5' && model !== 'CT5 V-SERIES' && model !== 'ESCALADE') {
                             updateTrimLevels(model);
                         }
                     });
@@ -13459,9 +14059,10 @@ function showVehicleInfo(isKiaField) {
     loadSierra2500FeatureDescriptions();
     loadSierra3500FeatureDescriptions();
     loadCT4FeatureDescriptions();
-    loadCT4VSeriesFeatureDescriptions();
-    loadCT5FeatureDescriptions();
-    loadCT5VSeriesFeatureDescriptions();
+loadCT4VSeriesFeatureDescriptions();
+loadCT5FeatureDescriptions();
+loadCT5VSeriesFeatureDescriptions();
+loadEscaladeFeatureDescriptions();
 initFormBindings();
 updateSelectedName();
 
@@ -13821,6 +14422,14 @@ $(document).on('change', 'input[type="radio"]', function() {
         }).catch(function(error) {
             console.error('❌ CT5 V-SERIES population failed from global listener:', error);
         });
+    } else if ($(this).val() === 'ESCALADE' && $(this).is(':checked')) {
+        console.log('🚨 ESCALADE DETECTED IN GLOBAL LISTENER - FORCING POPULATE');
+        escaladePopulated = false;
+        populateEscaladeFeatures().then(function() {
+            console.log('✅ ESCALADE population completed from global listener');
+        }).catch(function(error) {
+            console.error('❌ ESCALADE population failed from global listener:', error);
+        });
     /*
     📋 STEP 10: GLOBAL RADIO BUTTON LISTENER - Add your model here
     =====================================================================================
@@ -13901,6 +14510,7 @@ function getFeatureDescription(feature, model) {
     
     // Fallback: Try all description sources with direct lookup only
     var allDescriptionSources = [
+        { name: 'Escalade', data: typeof window.escaladeFeatureDescriptions !== 'undefined' ? window.escaladeFeatureDescriptions : {} },
         { name: 'CT5 V-Series', data: typeof window.ct5VSeriesFeatureDescriptions !== 'undefined' ? window.ct5VSeriesFeatureDescriptions : {} },
         { name: 'CT5', data: typeof window.ct5FeatureDescriptions !== 'undefined' ? window.ct5FeatureDescriptions : {} },
         { name: 'CT4 V-Series', data: typeof window.ct4VSeriesFeatureDescriptions !== 'undefined' ? window.ct4VSeriesFeatureDescriptions : {} },
@@ -13956,6 +14566,8 @@ function getModelDescriptionMap(model) {
         case 'CT5 V-SERIES':
         case 'CT5V':
             return window.ct5VSeriesFeatureDescriptions;
+        case 'ESCALADE':
+            return window.escaladeFeatureDescriptions;
         case 'CT4':
             return window.ct4FeatureDescriptions;
         case 'CT4 V-SERIES':
