@@ -10557,7 +10557,9 @@ function initFormBindings() {
                 $('#field_' + formId + '_' + textReceiptFieldId2).hide();
                 setTimeout(function() {
                     checkCustomerInfo();
+                    console.log('🚀 Processing models from modelConfigs (post_render):', Object.keys(modelConfigs));
                     Object.keys(modelConfigs).forEach(function(model) {
+                        console.log('🔄 Processing model (post_render):', model);
                         if (model === 'TERRAIN') {
                             // Check if TERRAIN radio button is selected
                             var terrainRadio = $('#field_' + formId + '_' + gmcModelFieldId + ' input[type="radio"][value="TERRAIN"]');
@@ -10646,7 +10648,12 @@ function initFormBindings() {
                                 console.log('CT5 radio button not checked or not found');
                             }
                         } else if (model === 'CT5 V-SERIES') {
+                            console.log('🔍 CT5 V-SERIES model detected, debugging radio button...');
+                            console.log('All radio buttons:', $('input[type="radio"]').map(function() { return $(this).attr('value'); }).get());
+                            console.log('Checked radio buttons:', $('input[type="radio"]:checked').map(function() { return $(this).attr('value'); }).get());
                             var ct5VSeriesRadioButton = $('input[type="radio"][value="CT5 V-SERIES"]');
+                            console.log('CT5 V-SERIES radio button found:', ct5VSeriesRadioButton.length);
+                            console.log('CT5 V-SERIES radio button checked:', ct5VSeriesRadioButton.is(':checked'));
                             if (ct5VSeriesRadioButton.is(':checked')) {
                                 console.log('CT5 V-SERIES radio button checked, calling populateCT5VSeriesFeatures and updateTrimLevels');
                                 populateCT5VSeriesFeatures().then(function() {
@@ -10675,7 +10682,9 @@ function initFormBindings() {
                 $('#field_' + formId + '_' + textReceiptFieldId2).hide();
                 setTimeout(function() {
                     checkCustomerInfo();
+                    console.log('🚀 Processing models from modelConfigs (confirmation):', Object.keys(modelConfigs));
                     Object.keys(modelConfigs).forEach(function(model) {
+                        console.log('🔄 Processing model (confirmation):', model);
                         if (model === 'TERRAIN') {
                             // Check if TERRAIN radio button is selected
                             var terrainRadio = $('#field_' + formId + '_' + gmcModelFieldId + ' input[type="radio"][value="TERRAIN"]');
@@ -10764,7 +10773,12 @@ function initFormBindings() {
                                 console.log('CT5 radio button not checked or not found');
                             }
                         } else if (model === 'CT5 V-SERIES') {
+                            console.log('🔍 CT5 V-SERIES model detected (confirmation), debugging radio button...');
+                            console.log('All radio buttons:', $('input[type="radio"]').map(function() { return $(this).attr('value'); }).get());
+                            console.log('Checked radio buttons:', $('input[type="radio"]:checked').map(function() { return $(this).attr('value'); }).get());
                             var ct5VSeriesRadioButton = $('input[type="radio"][value="CT5 V-SERIES"]');
+                            console.log('CT5 V-SERIES radio button found:', ct5VSeriesRadioButton.length);
+                            console.log('CT5 V-SERIES radio button checked:', ct5VSeriesRadioButton.is(':checked'));
                             if (ct5VSeriesRadioButton.is(':checked')) {
                                 console.log('CT5 V-SERIES radio button checked, calling populateCT5VSeriesFeatures and updateTrimLevels');
                                 populateCT5VSeriesFeatures().then(function() {
