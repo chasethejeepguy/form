@@ -2720,6 +2720,11 @@ jQuery(document).ready(function($) {
                 featureDescriptions = ct5FeatureDescriptions;
                 modelName = 'CT5';
                 break;
+            case 'ct5vseries':
+            case 'ct5v':
+                featureDescriptions = window.ct5VSeriesFeatureDescriptions;
+                modelName = 'CT5 V-Series';
+                break;
             default:
                 console.warn('Unknown model prefix for trim walk popup:', modelPrefix);
                 return;
@@ -3237,9 +3242,11 @@ jQuery(document).ready(function($) {
                  return 'SIERRA 2500';
              case 'SIERRA3500':
                  return 'SIERRA 3500';
-             case 'CT4VSERIES':
-                 return 'CT4 V-SERIES';
-             default:
+                         case 'CT4VSERIES':
+                return 'CT4 V-SERIES';
+            case 'CT5VSERIES':
+                return 'CT5 V-SERIES';
+            default:
                  return modelName;
          }
      }
@@ -3332,8 +3339,8 @@ jQuery(document).ready(function($) {
              // Current GMC models
              'terrain', 'acadia', 'yukon', 'canyon', 'sierra1500', 'sierra2500', 'sierra3500', 'sierra',
              
-             // Current Cadillac models
-             'ct4', 'ct4vseries', 'ct4v', 'ct5', 'xt4', 'xt5', 'xt6', 'escalade',
+                         // Current Cadillac models
+            'ct4', 'ct4vseries', 'ct4v', 'ct5', 'ct5vseries', 'ct5v', 'xt4', 'xt5', 'xt6', 'escalade',
              
              // Potential future GMC models
              'silverado', 'tahoe', 'suburban', 'equinox', 'traverse', 'blazer', 'trax',
