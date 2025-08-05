@@ -1139,7 +1139,7 @@ jQuery(document).ready(function($) {
         'CT4 V-SERIES': { fieldId: ct4VSeriesCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/ct4v.csv', modelFilter: 'CT4', isCadillac: true },
         'CT5': { fieldId: ct5CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/ct5.csv', modelFilter: 'CT5', isCadillac: true },
         'CT5 V-SERIES': { fieldId: ct5VSeriesCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/ct5v.csv', modelFilter: 'CT5', isCadillac: true },
-        'ESCALADE': { fieldId: escaladeCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/escalade.csv', modelFilter: 'Escalade', isCadillac: true }
+        'Escalade': { fieldId: escaladeCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/escalade.csv', modelFilter: 'Escalade', isCadillac: true }
     };
 
     // Email mappings
@@ -1515,7 +1515,7 @@ jQuery(document).ready(function($) {
         'CT4 V-SERIES': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacct4vdescriptions.csv',
         'CT5': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacct5descriptions.csv',
         'CT5 V-SERIES': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacct5vdescriptions.csv',
-        'ESCALADE': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacescaladedescriptions.csv',
+        'Escalade': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacescaladedescriptions.csv',
         
         // Kia Models (using generic pattern - can be customized per model)
         'K4': 'https://hutchinsonautoteam.com/kiamodels/KIAMODELDESCRIPTIONS.CSV',
@@ -1635,7 +1635,7 @@ jQuery(document).ready(function($) {
             case 'CT5 V-SERIES':
                 window.ct5VSeriesFeatureDescriptions[featureUpper] = description;
                 break;
-            case 'ESCALADE':
+            case 'Escalade':
                 window.escaladeFeatureDescriptions[featureUpper] = description;
                 break;
         }
@@ -5737,7 +5737,7 @@ function populateEscaladeFeatures() {
         return Promise.resolve();
     }
 
-    var config = modelConfigs['ESCALADE'];
+    var config = modelConfigs['Escalade'];
     if (!config) {
         console.warn('Escalade configuration not found');
         console.log('Available modelConfigs:', Object.keys(modelConfigs));
@@ -9384,7 +9384,7 @@ function processEscaladeTrimLevels(csvData, selectedFeatures, htmlBlock, trimLev
         
         htmlBlock = $('#field_' + formId + '_' + htmlBlockFieldId);
         trimLevelsButtonBlock = $('#field_' + formId + '_' + trimLevelsButtonFieldId);
-    } else if (model === 'ESCALADE') {
+    } else if (model === 'ESCALADE' || model === 'Escalade') {
         // For ESCALADE, checkboxes are in field 153 (HTML block)
         checkboxField = $('#field_' + formId + '_' + escaladeHtmlBlockFieldId);
         if (!checkboxField.length) {
@@ -9647,7 +9647,7 @@ function processEscaladeTrimLevels(csvData, selectedFeatures, htmlBlock, trimLev
             
             console.log('Skipping CT5 V-SERIES feature icon addition since CT5 V-SERIES already has styled icons from initial HTML building:', feature);
         });
-    } else if (model === 'ESCALADE') {
+    } else if (model === 'ESCALADE' || model === 'Escalade') {
         // For ESCALADE, features already have their icons from initial HTML building, so skip them entirely
         checkboxField.find('.gchoice').each(function() {
             var $div = $(this);
@@ -9942,7 +9942,7 @@ function processEscaladeTrimLevels(csvData, selectedFeatures, htmlBlock, trimLev
                 hasFeatureMap: !!window.ct5vseriesFeatureMap,
                 featureMapKeys: window.ct5vseriesFeatureMap ? Object.keys(window.ct5vseriesFeatureMap).slice(0, 5) : []
             });
-        } else if (model === 'ESCALADE') {
+        } else if (model === 'ESCALADE' || model === 'Escalade') {
             // For ESCALADE, get feature from the global mapping using the checkbox value
             var checkboxValue = $input.attr('value') || '';
             feature = window.escaladeFeatureMap && window.escaladeFeatureMap[checkboxValue] ? window.escaladeFeatureMap[checkboxValue] : checkboxValue;
@@ -10208,7 +10208,7 @@ function processEscaladeTrimLevels(csvData, selectedFeatures, htmlBlock, trimLev
         }
         
         // Special handling for ESCALADE model
-        if (model === 'ESCALADE') {
+        if (model === 'ESCALADE' || model === 'Escalade') {
             // Log the full CSV content to debug data issues
             console.log('=== FULL ESCALADE CSV CONTENT ===');
             console.log(csvText);
@@ -11391,24 +11391,24 @@ function initFormBindings() {
                             } else {
                                 console.log('CT5 V-SERIES radio button not checked or not found');
                             }
-                        } else if (model === 'ESCALADE') {
+                        } else if (model === 'ESCALADE' || model === 'Escalade') {
                             console.log('🔍 ESCALADE model detected, debugging radio button...');
                             console.log('All radio buttons:', $('input[type="radio"]').map(function() { return $(this).attr('value'); }).get());
                             console.log('Checked radio buttons:', $('input[type="radio"]:checked').map(function() { return $(this).attr('value'); }).get());
-                            var escaladeRadioButton = $('input[type="radio"][value="ESCALADE"]');
-                            console.log('ESCALADE radio button found:', escaladeRadioButton.length);
-                            console.log('ESCALADE radio button checked:', escaladeRadioButton.is(':checked'));
+                            var escaladeRadioButton = $('input[type="radio"][value="Escalade"]');
+                            console.log('Escalade radio button found:', escaladeRadioButton.length);
+                            console.log('Escalade radio button checked:', escaladeRadioButton.is(':checked'));
                             if (escaladeRadioButton.is(':checked')) {
-                                console.log('ESCALADE radio button checked, calling populateEscaladeFeatures and updateTrimLevels');
+                                console.log('Escalade radio button checked, calling populateEscaladeFeatures and updateTrimLevels');
                                 populateEscaladeFeatures().then(function() {
                                     updateTrimLevels('ESCALADE');
                                 }).catch(function(error) {
                                     console.error('Error in ESCALADE population chain:', error);
                                 });
                             } else {
-                                console.log('ESCALADE radio button not checked or not found');
+                                console.log('Escalade radio button not checked or not found');
                             }
-                        } else if (model !== 'TERRAIN' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && model !== 'CT4 V-SERIES' && model !== 'CT5' && model !== 'CT5 V-SERIES' && model !== 'ESCALADE') {
+                        } else if (model !== 'TERRAIN' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && model !== 'CT4 V-SERIES' && model !== 'CT5' && model !== 'CT5 V-SERIES' && model !== 'ESCALADE' && model !== 'Escalade') {
                             updateTrimLevels(model);
                         }
                     });
@@ -11533,24 +11533,24 @@ function initFormBindings() {
                             } else {
                                 console.log('CT5 V-SERIES radio button not checked or not found');
                             }
-                        } else if (model === 'ESCALADE') {
+                        } else if (model === 'ESCALADE' || model === 'Escalade') {
                             console.log('🔍 ESCALADE model detected, debugging radio button...');
                             console.log('All radio buttons:', $('input[type="radio"]').map(function() { return $(this).attr('value'); }).get());
                             console.log('Checked radio buttons:', $('input[type="radio"]:checked').map(function() { return $(this).attr('value'); }).get());
-                            var escaladeRadioButton = $('input[type="radio"][value="ESCALADE"]');
-                            console.log('ESCALADE radio button found:', escaladeRadioButton.length);
-                            console.log('ESCALADE radio button checked:', escaladeRadioButton.is(':checked'));
+                            var escaladeRadioButton = $('input[type="radio"][value="Escalade"]');
+                            console.log('Escalade radio button found:', escaladeRadioButton.length);
+                            console.log('Escalade radio button checked:', escaladeRadioButton.is(':checked'));
                             if (escaladeRadioButton.is(':checked')) {
-                                console.log('ESCALADE radio button checked, calling populateEscaladeFeatures and updateTrimLevels');
+                                console.log('Escalade radio button checked, calling populateEscaladeFeatures and updateTrimLevels');
                                 populateEscaladeFeatures().then(function() {
                                     updateTrimLevels('ESCALADE');
                                 }).catch(function(error) {
                                     console.error('Error in ESCALADE population chain:', error);
                                 });
                             } else {
-                                console.log('ESCALADE radio button not checked or not found');
+                                console.log('Escalade radio button not checked or not found');
                             }
-                        } else if (model !== 'TERRAIN' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && model !== 'CT4 V-SERIES' && model !== 'CT5' && model !== 'CT5 V-SERIES' && model !== 'ESCALADE') {
+                        } else if (model !== 'TERRAIN' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && model !== 'CT4 V-SERIES' && model !== 'CT5' && model !== 'CT5 V-SERIES' && model !== 'ESCALADE' && model !== 'Escalade') {
                             updateTrimLevels(model);
                         }
                     });
@@ -14422,7 +14422,7 @@ $(document).on('change', 'input[type="radio"]', function() {
         }).catch(function(error) {
             console.error('❌ CT5 V-SERIES population failed from global listener:', error);
         });
-    } else if ($(this).val() === 'ESCALADE' && $(this).is(':checked')) {
+    } else if ($(this).val() === 'Escalade' && $(this).is(':checked')) {
         console.log('🚨 ESCALADE DETECTED IN GLOBAL LISTENER - FORCING POPULATE');
         escaladePopulated = false;
         populateEscaladeFeatures().then(function() {
@@ -14567,6 +14567,7 @@ function getModelDescriptionMap(model) {
         case 'CT5V':
             return window.ct5VSeriesFeatureDescriptions;
         case 'ESCALADE':
+        case 'Escalade':
             return window.escaladeFeatureDescriptions;
         case 'CT4':
             return window.ct4FeatureDescriptions;
