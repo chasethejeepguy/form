@@ -2461,6 +2461,7 @@ jQuery(document).ready(function($) {
                 { name: 'Lights', keywords: ['lights', 'light', 'headlamp', 'led', 'lamps', 'lighting', 'intellibeam'] },
                 { name: 'Moldings', keywords: ['molding'] },
                 { name: 'Off Road', keywords: ['off road'] },
+                { name: 'Rear', keywords: ['rear'] },
                 { name: 'Roofs', keywords: ['roof', 'sunroof'] },
                 { name: 'Steps', keywords: ['step'] },
                 { name: 'Tailgates', keywords: ['tailgate'] },
@@ -2472,7 +2473,9 @@ jQuery(document).ready(function($) {
                 { name: 'Alloy', keywords: ['alloy'] },
                 { name: 'Assist', keywords: ['assist'] },
                 { name: 'Cadillac', keywords: ['cadillac'] },
-                { name: 'Cameras', keywords: ['camera', 'hd surround vision'] },
+                { name: 'Cameras', keywords: ['camera', 'hd surround vision', 'augmented reality', 'night vision'] },
+                { name: 'Cargo', keywords: ['cargo'] },
+                { name: 'Climate and Fridge', keywords: ['refrigerator', 'climate'] },
                 { name: 'Cloth Seats', keywords: ['cloth'] },
                 { name: 'Cruise', keywords: ['cruise', 'super cruise'] },
                 { name: 'Displays', keywords: ['infotainment', 'screen', 'display', 'diagonal'] },
@@ -2490,7 +2493,8 @@ jQuery(document).ready(function($) {
                 { name: 'Remote', keywords: ['remote'] },
                 { name: 'Safety', keywords: ['highway safety kit', 'traffic sign'] },
                 { name: 'Settings', keywords: ['compass', '5g', 'memory', 'settings'] },
-                { name: 'Speakers', keywords: ['speaker', 'bose', 'audio'] },
+                { name: 'Sill Plates', keywords: ['sill'] },
+                { name: 'Speakers', keywords: ['speaker', 'bose', 'audio', 'noise'] },
                 { name: 'Ventilated', keywords: ['ventilate', 'ventilated'] },
                 { name: 'Vinyl Seats', keywords: ['vinyl'] },
                 { name: 'Seats', keywords: ['seat'] }
@@ -2515,7 +2519,7 @@ jQuery(document).ready(function($) {
                 { name: 'Performance', keywords: ['performance'] },
                 { name: 'Skid Plate', keywords: ['skid'] },
                 { name: 'Suspension', keywords: ['suspension', 'ride'] },
-                { name: 'Trailering', keywords: ['trailer', 'trailering'] },
+                { name: 'Trailering', keywords: ['trailer', 'trailering', 'hitch', 'tow'] },
                 { name: 'Transmission', keywords: ['transmission'] }
             ],
             'SAFETY': [
@@ -2540,7 +2544,10 @@ jQuery(document).ready(function($) {
                 { name: 'Denali', keywords: ['denali'] },
                 { name: 'Driver', keywords: ['driver'] },
                 { name: 'Elevation', keywords: ['elevation'] },
+                { name: 'Exterior', keywords: ['onyx', 'radiant'] },
+                { name: 'Interior', keywords: ['floor', 'seating'] },
                 { name: 'Off Road', keywords: ['off road'] },
+                { name: 'Performance', keywords: ['performance'] },
                 { name: 'Pro', keywords: ['pro'] },
                 { name: 'Safety Plus', keywords: ['safety plus'] },
                 { name: 'SLE', keywords: ['sle'] },
@@ -5893,94 +5900,6 @@ function populateEscaladeFeatures() {
                 
                 var html = trimLevelButtons + '<div class="feature-groups">';
                 var globalIndex = 0;
-                
-                // Create custom groups for Escalade based on user requirements
-                function createEscaladeCustomGroups(features, category) {
-                    var customGroups = {};
-                    
-                    if (category === 'EXTERIOR') {
-                        // Rear button - features with "rear" in the name
-                        customGroups['Rear'] = features.filter(function(feature) {
-                            return feature.toLowerCase().includes('rear');
-                        });
-                    } else if (category === 'INTERIOR') {
-                        // Cameras button - add features with "augmented reality" and "night vision"
-                        var cameraFeatures = features.filter(function(feature) {
-                            return feature.toLowerCase().includes('camera') || 
-                                   feature.toLowerCase().includes('hd surround vision');
-                        });
-                        var additionalCameraFeatures = features.filter(function(feature) {
-                            return feature.toLowerCase().includes('augmented reality') || 
-                                   feature.toLowerCase().includes('night vision');
-                        });
-                        customGroups['Cameras'] = cameraFeatures.concat(additionalCameraFeatures);
-                        
-                        // Sill Plates button - features with "sill" in the name
-                        customGroups['Sill Plates'] = features.filter(function(feature) {
-                            return feature.toLowerCase().includes('sill');
-                        });
-                        
-                        // Speakers button - add features with "noise" in the name
-                        var speakerFeatures = features.filter(function(feature) {
-                            return feature.toLowerCase().includes('speaker') || 
-                                   feature.toLowerCase().includes('bose') || 
-                                   feature.toLowerCase().includes('audio');
-                        });
-                        var noiseFeatures = features.filter(function(feature) {
-                            return feature.toLowerCase().includes('noise');
-                        });
-                        customGroups['Speakers'] = speakerFeatures.concat(noiseFeatures);
-                        
-                        // Climate and Fridge button - features with "refrigerator" and "climate"
-                        customGroups['Climate and Fridge'] = features.filter(function(feature) {
-                            return feature.toLowerCase().includes('refrigerator') || 
-                                   feature.toLowerCase().includes('climate');
-                        });
-                        
-                        // Cargo button - features with "cargo" in the name
-                        customGroups['Cargo'] = features.filter(function(feature) {
-                            return feature.toLowerCase().includes('cargo');
-                        });
-                    } else if (category === 'MECHANICAL') {
-                        // Trailering button - add features with "hitch" and "tow"
-                        var traileringFeatures = features.filter(function(feature) {
-                            return feature.toLowerCase().includes('trailer') || 
-                                   feature.toLowerCase().includes('trailering');
-                        });
-                        var additionalTraileringFeatures = features.filter(function(feature) {
-                            return feature.toLowerCase().includes('hitch') || 
-                                   feature.toLowerCase().includes('tow');
-                        });
-                        customGroups['Trailering'] = traileringFeatures.concat(additionalTraileringFeatures);
-                    } else if (category === 'PACKAGES') {
-                        // Interior button - features with "floor" or "seating"
-                        customGroups['Interior'] = features.filter(function(feature) {
-                            return feature.toLowerCase().includes('floor') || 
-                                   feature.toLowerCase().includes('seating');
-                        });
-                        
-                        // Performance button - features with "performance"
-                        customGroups['Performance'] = features.filter(function(feature) {
-                            return feature.toLowerCase().includes('performance');
-                        });
-                        
-                        // Exterior button - features with "onyx" or "radiant"
-                        customGroups['Exterior'] = features.filter(function(feature) {
-                            return feature.toLowerCase().includes('onyx') || 
-                                   feature.toLowerCase().includes('radiant');
-                        });
-                    }
-                    
-                    // Remove empty groups
-                    Object.keys(customGroups).forEach(function(groupName) {
-                        if (customGroups[groupName].length === 0) {
-                            delete customGroups[groupName];
-                        }
-                    });
-                    
-                    return customGroups;
-                }
-                
                 categories.forEach(function(category) {
                     var catFeatures = featureGroups[category] || [];
                     console.log('Building HTML for category: ' + category + ' with ' + catFeatures.length + ' features');
@@ -5992,11 +5911,8 @@ function populateEscaladeFeatures() {
                     
                     html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
                     
-                    // Create custom groups for this category
-                    var customGroups = createEscaladeCustomGroups(catFeatures, category);
-                    
                     // Build collapsible groups and regular features
-                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'escalade', globalIndex, customGroups);
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'escalade', globalIndex, undefined);
                     html += categoryHtml.html;
                     globalIndex = categoryHtml.globalIndex;
                     html += '</div></div>';
