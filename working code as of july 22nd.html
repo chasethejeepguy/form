@@ -669,6 +669,16 @@ jQuery(document).ready(function($) {
             margin-bottom: 4% !important;
             padding-bottom: 4px;
         }
+        /*
+        📋 STEP 12: CSS STYLING - Add your model's checkbox styling here
+        =====================================================================================
+        Format: Replace "yourmodelprefix" with your actual model prefix
+        .gchoice[class*="gchoice_yourmodelprefix_"] {
+            margin-bottom: 4% !important;
+            padding-bottom: 4px;
+        }
+        */
+        
         /* Cadillac CT5 V-Series checkbox spacing */
         .gchoice[class*="gchoice_ct5vseries_"] {
             margin-bottom: 4% !important;
@@ -821,6 +831,55 @@ jQuery(document).ready(function($) {
     var phoneFieldId2 = 118;
     var emailFieldId2 = 119;
     var gmcModelFieldId = 107;
+    
+    /*
+    =====================================================================================
+    🚀 FUTURE-PROOF MODEL ADDITION GUIDE 🚀
+    =====================================================================================
+    
+    To add a new vehicle model with FULL FUNCTIONALITY (checkboxes, descriptions, trim levels, 
+    trim walks, collapsible groups, etc.), follow these steps:
+    
+    📋 STEP 1: FIELD IDs & VARIABLES
+    =====================================================================================
+    1. Add field ID variables below (replace NEWMODEL with your model name):
+       var newModelCheckboxFieldId = [FIELD_NUMBER];
+       var newModelHtmlBlockFieldId = [FIELD_NUMBER];
+    
+    2. Add populated flag variable in the "Global variables" section:
+       var newModelPopulated = false;
+    
+    📋 STEP 2: MODEL CONFIGURATION  
+    =====================================================================================
+    3. Add to modelConfigs object (around line 1050):
+       'NEW MODEL NAME': { 
+           fieldId: newModelCheckboxFieldId, 
+           csvUrl: 'https://yoursite.com/path/to/newmodel.csv', 
+           modelFilter: 'NewModel', 
+           isGmc: true/false,     // Set based on brand
+           isCadillac: true/false // Set based on brand
+       }
+    
+    📋 STEP 3: DESCRIPTION SYSTEM
+    =====================================================================================
+    4. Add to window.descriptionUrlMap (around line 1380):
+       'NEW MODEL NAME': 'https://yoursite.com/path/to/newmodeldescriptions.csv'
+    
+    5. Add global description variable (around line 1387):
+       window.newModelFeatureDescriptions = {};
+    
+    6. Add case to updateLegacyDescriptionVariable function (around line 1550):
+       case 'NEW MODEL NAME':
+           window.newModelFeatureDescriptions[featureUpper] = description;
+           break;
+    
+    7. Create loadNewModelFeatureDescriptions() function (copy from existing model)
+    
+    8. Call the load function in document ready (around line 13272):
+       loadNewModelFeatureDescriptions();
+    */
+    
+    // GMC Model Field IDs
     var terrainCheckboxFieldId = 129;
     var terrainHtmlBlockFieldId = 137;
     var acadiaCheckboxFieldId = 138;
@@ -852,6 +911,13 @@ jQuery(document).ready(function($) {
     var ct5VSeriesCheckboxFieldId = 151;
     var ct5VSeriesHtmlBlockFieldId = 151;
 
+    /*
+    📋 STEP 1B: POPULATED FLAGS - Add your model's populated flag here
+    =====================================================================================
+    Format: var yourModelPopulated = false;
+    This prevents duplicate population and tracks initialization state.
+    */
+    
     // Global variables
     var vehicleData = null;
     var vehicleKiaData = null;
@@ -1020,6 +1086,18 @@ jQuery(document).ready(function($) {
     
 
 
+    /*
+    📋 STEP 2: MODEL CONFIGURATION - Add your new model here
+    =====================================================================================
+    Format: 'RADIO BUTTON VALUE': { 
+        fieldId: yourModelCheckboxFieldId, 
+        csvUrl: 'https://yoursite.com/path/to/yourmodel.csv', 
+        modelFilter: 'YourModel',  // Used for CSV filtering
+        isGmc: true,               // Set to true if GMC model
+        isCadillac: true          // Set to true if Cadillac model
+    }
+    */
+    
     // Model to field ID, CSV URL, and model filter mappings
     var modelConfigs = {
         'K4': { fieldId: k4CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/kiamodels/K4.csv', modelFilter: 'K4' },
@@ -1398,6 +1476,12 @@ jQuery(document).ready(function($) {
     
     // Removed backup system - using only real descriptions from CSV files
     
+    /*
+    📋 STEP 3: DESCRIPTION SYSTEM - Add your model's description CSV URL here
+    =====================================================================================
+    Format: 'RADIO BUTTON VALUE': 'https://yoursite.com/path/to/yourmodeldescriptions.csv'
+    */
+    
     // Description URL mapping for all models (automatically extensible)
     window.descriptionUrlMap = {
         // GMC Models
@@ -1487,6 +1571,15 @@ jQuery(document).ready(function($) {
             return {};
         });
     }
+    
+    /*
+    📋 STEP 3C: LEGACY DESCRIPTION VARIABLES - Add your model here
+    =====================================================================================
+    Add a new case for your model in the switch statement below:
+    case 'YOUR MODEL NAME':
+        window.yourModelFeatureDescriptions[featureUpper] = description;
+        break;
+    */
     
     // Helper function to update legacy variables for backward compatibility
     function updateLegacyDescriptionVariable(modelName, featureUpper, description) {
@@ -2674,6 +2767,17 @@ jQuery(document).ready(function($) {
         showPopup(popupHtml, 'trim-walk-popup');
         
         // Set up event handlers for info icons in the trim walk popup
+        /*
+        📋 STEP 9A: TRIM WALK NAVIGATION - Add your model here
+        =====================================================================================
+        Add cases for your model prefix(es) in the switch statement below:
+        case 'yourmodelprefix':
+        case 'yourmodel':  // Add alternative prefix if needed
+            featureDescriptions = window.yourModelFeatureDescriptions;
+            modelName = 'Your Model Name';
+            break;
+        */
+        
         // Get the appropriate feature descriptions object based on model prefix
         var featureDescriptions = {};
         var modelName = '';
@@ -3234,8 +3338,16 @@ jQuery(document).ready(function($) {
      function getUpdateTrimLevelsModelName(modelPrefix) {
          var modelName = modelPrefix.toUpperCase();
          
-         // Handle special cases for model name formatting
-         switch (modelName) {
+                 /*
+        📋 STEP 9B: MODEL NAME FORMATTING - Add your model here if needed
+        =====================================================================================
+        Add cases for models that need special name formatting:
+        case 'YOURMODELPREFIX':
+            return 'YOUR MODEL NAME';
+        */
+        
+        // Handle special cases for model name formatting
+        switch (modelName) {
              case 'SIERRA1500':
                  return 'SIERRA 1500';
              case 'SIERRA2500':
@@ -3339,7 +3451,14 @@ jQuery(document).ready(function($) {
              // Current GMC models
              'terrain', 'acadia', 'yukon', 'canyon', 'sierra1500', 'sierra2500', 'sierra3500', 'sierra',
              
-                         // Current Cadillac models
+                         /*
+            📋 STEP 9C: MODEL PREFIX LIST - Add your model prefix here
+            =====================================================================================
+            Add your model prefix to the appropriate brand section below.
+            This enables automatic model detection for trim walk navigation.
+            */
+            
+            // Current Cadillac models
             'ct4', 'ct4vseries', 'ct4v', 'ct5', 'ct5vseries', 'ct5v', 'xt4', 'xt5', 'xt6', 'escalade',
              
              // Potential future GMC models
@@ -13702,6 +13821,19 @@ $(document).on('change', 'input[type="radio"]', function() {
         }).catch(function(error) {
             console.error('❌ CT5 V-SERIES population failed from global listener:', error);
         });
+    /*
+    📋 STEP 10: GLOBAL RADIO BUTTON LISTENER - Add your model here
+    =====================================================================================
+    Add an else if block for your model:
+    } else if ($(this).val() === 'YOUR MODEL NAME' && $(this).is(':checked')) {
+        console.log('🚨 YOUR MODEL NAME DETECTED IN GLOBAL LISTENER - FORCING POPULATE');
+        yourModelPopulated = false;
+        populateYourModelFeatures().then(function() {
+            console.log('✅ YOUR MODEL NAME population completed from global listener');
+        }).catch(function(error) {
+            console.error('❌ YOUR MODEL NAME population failed from global listener:', error);
+        });
+    */
     }
 });
 
@@ -13917,4 +14049,93 @@ function getModelDescriptionMap(model) {
  * Preserves original functionality.
  * Syntax verified.
  * Full script complete.
+ 
+=====================================================================================
+🎯 FUTURE-PROOF MODEL ADDITION - COMPLETE CHECKLIST
+=====================================================================================
+
+When adding a new vehicle model, follow these steps in order:
+
+✅ PHASE 1: BASIC SETUP
+□ Step 1A: Add field ID variables (around line 830)
+□ Step 1B: Add populated flag variable (around line 904)  
+□ Step 2: Add to modelConfigs object (around line 1072)
+□ Step 3A: Add to descriptionUrlMap (around line 1463)
+□ Step 3B: Add global description variable (around line 1470)
+□ Step 3C: Add case to updateLegacyDescriptionVariable (around line 1566)
+
+✅ PHASE 2: CORE FUNCTIONS  
+□ Step 4: Create loadYourModelFeatureDescriptions() function
+□ Step 5: Call load function in document ready (around line 13272)
+□ Step 6: Create populateYourModelFeatures() function (return Promise!)
+□ Step 7: Create processYourModelTrimLevels() function
+
+✅ PHASE 3: INTEGRATION
+□ Step 8A: Add to updateTrimLevels function (around line 8695)
+□ Step 8B: Add to model name logging (around line 8706) 
+□ Step 8C: Add feature icon skipping (around line 9228)
+□ Step 8D: Add checkbox debugging (around line 9240)
+□ Step 8E: Add CSV processing (around line 9484)
+□ Step 8F: Add population calls in gform_post_render (around line 10638)
+□ Step 8G: Add same logic to gform_confirmation_loaded (around line 10753)
+
+✅ PHASE 4: TRIM WALK NAVIGATION
+□ Step 9A: Add to trim walk switch statement (around line 2764)
+□ Step 9B: Add to getUpdateTrimLevelsModelName (around line 3332)
+□ Step 9C: Add to model prefix list (around line 3445)
+
+✅ PHASE 5: FINAL INTEGRATION
+□ Step 10: Add to global radio button listener (around line 13806)
+□ Step 11A: Add to getFeatureDescription fallback (around line 13691)
+□ Step 11B: Add to getModelDescriptionMap (around line 13743)
+□ Step 12: Add CSS styling (around line 672)
+
+✅ PHASE 6: FUZZY MATCHING (OPTIONAL)
+□ Add to findBestDescriptionMatch threshold check (around line 971)
+□ Add to partial word matching check (around line 985)
+
+=====================================================================================
+📋 REQUIRED FILES FOR NEW MODEL
+=====================================================================================
+
+1. Model CSV File: Contains features organized by categories
+   Format: TRIM LEVELS FOR {CATEGORY}, feature1, feature2, ...
+   Categories: EXTERIOR, INTERIOR, MECHANICAL, SAFETY, PACKAGES
+
+2. Description CSV File: Contains feature descriptions  
+   Format: {FEATURE NAME:Description text goes here}
+   One feature per line, enclosed in curly braces
+
+3. HTML Placeholder: Add {your model feature checkboxes} to HTML block
+
+=====================================================================================
+🔧 COLLAPSIBLE GROUPS SYSTEM
+=====================================================================================
+
+The collapsible feature groups are handled globally in buildCollapsibleFeatureGroups().
+Groups are automatically created based on keywords - no model-specific code needed!
+
+To customize groups:
+1. Update collapsibleGroups object (around line 2269)
+2. Add keywords to existing groups or create new groups
+3. Groups apply to all models automatically
+
+Current group categories: EXTERIOR, INTERIOR, MECHANICAL, SAFETY, PACKAGES
+Each category has predefined groups like Wheels, Lights, Seats, etc.
+
+=====================================================================================
+🚀 SUCCESS INDICATORS
+=====================================================================================
+
+When your model is properly integrated, you should see:
+✅ Feature checkboxes appear in 5-column layout
+✅ Radio button triggers population automatically  
+✅ Trim levels update based on selected features
+✅ "View Available Trim Levels" button works
+✅ Trim walk navigation works (Next/Previous buttons)
+✅ Feature description popups work (blue 'i' icons)
+✅ Collapsible feature groups work
+✅ All console logs show successful loading
+
+=====================================================================================
  */
