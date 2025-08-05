@@ -3448,7 +3448,7 @@ jQuery(document).ready(function($) {
             case 'CT5VSERIES':
                 return 'CT5 V-SERIES';
             case 'ESCALADE':
-                return 'ESCALADE';
+                return 'Escalade';
             default:
                  return modelName;
          }
@@ -5880,10 +5880,10 @@ function populateEscaladeFeatures() {
                 });
                 
                 // Now populate the feature-to-trim-levels mapping using Cadillac function
-                populateFeatureTrimLevelsMapCadillac('ESCALADE', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+                populateFeatureTrimLevelsMapCadillac('Escalade', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
 
                 // Create global mappings for trim walk functionality
-                window.escaladeTrimLevelMap = featureToTrimLevelsMap['ESCALADE'];
+                window.escaladeTrimLevelMap = featureToTrimLevelsMap['Escalade'];
                 window.escaladeFeatureToCategoryMap = featureToCategoryMap;
 
                 console.log('Building HTML for Escalade features...');
@@ -5942,11 +5942,11 @@ function populateEscaladeFeatures() {
                 // Bind change events and add info icons
                 htmlBlock.find('input[type="checkbox"]').off('change.EscaladeFeatures').on('change.EscaladeFeatures', function() {
                     console.log('Escalade checkbox changed, updating trim levels');
-                    updateTrimLevels('ESCALADE');
+                    updateTrimLevels('Escalade');
                 });
 
                 // Set up collapsible group functionality
-                setupCollapsibleGroups(htmlBlock, 'ESCALADE');
+                setupCollapsibleGroups(htmlBlock, 'Escalade');
 
                 // Info icons are already included in the initial HTML generation above
                 // No need to prepend additional icons to avoid duplicates
@@ -5959,7 +5959,7 @@ function populateEscaladeFeatures() {
                     if (!feature) return;
                     
                     console.log('🚀 BULLETPROOF (Escalade): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature, 'ESCALADE');
+                    var description = getFeatureDescription(feature, 'Escalade');
                     showFeatureDescription(feature, description);
                 });
             },
@@ -9116,10 +9116,10 @@ function processEscaladeTrimLevels(csvData, selectedFeatures, htmlBlock, trimLev
 	}
 	
 	// Populate feature-to-trim-levels mapping for display
-	populateFeatureTrimLevelsMapCadillac('ESCALADE', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+	populateFeatureTrimLevelsMapCadillac('Escalade', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
 	
 	// Create global mappings for trim walk functionality
-	window.escaladeTrimLevelMap = featureToTrimLevelsMap['ESCALADE'];
+	window.escaladeTrimLevelMap = featureToTrimLevelsMap['Escalade'];
 	window.escaladeFeatureToCategoryMap = featureToCategoryMap;
 }
 
@@ -11401,9 +11401,9 @@ function initFormBindings() {
                             if (escaladeRadioButton.is(':checked')) {
                                 console.log('Escalade radio button checked, calling populateEscaladeFeatures and updateTrimLevels');
                                 populateEscaladeFeatures().then(function() {
-                                    updateTrimLevels('ESCALADE');
+                                    updateTrimLevels('Escalade');
                                 }).catch(function(error) {
-                                    console.error('Error in ESCALADE population chain:', error);
+                                    console.error('Error in Escalade population chain:', error);
                                 });
                             } else {
                                 console.log('Escalade radio button not checked or not found');
@@ -11543,9 +11543,9 @@ function initFormBindings() {
                             if (escaladeRadioButton.is(':checked')) {
                                 console.log('Escalade radio button checked, calling populateEscaladeFeatures and updateTrimLevels');
                                 populateEscaladeFeatures().then(function() {
-                                    updateTrimLevels('ESCALADE');
+                                    updateTrimLevels('Escalade');
                                 }).catch(function(error) {
-                                    console.error('Error in ESCALADE population chain:', error);
+                                    console.error('Error in Escalade population chain:', error);
                                 });
                             } else {
                                 console.log('Escalade radio button not checked or not found');
