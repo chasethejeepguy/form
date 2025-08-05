@@ -5393,10 +5393,69 @@ function populateCT5VSeriesFeatures() {
                         return a.toLowerCase().localeCompare(b.toLowerCase());
                     });
                     
+                    // Add custom feature groupings for CT5 V-Series
+                    var customGroups = {};
+                    if (category === 'EXTERIOR') {
+                        // Body button: features with glass, wipers, handles
+                        customGroups['Body'] = catFeatures.filter(function(feature) {
+                            var lowerFeature = feature.toLowerCase();
+                            return lowerFeature.includes('glass') || lowerFeature.includes('wipers') || lowerFeature.includes('handles');
+                        });
+                    } else if (category === 'INTERIOR') {
+                        // MobileService Plus button: features with mobile service
+                        customGroups['MobileService Plus'] = catFeatures.filter(function(feature) {
+                            var lowerFeature = feature.toLowerCase();
+                            return lowerFeature.includes('mobile service');
+                        });
+                        
+                        // Lighting button: features with lighting, illuminating
+                        customGroups['Lighting'] = catFeatures.filter(function(feature) {
+                            var lowerFeature = feature.toLowerCase();
+                            return lowerFeature.includes('lighting') || lowerFeature.includes('illuminating');
+                        });
+                        
+                        // MicroFiber button: features with microfiber
+                        customGroups['MicroFiber'] = catFeatures.filter(function(feature) {
+                            var lowerFeature = feature.toLowerCase();
+                            return lowerFeature.includes('microfiber');
+                        });
+                        
+                        // Settings button: features with compass, 5g, memory, settings
+                        customGroups['Settings'] = catFeatures.filter(function(feature) {
+                            var lowerFeature = feature.toLowerCase();
+                            return lowerFeature.includes('compass') || lowerFeature.includes('5g') || 
+                                   lowerFeature.includes('memory') || lowerFeature.includes('settings');
+                        });
+                        
+                        // Entertainment button: features with google
+                        customGroups['Entertainment'] = catFeatures.filter(function(feature) {
+                            var lowerFeature = feature.toLowerCase();
+                            return lowerFeature.includes('google');
+                        });
+                    } else if (category === 'MECHANICAL') {
+                        // Electronic button: features with electronic
+                        customGroups['Electronic'] = catFeatures.filter(function(feature) {
+                            var lowerFeature = feature.toLowerCase();
+                            return lowerFeature.includes('electronic');
+                        });
+                    } else if (category === 'SAFETY') {
+                        // Mobile Service Plus button: features with mobile service
+                        customGroups['Mobile Service Plus'] = catFeatures.filter(function(feature) {
+                            var lowerFeature = feature.toLowerCase();
+                            return lowerFeature.includes('mobile service');
+                        });
+                        
+                        // Sensor button: features with sensor
+                        customGroups['Sensor'] = catFeatures.filter(function(feature) {
+                            var lowerFeature = feature.toLowerCase();
+                            return lowerFeature.includes('sensor');
+                        });
+                    }
+                    
                     html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
                     
                     // Build collapsible groups and regular features
-                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'ct5vseries', globalIndex);
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'ct5vseries', globalIndex, customGroups);
                     html += categoryHtml.html;
                     globalIndex = categoryHtml.globalIndex;
                     html += '</div></div>';
