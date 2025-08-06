@@ -12545,6 +12545,7 @@ function initFormBindings() {
     if (!model) {
         console.error('showTrimLevelsPopup: model parameter is required');
         alert('Error: Model information is missing. Please refresh the page and try again.');
+        window.trimPopupCreating = false; // Reset flag on error
         return;
     }
     
@@ -12566,6 +12567,7 @@ function initFormBindings() {
         }
         
         alert('Error: No trim levels available for ' + modelName + '. Please select some features first.');
+        window.trimPopupCreating = false; // Reset flag on error
         return;
     }
     
@@ -12589,6 +12591,7 @@ function initFormBindings() {
                         rawContent: csvText.substring(0, 500)
                     });
                     alert('Error: New inventory data is empty or missing required columns (Series, Model). Please verify the CSV file at ' + csvUrl + ' or contact support.');
+                    window.trimPopupCreating = false; // Reset flag on error
                     return;
                 }
 
@@ -12909,11 +12912,13 @@ function initFormBindings() {
             error: function(error) {
                 console.error('Papa Parse error for New Inventory CSV: ' + error);
                 alert('Error: Failed to parse new inventory data. Please contact support.');
+                window.trimPopupCreating = false; // Reset flag on error
             }
         });
     }).catch(function(error) {
         console.error('Fetch error for New Inventory CSV: ' + error.message);
         alert('Error: Unable to load new inventory data. Please check the CSV file at ' + csvUrl + ' or contact support.');
+        window.trimPopupCreating = false; // Reset flag on error
     });
 }
 
@@ -14696,7 +14701,62 @@ window.findSierra2500HtmlBlock = function() {
     return htmlBlock.length > 0;
 };
 
-console.log('Debug functions available: testTerrainDebug(), forcePopulateTerrainFeatures(), createTerrainCheckboxesManually(), checkTerrainState(), testSierra2500Debug(), forceSierra2500Populate(), findSierra2500HtmlBlock()');
+console.log('Debug functions available: testTerrainDebug(), forcePopulateTerrainFeatures(), createTerrainCheckboxesManually(), checkTerrainState(), testSierra2500Debug(), forceSierra2500Populate(), findSierra2500HtmlBlock(), resetAllGlobalFlags(), emergencyCleanupPopupFlags()');
+
+// Function to reset all global popup and model state flags
+function resetAllGlobalFlags() {
+    console.log('🧹 Resetting all global state flags for model switching...');
+    
+    // Reset popup creation flags
+    window.trimPopupCreating = false;
+    window.trimPopupClosing = false;
+    window.escaladeTrimPopupOpening = false;
+    
+    // Reset any existing popups
+    $('#trimLevelsPopup, #trimLevelsOverlay, #vehiclePopup, #overlay, #notePopup, #noteOverlay, #featurePopup, #featureOverlay').remove();
+    
+    // Reset processing flags
+    window.isProcessingClick = false;
+    
+    console.log('✅ All global state flags reset');
+}
+
+// Emergency cleanup function for stuck popup states
+function emergencyCleanupPopupFlags() {
+    console.log('🚨 EMERGENCY CLEANUP: Resetting all popup flags and removing popups...');
+    
+    // Force reset all flags
+    window.trimPopupCreating = false;
+    window.trimPopupClosing = false;
+    window.escaladeTrimPopupOpening = false;
+    window.isProcessingClick = false;
+    
+    // Force remove all popups
+    $('#trimLevelsPopup, #trimLevelsOverlay, #vehiclePopup, #overlay, #notePopup, #noteOverlay, #featurePopup, #featureOverlay').remove();
+    
+    console.log('✅ Emergency cleanup completed');
+}
+
+// Safety mechanism: Reset stuck flags after 10 seconds if they're still set
+setInterval(function() {
+    var hasStuckFlags = window.trimPopupCreating || window.trimPopupClosing || window.escaladeTrimPopupOpening;
+    
+    if (hasStuckFlags) {
+        console.log('⚠️ SAFETY CHECK: Detected stuck popup flags, performing cleanup...');
+        console.log('  - trimPopupCreating:', window.trimPopupCreating);
+        console.log('  - trimPopupClosing:', window.trimPopupClosing);
+        console.log('  - escaladeTrimPopupOpening:', window.escaladeTrimPopupOpening);
+        
+        // Check if there are actually any visible popups
+        var visiblePopups = $('#trimLevelsPopup, #vehiclePopup, #notePopup, #featurePopup').length;
+        
+        if (visiblePopups === 0) {
+            // No visible popups but flags are set - reset them
+            console.log('🔧 SAFETY FIX: No visible popups found, resetting stuck flags');
+            emergencyCleanupPopupFlags();
+        }
+    }
+}, 10000); // Check every 10 seconds
 
 // GLOBAL RADIO BUTTON LISTENER FOR DEBUGGING
 $(document).on('change', 'input[type="radio"]', function() {
@@ -14707,6 +14767,11 @@ $(document).on('change', 'input[type="radio"]', function() {
     console.log('  - Checked:', $(this).is(':checked'));
     console.log('  - Expected GMC field pattern:', 'choice_' + formId + '_' + gmcModelFieldId);
     console.log('  - Matches pattern:', $(this).attr('id') && $(this).attr('id').indexOf('choice_' + formId + '_' + gmcModelFieldId) !== -1);
+    
+    // Reset all global state flags when switching models to prevent conflicts
+    if ($(this).is(':checked')) {
+        resetAllGlobalFlags();
+    }
     
     if ($(this).val() === 'TERRAIN' && $(this).is(':checked')) {
         console.log('🚨 TERRAIN DETECTED IN GLOBAL LISTENER - FORCING POPULATE');
