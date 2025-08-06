@@ -3136,8 +3136,31 @@ jQuery(document).ready(function($) {
                     var featureName = $('<span style="flex: 1; font-size: 13px; ' + (isUnique ? 'font-weight: 600;' : '') + '">' + feature + '</span>');
                     featureDiv.append(featureName);
                     
-                    // Info icon
-                    var infoIcon = $('<span class="comparison-info-icon" data-feature="' + feature + '" data-model="' + modelPrefix + '" style="color: #3b82f6; cursor: pointer; font-size: 14px; font-weight: bold; width: 18px; height: 18px; border: 1px solid #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: white;">i</span>');
+                    // Info icon - Convert modelPrefix to proper model name for description lookup
+                    var properModelName = modelPrefix;
+                    if (modelPrefix.toLowerCase() === 'sierra1500') {
+                        properModelName = 'SIERRA 1500';
+                    } else if (modelPrefix.toLowerCase() === 'sierra2500') {
+                        properModelName = 'SIERRA 2500';
+                    } else if (modelPrefix.toLowerCase() === 'sierra3500') {
+                        properModelName = 'SIERRA 3500';
+                    } else if (modelPrefix.toLowerCase() === 'escalade') {
+                        properModelName = 'ESCALADE';
+                    } else if (modelPrefix.toLowerCase() === 'terrain') {
+                        properModelName = 'TERRAIN';
+                    } else if (modelPrefix.toLowerCase() === 'acadia') {
+                        properModelName = 'ACADIA';
+                    } else if (modelPrefix.toLowerCase() === 'yukon') {
+                        properModelName = 'YUKON';
+                    } else if (modelPrefix.toLowerCase() === 'canyon') {
+                        properModelName = 'CANYON';
+                    } else if (modelPrefix.toLowerCase() === 'ct4') {
+                        properModelName = 'CT4';
+                    } else if (modelPrefix.toLowerCase() === 'ct5') {
+                        properModelName = 'CT5';
+                    }
+                    
+                    var infoIcon = $('<span class="comparison-info-icon" data-feature="' + feature + '" data-model="' + properModelName + '" style="color: #3b82f6; cursor: pointer; font-size: 14px; font-weight: bold; width: 18px; height: 18px; border: 1px solid #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: white;">i</span>');
                     featureDiv.append(infoIcon);
                     
                     content.append(featureDiv);
