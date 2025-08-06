@@ -3137,28 +3137,7 @@ jQuery(document).ready(function($) {
                     featureDiv.append(featureName);
                     
                     // Info icon - Convert modelPrefix to proper model name for description lookup
-                    var properModelName = modelPrefix;
-                    if (modelPrefix.toLowerCase() === 'sierra1500') {
-                        properModelName = 'SIERRA 1500';
-                    } else if (modelPrefix.toLowerCase() === 'sierra2500') {
-                        properModelName = 'SIERRA 2500';
-                    } else if (modelPrefix.toLowerCase() === 'sierra3500') {
-                        properModelName = 'SIERRA 3500';
-                    } else if (modelPrefix.toLowerCase() === 'escalade') {
-                        properModelName = 'ESCALADE';
-                    } else if (modelPrefix.toLowerCase() === 'terrain') {
-                        properModelName = 'TERRAIN';
-                    } else if (modelPrefix.toLowerCase() === 'acadia') {
-                        properModelName = 'ACADIA';
-                    } else if (modelPrefix.toLowerCase() === 'yukon') {
-                        properModelName = 'YUKON';
-                    } else if (modelPrefix.toLowerCase() === 'canyon') {
-                        properModelName = 'CANYON';
-                    } else if (modelPrefix.toLowerCase() === 'ct4') {
-                        properModelName = 'CT4';
-                    } else if (modelPrefix.toLowerCase() === 'ct5') {
-                        properModelName = 'CT5';
-                    }
+                    var properModelName = convertModelPrefixToDescriptionKey(modelPrefix);
                     
                     var infoIcon = $('<span class="comparison-info-icon" data-feature="' + feature + '" data-model="' + properModelName + '" style="color: #3b82f6; cursor: pointer; font-size: 14px; font-weight: bold; width: 18px; height: 18px; border: 1px solid #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: white;">i</span>');
                     featureDiv.append(infoIcon);
@@ -14869,6 +14848,61 @@ function getFeatureDescription(feature, model) {
     }
     
     return description;
+}
+
+/**
+ * Converts a model prefix (like 'sierra1500') to the proper format expected by getModelDescriptionMap
+ * This function is future-proof and will automatically handle new models
+ * @param {string} modelPrefix - The model prefix (e.g., 'sierra1500', 'escalade', 'newmodel2025')
+ * @returns {string} - The properly formatted model name for description lookup
+ */
+function convertModelPrefixToDescriptionKey(modelPrefix) {
+    if (!modelPrefix) return modelPrefix;
+    
+    var prefix = modelPrefix.toLowerCase();
+    
+    // Handle specific known patterns
+    var modelMappings = {
+        'sierra1500': 'SIERRA 1500',
+        'sierra2500': 'SIERRA 2500', 
+        'sierra3500': 'SIERRA 3500',
+        'escalade': 'ESCALADE',
+        'terrain': 'TERRAIN',
+        'acadia': 'ACADIA',
+        'yukon': 'YUKON',
+        'canyon': 'CANYON',
+        'ct4': 'CT4',
+        'ct5': 'CT5',
+        'ct4v': 'CT4 V-SERIES',
+        'ct5v': 'CT5 V-SERIES'
+    };
+    
+    // Check if we have a direct mapping
+    if (modelMappings[prefix]) {
+        return modelMappings[prefix];
+    }
+    
+    // Auto-handle Sierra models with numbers (future-proof)
+    var sierraMatch = prefix.match(/^sierra(\d+)$/);
+    if (sierraMatch) {
+        return 'SIERRA ' + sierraMatch[1];
+    }
+    
+    // Auto-handle CT models with V-Series (future-proof)
+    var ctVMatch = prefix.match(/^(ct\d+)v$/);
+    if (ctVMatch) {
+        return ctVMatch[1].toUpperCase() + ' V-SERIES';
+    }
+    
+    // Auto-handle basic CT models (future-proof)
+    var ctMatch = prefix.match(/^ct\d+$/);
+    if (ctMatch) {
+        return ctMatch[0].toUpperCase();
+    }
+    
+    // For any other new models, convert to uppercase
+    // This handles future models like 'newmodel2025' -> 'NEWMODEL2025'
+    return prefix.toUpperCase();
 }
 
 // Helper function to get the correct description map for a model
