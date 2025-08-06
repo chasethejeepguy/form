@@ -9325,24 +9325,48 @@ function processEscaladeTrimLevels(csvData, selectedFeatures, htmlBlock, trimLev
 	console.log('Final matching Escalade trim levels:', matchingTrimLevels);
 	trimLevelsData['ESCALADE'] = matchingTrimLevels;
 	
-	// Update trim levels button
+	// Update trim levels button with debouncing to prevent multiple calls
 	if (trimLevelsButtonBlock && trimLevelsButtonBlock.length) {
 		var buttonText = matchingTrimLevels.length > 0 ? 
 			'View Available Trim Levels (' + matchingTrimLevels.length + ')' :
 			'No Matching Trim Levels';
 		
-		trimLevelsButtonBlock.html('<button type="button" id="viewTrimLevelsButton" class="button">' + buttonText + '</button>');
+		// Clear any existing timeout to prevent multiple rapid updates
+		if (window.escaladeTrimButtonTimeout) {
+			clearTimeout(window.escaladeTrimButtonTimeout);
+		}
 		
-		$('#viewTrimLevelsButton').off('click.trimLevels').on('click.trimLevels', function(e) {
-			e.preventDefault();
-			if (matchingTrimLevels.length > 0) {
-				var config = modelConfigs[model];
-				var correctModelFilter = config ? config.modelFilter : 'Escalade';
-				showTrimLevelsPopup(model, matchingTrimLevels, correctModelFilter);
-			} else {
-				alert('No matching trim levels found for the selected features.');
-			}
-		});
+		window.escaladeTrimButtonTimeout = setTimeout(function() {
+			trimLevelsButtonBlock.html('<button type="button" id="viewTrimLevelsButton" class="button">' + buttonText + '</button>');
+			
+			// Remove ALL existing event handlers, not just namespaced ones
+			$('#viewTrimLevelsButton').off('click').on('click.trimLevels', function(e) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				
+				// Prevent multiple rapid clicks
+				if (window.escaladeTrimPopupOpening) {
+					console.log('🚫 Escalade trim popup already opening, ignoring click');
+					return;
+				}
+				
+				window.escaladeTrimPopupOpening = true;
+				
+				if (matchingTrimLevels.length > 0) {
+					var config = modelConfigs[model];
+					var correctModelFilter = config ? config.modelFilter : 'Escalade';
+					console.log('🔵 Opening Escalade trim popup for:', correctModelFilter);
+					showTrimLevelsPopup(model, matchingTrimLevels, correctModelFilter);
+				} else {
+					alert('No matching trim levels found for the selected features.');
+				}
+				
+				// Reset the flag after a delay
+				setTimeout(function() {
+					window.escaladeTrimPopupOpening = false;
+				}, 1000);
+			});
+		}, 100); // Small delay to prevent rapid multiple calls
 	}
 	
 	// Update field 69 with trim levels
@@ -12506,6 +12530,15 @@ function initFormBindings() {
     // Debug: Log received parameters for verification
     console.log('showTrimLevelsPopup called for model:', model, 'with', trimLevels.length, 'trim levels, filter:', modelFilter);
     
+    // Prevent multiple simultaneous popup creation
+    if (window.trimPopupCreating) {
+        console.log('🚫 Trim popup already being created, ignoring call');
+        return;
+    }
+    
+    window.trimPopupCreating = true;
+    
+    // Remove any existing popups
     $('#trimLevelsPopup, #trimLevelsOverlay').remove();
 
     // Safety check for parameters
@@ -12780,20 +12813,35 @@ function initFormBindings() {
 
                 console.log('🟢 Trim Levels popup created for ' + model + ' (Model: ' + modelFilter + '), exists: ' + (popup.length > 0));
                 
+                // Reset the popup creation flag
+                window.trimPopupCreating = false;
+                
                 setTimeout(function() {
                     // Trim popup created
                 }, 100);
 
-                overlay.on('click', function(e) {
+                overlay.off('click').on('click', function(e) {
                     if (e.target.id === 'trimLevelsOverlay') {
                         console.log('🔴 Trim Levels overlay clicked, closing popup');
-                        // Trim overlay clicked
+                        
+                        // Prevent multiple rapid clicks
+                        if (window.trimPopupClosing) {
+                            console.log('🚫 Trim popup already closing, ignoring overlay click');
+                            return;
+                        }
+                        
+                        window.trimPopupClosing = true;
+                        
+                        // Remove popup
                         $('#trimLevelsPopup, #trimLevelsOverlay').remove();
+                        
                         setTimeout(function() {
-                            // Trim overlay closed
-                            
-                                                          // Descriptions should continue working after trim popup closes
-                        }, 100);
+                            // Clear the flags after a short delay
+                            window.trimPopupClosing = false;
+                            window.trimPopupCreating = false;
+                            window.escaladeTrimPopupOpening = false;
+                            console.log('✅ Trim popup overlay close processing complete');
+                        }, 500);
                     }
                 });
 
@@ -12804,24 +12852,31 @@ function initFormBindings() {
                     $(this).css('background', '#007cba');
                 });
 
-                popup.find('.trim-close-popup').on('click', function(e) {
+                popup.find('.trim-close-popup').off('click').on('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     e.stopImmediatePropagation(); // Stop all event propagation immediately
                     
                     console.log('🔴 Trim Levels close button clicked, closing popup');
                     
+                    // Prevent multiple rapid clicks
+                    if (window.trimPopupClosing) {
+                        console.log('🚫 Trim popup already closing, ignoring click');
+                        return false;
+                    }
+                    
+                    window.trimPopupClosing = true;
+                    
                     // Remove the popup immediately to prevent any further event handling
                     $('#trimLevelsPopup, #trimLevelsOverlay').remove();
                     
-                    // Add a flag to prevent any feature description handlers from firing
-                    window.trimPopupClosing = true;
-                    
                     setTimeout(function() {
-                        // Clear the flag after a short delay
+                        // Clear the flags after a short delay
                         window.trimPopupClosing = false;
+                        window.trimPopupCreating = false;
+                        window.escaladeTrimPopupOpening = false;
                         console.log('✅ Trim popup close processing complete');
-                    }, 300); // Increased timeout to ensure all events are processed
+                    }, 500); // Increased timeout to ensure all events are processed
                     
                     // Return false to prevent any further event processing
                     return false;
