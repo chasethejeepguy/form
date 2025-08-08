@@ -1056,8 +1056,8 @@ jQuery(document).ready(function($) {
         
         var bestMatch = null;
         var highestSimilarity = 0;
-        // Use lower threshold for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, CT5, and CT5 V-Series descriptions (0.4 vs 0.7)
-        var threshold = (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions || descriptionMap === window.ct5VSeriesFeatureDescriptions) ? 0.4 : 0.7;
+        // Use lower threshold for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, CT5, CT5 V-Series, Escalade, and Escalade ESV descriptions (0.4 vs 0.7)
+        var threshold = (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions || descriptionMap === window.ct5VSeriesFeatureDescriptions || descriptionMap === window.escaladeFeatureDescriptions || descriptionMap === window.escaladeESVFeatureDescriptions) ? 0.4 : 0.7;
         
         for (var key in descriptionMap) {
             var similarity = calculateSimilarity(correctedFeature, key);
@@ -1070,9 +1070,9 @@ jQuery(document).ready(function($) {
             }
         }
         
-        // If no match found for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, CT5, or CT5 V-Series and threshold was lowered, try partial word matching
-        if (!bestMatch && (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions || descriptionMap === window.ct5VSeriesFeatureDescriptions)) {
-            var modelName = descriptionMap === window.canyonFeatureDescriptions ? 'Canyon' : (descriptionMap === window.sierra1500FeatureDescriptions ? 'Sierra 1500' : (descriptionMap === window.sierra2500FeatureDescriptions ? 'Sierra 2500' : (descriptionMap === window.sierra3500FeatureDescriptions ? 'Sierra 3500' : (descriptionMap === window.ct4FeatureDescriptions ? 'CT4' : (descriptionMap === window.ct4VSeriesFeatureDescriptions ? 'CT4 V-Series' : (descriptionMap === window.ct5FeatureDescriptions ? 'CT5' : 'CT5 V-Series'))))));
+        // If no match found for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, CT5, CT5 V-Series, Escalade, or Escalade ESV and threshold was lowered, try partial word matching
+        if (!bestMatch && (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions || descriptionMap === window.ct5VSeriesFeatureDescriptions || descriptionMap === window.escaladeFeatureDescriptions || descriptionMap === window.escaladeESVFeatureDescriptions)) {
+            var modelName = descriptionMap === window.canyonFeatureDescriptions ? 'Canyon' : (descriptionMap === window.sierra1500FeatureDescriptions ? 'Sierra 1500' : (descriptionMap === window.sierra2500FeatureDescriptions ? 'Sierra 2500' : (descriptionMap === window.sierra3500FeatureDescriptions ? 'Sierra 3500' : (descriptionMap === window.ct4FeatureDescriptions ? 'CT4' : (descriptionMap === window.ct4VSeriesFeatureDescriptions ? 'CT4 V-Series' : (descriptionMap === window.ct5FeatureDescriptions ? 'CT5' : (descriptionMap === window.ct5VSeriesFeatureDescriptions ? 'CT5 V-Series' : (descriptionMap === window.escaladeFeatureDescriptions ? 'Escalade' : 'Escalade ESV'))))))));
             console.log('🔍 Trying partial word matching for ' + modelName + ' feature:', correctedFeature);
             var featureWords = correctedFeature.split(' ').filter(function(w) { return w.length > 3; });
             
@@ -2855,6 +2855,8 @@ jQuery(document).ready(function($) {
         
         // Get ALL features for this trim level
         var currentFeatures = getTrimLevelFeatures(trimLevel, modelPrefix);
+        console.log('📋 TRIM WALK: Features for ' + trimLevel + ' (' + modelPrefix + '):', currentFeatures.length, 'features');
+        console.log('📋 TRIM WALK: Sample features:', currentFeatures.slice(0, 5));
         
         // FIX: Ensure allTrimLevels is properly passed and not empty
         if (!allTrimLevels || allTrimLevels.length === 0) {
@@ -2939,6 +2941,8 @@ jQuery(document).ready(function($) {
         var featureDescriptions = {};
         var modelName = '';
         
+        console.log('🔍 TRIM WALK: Getting feature descriptions for model prefix:', modelPrefix);
+        
         switch(modelPrefix.toLowerCase()) {
             case 'terrain':
                 featureDescriptions = window.terrainFeatureDescriptions;
@@ -2993,6 +2997,7 @@ jQuery(document).ready(function($) {
             case 'escaladeesv':
                 featureDescriptions = window.escaladeESVFeatureDescriptions;
                 modelName = 'Escalade ESV';
+                console.log('🔍 TRIM WALK: Escalade ESV descriptions found:', Object.keys(featureDescriptions || {}).length, 'descriptions');
                 break;
             default:
                 console.warn('Unknown model prefix for trim walk popup:', modelPrefix);
@@ -6254,6 +6259,13 @@ function populateEscaladeFeatures() {
 // Cadillac Escalade ESV population function
 function populateEscaladeESVFeatures() {
     console.log('=== populateEscaladeESVFeatures called ===');
+    
+    // FORCE CLEAR ANY CACHED DATA FOR ESCALADE ESV
+    console.log('🧹 CLEARING ESCALADE ESV CACHED DATA...');
+    window.escaladeESVFeatureMap = {};
+    window.escaladeESVTrimLevelMap = {};
+    window.escaladeESVFeatureToCategoryMap = {};
+    
     console.log('Current escaladeESVPopulated flag:', escaladeESVPopulated);
     console.log('Form ID:', formId);
     console.log('escaladeESVHtmlBlockFieldId:', escaladeESVHtmlBlockFieldId);
@@ -9850,9 +9862,15 @@ function processEscaladeESVTrimLevels(csvData, selectedFeatures, htmlBlock, trim
 					var config = modelConfigs[model];
 					var correctModelFilter = config ? config.modelFilter : 'Escalade ESV';
 					console.log('🔵 Opening Escalade ESV trim popup for:', correctModelFilter);
+					
+					// Reset the flag before calling showTrimLevelsPopup to prevent conflicts
+					window.escaladeESVTrimPopupOpening = false;
+					
 					showTrimLevelsPopup(model, matchingTrimLevels, correctModelFilter);
 				} else {
 					alert('No matching trim levels found for the selected features.');
+					// Reset the flag on error
+					window.escaladeESVTrimPopupOpening = false;
 				}
 				
 				// Reset the flag after a delay
@@ -15561,6 +15579,7 @@ function convertModelPrefixToDescriptionKey(modelPrefix) {
         'sierra2500': 'SIERRA 2500', 
         'sierra3500': 'SIERRA 3500',
         'escalade': 'ESCALADE',
+        'escaladeesv': 'ESCALADE ESV',
         'terrain': 'TERRAIN',
         'acadia': 'ACADIA',
         'yukon': 'YUKON',
