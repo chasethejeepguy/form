@@ -6466,11 +6466,15 @@ function populateEscaladeESVFeatures() {
                 window.escaladeESVFeatureMap = {};
                 htmlBlock.find('input[type="checkbox"]').each(function() {
                     var checkboxValue = $(this).attr('value') || '';
-                    if (checkboxValue) {
-                        window.escaladeESVFeatureMap[checkboxValue] = checkboxValue;
+                    var actualFeature = $(this).next('label').text().trim(); // Get the actual feature name from the label
+                    if (checkboxValue && actualFeature) {
+                        window.escaladeESVFeatureMap[checkboxValue] = actualFeature;
                     }
                 });
                 console.log('Created escaladeESVFeatureMap with', Object.keys(window.escaladeESVFeatureMap).length, 'features');
+                console.log('Sample mapping:', Object.keys(window.escaladeESVFeatureMap).slice(0, 3).map(function(key) {
+                    return key + ' -> ' + window.escaladeESVFeatureMap[key];
+                }));
 
                 escaladeESVPopulated = true;
                 console.log('Escalade ESV features populated into 5 columns in field 154');
@@ -9685,6 +9689,11 @@ function processEscaladeTrimLevels(csvData, selectedFeatures, htmlBlock, trimLev
 
 function processEscaladeESVTrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model) {
 	console.log('Processing Escalade ESV trim levels for selected features:', selectedFeatures);
+	console.log('🔍 ESCALADE ESV DEBUG: csvData rows:', csvData.length);
+	console.log('🔍 ESCALADE ESV DEBUG: First few CSV rows:', csvData.slice(0, 3));
+	console.log('🔍 ESCALADE ESV DEBUG: Selected features detail:', selectedFeatures.map(function(f) {
+		return f + ' (length: ' + f.length + ')';
+	}));
 	
 	var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
 	var trimLevels = discoverTrimLevelsFromCSV(csvData, categories);
@@ -9744,6 +9753,8 @@ function processEscaladeESVTrimLevels(csvData, selectedFeatures, htmlBlock, trim
 						featureToColumnMap[feature] = index + 1;
 						featureToCategoryMap[feature] = currentCategory;
 					});
+					
+					console.log('🔍 ESCALADE ESV CSV FEATURES in', currentCategory + ':', features.slice(0, 5));
 				}
 			} else if (currentCategory && trimLevels.includes(firstCell)) {
 				// This is a trim level row
@@ -9751,6 +9762,9 @@ function processEscaladeESVTrimLevels(csvData, selectedFeatures, htmlBlock, trim
 			}
 		}
 	});
+	
+	console.log('🔍 ESCALADE ESV FINAL FEATURE MAP:', Object.keys(featureToColumnMap).slice(0, 10));
+	console.log('🔍 ESCALADE ESV FINAL CATEGORY MAP:', featureToCategoryMap);
 	
 	// For each trim level, check if it has all the selected features
 	trimLevels.forEach(function(trimLevel) {
