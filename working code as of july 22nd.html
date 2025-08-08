@@ -6675,17 +6675,21 @@ function populateXT4Features() {
                     trimLevelRowsByCategory[category] = {};
                 });
 
+                console.log('🔍 XT4 CSV PARSING: Total rows:', csvData.length);
+                console.log('🔍 XT4 CSV PARSING: First few rows:', csvData.slice(0, 5));
+                
                 var currentCategory = null;
+                
                 csvData.forEach(function(row, rowIndex) {
-                    console.log('Processing row', rowIndex, ':', row.slice(0, 5));
                     if (row.length > 0 && row[0]) {
                         var firstCell = row[0].trim();
+                        console.log('Processing XT4 row', rowIndex, '- First cell:', firstCell, '- Row length:', row.length);
                         
-                        // Check if this is a category header
+                        // Check if this is a category header row: "TRIM LEVELS FOR {EXTERIOR}"
                         var categoryMatch = firstCell.match(/TRIM LEVELS FOR \{(.+)\}/);
                         if (categoryMatch) {
                             currentCategory = categoryMatch[1];
-                            console.log('Found category:', currentCategory);
+                            console.log('🎯 Found XT4 category:', currentCategory);
                             
                             if (categories.indexOf(currentCategory) !== -1) {
                                 // Extract features for this category (skip first column which is the header)
@@ -6693,33 +6697,45 @@ function populateXT4Features() {
                                     return feature && feature.trim() && feature.trim() !== '';
                                 });
                                 
-                                console.log('🔍 XT4 CSV FEATURES in', currentCategory + ':', features.slice(0, 5));
+                                console.log('🔍 XT4 CSV FEATURES in', currentCategory + ':', features.length, 'features');
+                                console.log('🔍 First 5 features:', features.slice(0, 5));
                                 
                                 featureGroups[currentCategory] = features;
                                 
                                 // Map features to their column indices for trim level processing
                                 features.forEach(function(feature, index) {
-                                    var columnIndex = index + 1; // +1 because first column is category header
-                                    featureToColumnMap[feature] = columnIndex;
+                                    var colIndex = index + 1; // +1 because first column is category header
+                                    featureToColumnMap[feature] = colIndex;
                                     featureToCategoryMap[feature] = currentCategory;
                                 });
                             }
-                        } else if (currentCategory && trimLevels.indexOf(firstCell) === -1 && firstCell !== '' && !firstCell.match(/TRIM LEVELS FOR/)) {
-                            // This might be a trim level
-                            if (row.some(function(cell) { return cell === 'YES' || cell === 'NO'; })) {
+                        } else if (currentCategory && (firstCell === 'PREMIUM LUXURY' || firstCell === 'SPORT')) {
+                            // This is a trim level row
+                            if (trimLevels.indexOf(firstCell) === -1) {
                                 trimLevels.push(firstCell);
-                                console.log('Found trim level:', firstCell);
-                                
-                                // Store the entire row for this trim level and category
-                                if (currentCategory) {
-                                    trimLevelRowsByCategory[currentCategory][firstCell] = row;
-                                }
+                                console.log('🎯 Found XT4 trim level:', firstCell);
                             }
-                        } else if (currentCategory && trimLevels.indexOf(firstCell) !== -1) {
-                            // This is a trim level row for the current category
+                            
+                            // Store the entire row for this trim level and category
+                            if (!trimLevelRowsByCategory[currentCategory]) {
+                                trimLevelRowsByCategory[currentCategory] = {};
+                            }
                             trimLevelRowsByCategory[currentCategory][firstCell] = row;
+                            console.log('📊 Stored trim data for', firstCell, 'in category', currentCategory);
+                        } else if (firstCell === '' || firstCell.match(/^,+$/)) {
+                            // Skip empty rows or rows with just commas
+                            console.log('⏭️ Skipping empty row', rowIndex);
+                        } else {
+                            console.log('❓ Unrecognized row format:', firstCell);
                         }
                     }
+                });
+                
+                console.log('🏁 XT4 CSV PARSING COMPLETE:');
+                console.log('📋 Categories found:', Object.keys(featureGroups));
+                console.log('🎯 Trim levels found:', trimLevels);
+                categories.forEach(function(cat) {
+                    console.log('📦', cat, ':', featureGroups[cat] ? featureGroups[cat].length : 0, 'features');
                 });
                 
                 console.log('🔍 XT4 FINAL FEATURE MAP:', Object.keys(featureToColumnMap).slice(0, 10));
