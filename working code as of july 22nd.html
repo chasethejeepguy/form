@@ -3259,6 +3259,19 @@ jQuery(document).ready(function($) {
                 modelPrefix.charAt(0).toUpperCase() + modelPrefix.slice(1).toLowerCase() + 'TrimLevelMap'
             ];
             
+            // Handle special cases for variable name mapping
+            switch(modelPrefix.toLowerCase()) {
+                case 'escaladeesv':
+                    alternativeNames.unshift('escaladeESVTrimLevelMap');
+                    break;
+                case 'ct4vseries':
+                    alternativeNames.unshift('ct4VSeriesTrimLevelMap');
+                    break;
+                case 'ct5vseries':
+                    alternativeNames.unshift('ct5VSeriesTrimLevelMap');
+                    break;
+            }
+            
             alternativeNames.forEach(function(altName) {
                 if (window[altName]) {
                     console.log('Found alternative map:', altName);
@@ -10139,6 +10152,29 @@ function processEscaladeESVTrimLevels(csvData, selectedFeatures, htmlBlock, trim
         
         htmlBlock = $('#field_' + formId + '_' + htmlBlockFieldId);
         trimLevelsButtonBlock = $('#field_' + formId + '_' + trimLevelsButtonFieldId);
+    } else if (model === 'ESCALADE ESV' || model === 'Escalade ESV') {
+        // For ESCALADE ESV, checkboxes are in field 154 (HTML block)
+        checkboxField = $('#field_' + formId + '_' + escaladeESVHtmlBlockFieldId);
+        if (!checkboxField.length) {
+            checkboxField = $('#field_' + formId + '_154');
+        }
+        if (!checkboxField.length) {
+            checkboxField = $('[id*="154"]').filter(function() {
+                return $(this).attr('id').includes('field') || $(this).attr('id').includes('input');
+            });
+        }
+        
+        console.log('ESCALADE ESV checkboxField debug:', {
+            escaladeESVHtmlBlockFieldId: escaladeESVHtmlBlockFieldId,
+            selector1: '#field_' + formId + '_' + escaladeESVHtmlBlockFieldId,
+            selector2: '#field_' + formId + '_154',
+            found: checkboxField.length,
+            actualId: checkboxField.attr('id'),
+            hasCheckboxes: checkboxField.find('input[type="checkbox"]').length
+        });
+        
+        htmlBlock = $('#field_' + formId + '_' + htmlBlockFieldId);
+        trimLevelsButtonBlock = $('#field_' + formId + '_' + trimLevelsButtonFieldId);
     } else {
         // For other models, checkboxes are in their respective fields
         checkboxField = $('#field_' + formId + '_' + config.fieldId);
@@ -10150,7 +10186,7 @@ function processEscaladeESVTrimLevels(csvData, selectedFeatures, htmlBlock, trim
     var defaultButtonText = '<button id="viewTrimLevelsButton">View Trim Levels</button>';
     var noMatchText = 'No matching trim levels found. Please adjust your feature selections or contact support.';
 
-    console.log('Checking ' + model + ' checkbox field (ID: ' + (model === 'TERRAIN' ? terrainHtmlBlockFieldId : model === 'ACADIA' ? acadiaHtmlBlockFieldId : model === 'YUKON' ? yukonHtmlBlockFieldId : model === 'CANYON' ? canyonHtmlBlockFieldId : model === 'SIERRA 1500' ? sierra1500HtmlBlockFieldId : (model === 'SIERRA 2500' || model === 'SIERRA 2500HD') ? sierra2500HtmlBlockFieldId : (model === 'SIERRA 3500' || model === 'SIERRA 3500HD') ? sierra3500HtmlBlockFieldId : model === 'CT4' ? ct4HtmlBlockFieldId : model === 'CT4 V-SERIES' ? ct4VSeriesHtmlBlockFieldId : model === 'CT5' ? ct5HtmlBlockFieldId : model === 'CT5 V-SERIES' ? ct5VSeriesHtmlBlockFieldId : model === 'ESCALADE' ? escaladeHtmlBlockFieldId : config.fieldId) + '):', {
+    console.log('Checking ' + model + ' checkbox field (ID: ' + (model === 'TERRAIN' ? terrainHtmlBlockFieldId : model === 'ACADIA' ? acadiaHtmlBlockFieldId : model === 'YUKON' ? yukonHtmlBlockFieldId : model === 'CANYON' ? canyonHtmlBlockFieldId : model === 'SIERRA 1500' ? sierra1500HtmlBlockFieldId : (model === 'SIERRA 2500' || model === 'SIERRA 2500HD') ? sierra2500HtmlBlockFieldId : (model === 'SIERRA 3500' || model === 'SIERRA 3500HD') ? sierra3500HtmlBlockFieldId : model === 'CT4' ? ct4HtmlBlockFieldId : model === 'CT4 V-SERIES' ? ct4VSeriesHtmlBlockFieldId : model === 'CT5' ? ct5HtmlBlockFieldId : model === 'CT5 V-SERIES' ? ct5VSeriesHtmlBlockFieldId : model === 'ESCALADE' ? escaladeHtmlBlockFieldId : (model === 'ESCALADE ESV' || model === 'Escalade ESV') ? escaladeESVHtmlBlockFieldId : config.fieldId) + '):', {
         fieldExists: checkboxField.length > 0,
         fieldVisible: checkboxField.is(':visible'),
         fieldClasses: checkboxField.attr('class'),
@@ -10436,7 +10472,7 @@ function processEscaladeESVTrimLevels(csvData, selectedFeatures, htmlBlock, trim
         showFeatureDescription(feature, description);
     });
 
-    if (!checkboxField.length || (model !== 'K5' && model !== 'TERRAIN' && model !== 'ACADIA' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && !checkboxField.is(':visible'))) {
+    if (!checkboxField.length || (model !== 'K5' && model !== 'TERRAIN' && model !== 'ACADIA' && model !== 'YUKON' && model !== 'CANYON' && model !== 'SIERRA 1500' && model !== 'SIERRA 2500' && model !== 'SIERRA 2500HD' && model !== 'SIERRA 3500' && model !== 'SIERRA 3500HD' && model !== 'CT4' && model !== 'CT4 V-SERIES' && model !== 'CT5' && model !== 'CT5 V-SERIES' && model !== 'ESCALADE' && model !== 'Escalade' && model !== 'ESCALADE ESV' && model !== 'Escalade ESV' && !checkboxField.is(':visible'))) {
         console.log(model + ' checkbox field not found or not visible, resetting HTML block');
         if (htmlBlock.length) {
             htmlBlock.find('p').text(defaultText);
