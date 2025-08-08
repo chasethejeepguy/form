@@ -1067,8 +1067,8 @@ jQuery(document).ready(function($) {
         
         var bestMatch = null;
         var highestSimilarity = 0;
-        // Use lower threshold for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, CT5, CT5 V-Series, Escalade, and Escalade ESV descriptions (0.4 vs 0.7)
-        var threshold = (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions || descriptionMap === window.ct5VSeriesFeatureDescriptions || descriptionMap === window.escaladeFeatureDescriptions || descriptionMap === window.escaladeESVFeatureDescriptions) ? 0.4 : 0.7;
+        // Use lower threshold for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, CT5, CT5 V-Series, Escalade, Escalade ESV, and XT4 descriptions (0.4 vs 0.7)
+        var threshold = (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions || descriptionMap === window.ct5VSeriesFeatureDescriptions || descriptionMap === window.escaladeFeatureDescriptions || descriptionMap === window.escaladeESVFeatureDescriptions || descriptionMap === window.xt4FeatureDescriptions) ? 0.4 : 0.7;
         
         for (var key in descriptionMap) {
             var similarity = calculateSimilarity(correctedFeature, key);
@@ -1081,9 +1081,9 @@ jQuery(document).ready(function($) {
             }
         }
         
-        // If no match found for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, CT5, CT5 V-Series, Escalade, or Escalade ESV and threshold was lowered, try partial word matching
-        if (!bestMatch && (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions || descriptionMap === window.ct5VSeriesFeatureDescriptions || descriptionMap === window.escaladeFeatureDescriptions || descriptionMap === window.escaladeESVFeatureDescriptions)) {
-            var modelName = descriptionMap === window.canyonFeatureDescriptions ? 'Canyon' : (descriptionMap === window.sierra1500FeatureDescriptions ? 'Sierra 1500' : (descriptionMap === window.sierra2500FeatureDescriptions ? 'Sierra 2500' : (descriptionMap === window.sierra3500FeatureDescriptions ? 'Sierra 3500' : (descriptionMap === window.ct4FeatureDescriptions ? 'CT4' : (descriptionMap === window.ct4VSeriesFeatureDescriptions ? 'CT4 V-Series' : (descriptionMap === window.ct5FeatureDescriptions ? 'CT5' : (descriptionMap === window.ct5VSeriesFeatureDescriptions ? 'CT5 V-Series' : (descriptionMap === window.escaladeFeatureDescriptions ? 'Escalade' : 'Escalade ESV'))))))));
+        // If no match found for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, CT5, CT5 V-Series, Escalade, Escalade ESV, or XT4 and threshold was lowered, try partial word matching
+        if (!bestMatch && (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions || descriptionMap === window.ct5VSeriesFeatureDescriptions || descriptionMap === window.escaladeFeatureDescriptions || descriptionMap === window.escaladeESVFeatureDescriptions || descriptionMap === window.xt4FeatureDescriptions)) {
+            var modelName = descriptionMap === window.canyonFeatureDescriptions ? 'Canyon' : (descriptionMap === window.sierra1500FeatureDescriptions ? 'Sierra 1500' : (descriptionMap === window.sierra2500FeatureDescriptions ? 'Sierra 2500' : (descriptionMap === window.sierra3500FeatureDescriptions ? 'Sierra 3500' : (descriptionMap === window.ct4FeatureDescriptions ? 'CT4' : (descriptionMap === window.ct4VSeriesFeatureDescriptions ? 'CT4 V-Series' : (descriptionMap === window.ct5FeatureDescriptions ? 'CT5' : (descriptionMap === window.ct5VSeriesFeatureDescriptions ? 'CT5 V-Series' : (descriptionMap === window.escaladeFeatureDescriptions ? 'Escalade' : (descriptionMap === window.escaladeESVFeatureDescriptions ? 'Escalade ESV' : 'XT4')))))))));
             console.log('🔍 Trying partial word matching for ' + modelName + ' feature:', correctedFeature);
             var featureWords = correctedFeature.split(' ').filter(function(w) { return w.length > 3; });
             
@@ -6650,7 +6650,16 @@ function populateXT4Features() {
     console.log('XT4 HTML block found:', htmlBlock.attr('id'));
     console.log('XT4 CSV URL:', config.csvUrl);
 
-    return fetchCsvWithRetry(config.csvUrl, 'XT4 CSV', 3, 1000).then(function(csvText) {
+    // Load XT4 descriptions first
+    var descriptionsUrl = descriptionUrlMap['XT4'];
+    console.log('XT4 descriptions URL:', descriptionsUrl);
+    
+    return loadFeatureDescriptions('XT4', descriptionsUrl).then(function() {
+        console.log('✅ XT4 descriptions loaded successfully');
+        console.log('XT4 descriptions count:', Object.keys(window.xt4FeatureDescriptions || {}).length);
+        
+        return fetchCsvWithRetry(config.csvUrl, 'XT4 CSV', 3, 1000);
+    }).then(function(csvText) {
         console.log('XT4 CSV fetched successfully, length:', csvText.length, 'characters');
         console.log('XT4 CSV first 200 chars:', csvText.substring(0, 200));
         console.log('XT4 CSV first line:', csvText.split('\n')[0]);
@@ -16126,6 +16135,7 @@ function getFeatureDescription(feature, model) {
     
     // Fallback: Try all description sources with direct lookup only
     var allDescriptionSources = [
+        { name: 'XT4', data: typeof window.xt4FeatureDescriptions !== 'undefined' ? window.xt4FeatureDescriptions : {} },
         { name: 'Escalade ESV', data: typeof window.escaladeESVFeatureDescriptions !== 'undefined' ? window.escaladeESVFeatureDescriptions : {} },
         { name: 'Escalade', data: typeof window.escaladeFeatureDescriptions !== 'undefined' ? window.escaladeFeatureDescriptions : {} },
         { name: 'CT5 V-Series', data: typeof window.ct5VSeriesFeatureDescriptions !== 'undefined' ? window.ct5VSeriesFeatureDescriptions : {} },
@@ -16245,6 +16255,8 @@ function getModelDescriptionMap(model) {
         case 'ESCALADE ESV':
         case 'Escalade ESV':
             return window.escaladeESVFeatureDescriptions;
+        case 'XT4':
+            return window.xt4FeatureDescriptions;
         case 'CT4':
             return window.ct4FeatureDescriptions;
         case 'CT4 V-SERIES':
