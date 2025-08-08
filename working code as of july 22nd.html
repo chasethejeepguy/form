@@ -6653,10 +6653,11 @@ function populateXT4Features() {
     return fetchCsvWithRetry(config.csvUrl, 'XT4 CSV', 3, 1000).then(function(csvText) {
         console.log('XT4 CSV fetched successfully, length:', csvText.length, 'characters, first 100 chars:', csvText.substring(0, 100));
 
-        Papa.parse(csvText, {
-            header: false,
-            skipEmptyLines: true,
-            complete: function(results) {
+        return new Promise(function(resolve, reject) {
+            Papa.parse(csvText, {
+                header: false,
+                skipEmptyLines: true,
+                complete: function(results) {
                 console.log('XT4 CSV parsed, rows:', results.data.length);
                 console.log('First 10 rows of parsed data:', results.data.slice(0, 10));
 
@@ -6819,13 +6820,18 @@ function populateXT4Features() {
                     var description = getFeatureDescription(feature, 'XT4');
                     showFeatureDescription(feature, description);
                 });
-            },
-            error: function(error) {
-                console.error('Papa Parse error for XT4 population: ' + error);
-            }
+                
+                resolve();
+                },
+                error: function(error) {
+                    console.error('Papa Parse error for XT4 population: ' + error);
+                    reject(error);
+                }
+            });
         });
     }).catch(function(error) {
         console.error('Fetch error for XT4 population: ' + error.message);
+        return Promise.reject(error);
     });
 }
 
@@ -16008,7 +16014,9 @@ $(document).on('change', 'input[type="radio"]', function() {
         }).catch(function(error) {
             console.error('❌ ESCALADE ESV population failed from global listener:', error);
         });
-    } else if ($(this).val() === 'XT4' && $(this).is(':checked')) {
+    }
+    
+    if ($(this).val() === 'XT4' && $(this).is(':checked')) {
         console.log('🚨 XT4 DETECTED IN GLOBAL LISTENER - FORCING POPULATE');
         xt4Populated = false;
         populateXT4Features().then(function() {
