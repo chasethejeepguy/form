@@ -2916,8 +2916,12 @@ jQuery(document).ready(function($) {
         var featuresToShow = currentFeatures;
         var popupTitle = 'The ' + trimLevel + ' includes all of the following features:';
         
+        console.log('🎯 TRIM WALK: About to show', featuresToShow.length, 'features in popup');
+        console.log('🎯 TRIM WALK: Sample features to show:', featuresToShow.slice(0, 3));
+        
         // Group features by category
         var categorizedFeatures = groupFeaturesByCategory(featuresToShow, modelPrefix);
+        console.log('🎯 TRIM WALK: Categorized features:', Object.keys(categorizedFeatures).length, 'categories');
         
         // Build popup HTML
         var popupHtml = buildTrimWalkPopupHTML(popupTitle, categorizedFeatures, modelPrefix, trimLevel, trimIndex, allTrimLevels, uniqueFeatures);
@@ -3277,7 +3281,8 @@ jQuery(document).ready(function($) {
                     break;
             }
             
-            alternativeNames.forEach(function(altName) {
+            for (var i = 0; i < alternativeNames.length; i++) {
+                var altName = alternativeNames[i];
                 if (window[altName]) {
                     console.log('Found alternative map:', altName);
                     trimLevelMap = window[altName];
@@ -3287,8 +3292,10 @@ jQuery(document).ready(function($) {
                             features.push(feature);
                         }
                     });
+                    console.log('✅ Alternative map processed, found', features.length, 'features for', trimLevel);
+                    break; // Exit the loop after finding and processing the first valid map
                 }
-            });
+            }
         }
         
         return features;
@@ -3312,13 +3319,46 @@ jQuery(document).ready(function($) {
         var featureToCategoryMapName = modelPrefix + 'FeatureToCategoryMap';
         var featureToCategoryMap = window[featureToCategoryMapName];
         
+        if (!featureToCategoryMap) {
+            console.warn('Feature-to-category map not found:', featureToCategoryMapName);
+            
+            // Try alternative map names for special cases
+            var alternativeNames = [];
+            switch(modelPrefix.toLowerCase()) {
+                case 'escaladeesv':
+                    alternativeNames.push('escaladeESVFeatureToCategoryMap');
+                    break;
+                case 'ct4vseries':
+                    alternativeNames.push('ct4VSeriesFeatureToCategoryMap');
+                    break;
+                case 'ct5vseries':
+                    alternativeNames.push('ct5VSeriesFeatureToCategoryMap');
+                    break;
+            }
+            
+            for (var i = 0; i < alternativeNames.length; i++) {
+                if (window[alternativeNames[i]]) {
+                    console.log('Found alternative feature-to-category map:', alternativeNames[i]);
+                    featureToCategoryMap = window[alternativeNames[i]];
+                    break;
+                }
+            }
+        }
+        
         if (featureToCategoryMap) {
             features.forEach(function(feature) {
                 var category = featureToCategoryMap[feature];
                 if (category && categories[category]) {
                     categories[category].push(feature);
+                } else {
+                    // Default to EXTERIOR if no category found
+                    categories['EXTERIOR'].push(feature);
                 }
             });
+        } else {
+            // If no category map found, put all features in EXTERIOR as fallback
+            console.warn('No feature-to-category map found for', modelPrefix, '- defaulting all features to EXTERIOR');
+            categories['EXTERIOR'] = features.slice(); // Copy the array
         }
         
         // Sort features within each category
@@ -3342,6 +3382,12 @@ jQuery(document).ready(function($) {
      * @return {string} HTML for the popup
      */
     function buildTrimWalkPopupHTML(title, categorizedFeatures, modelPrefix, currentTrimLevel, trimIndex, allTrimLevels, uniqueFeatures) {
+        console.log('🏗️ BUILDING TRIM WALK HTML:', currentTrimLevel);
+        console.log('🏗️ Categorized features received:', Object.keys(categorizedFeatures));
+        console.log('🏗️ Total feature count by category:', Object.keys(categorizedFeatures).map(function(cat) {
+            return cat + ': ' + (categorizedFeatures[cat] ? categorizedFeatures[cat].length : 0);
+        }).join(', '));
+        
         var html = '<div class="trim-walk-popup-content">';
         
         // Add header with title and navigation buttons side by side
