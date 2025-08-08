@@ -6651,12 +6651,18 @@ function populateXT4Features() {
     console.log('XT4 CSV URL:', config.csvUrl);
 
     return fetchCsvWithRetry(config.csvUrl, 'XT4 CSV', 3, 1000).then(function(csvText) {
-        console.log('XT4 CSV fetched successfully, length:', csvText.length, 'characters, first 100 chars:', csvText.substring(0, 100));
+        console.log('XT4 CSV fetched successfully, length:', csvText.length, 'characters');
+        console.log('XT4 CSV first 200 chars:', csvText.substring(0, 200));
+        console.log('XT4 CSV first line:', csvText.split('\n')[0]);
+        console.log('XT4 CSV second line:', csvText.split('\n')[1]);
 
         return new Promise(function(resolve, reject) {
             Papa.parse(csvText, {
                 header: false,
                 skipEmptyLines: true,
+                delimiter: ',',
+                quoteChar: '"',
+                escapeChar: '"',
                 complete: function(results) {
                 console.log('XT4 CSV parsed, rows:', results.data.length);
                 console.log('First 10 rows of parsed data:', results.data.slice(0, 10));
