@@ -6657,7 +6657,12 @@ function populateXT4Features() {
     return loadFeatureDescriptions('XT4', descriptionsUrl).then(function() {
         console.log('✅ XT4 descriptions loaded successfully');
         console.log('XT4 descriptions count:', Object.keys(window.xt4FeatureDescriptions || {}).length);
+        console.log('XT4 descriptions sample:', Object.keys(window.xt4FeatureDescriptions || {}).slice(0, 5));
         
+        return fetchCsvWithRetry(config.csvUrl, 'XT4 CSV', 3, 1000);
+    }).catch(function(error) {
+        console.error('❌ Failed to load XT4 descriptions:', error);
+        console.log('🔄 Continuing without XT4 descriptions...');
         return fetchCsvWithRetry(config.csvUrl, 'XT4 CSV', 3, 1000);
     }).then(function(csvText) {
         console.log('XT4 CSV fetched successfully, length:', csvText.length, 'characters');
@@ -6810,6 +6815,7 @@ function populateXT4Features() {
                     console.warn('❌ No XT4 placeholder found in HTML block!');
                     console.warn('📝 SOLUTION: Add {xt4 feature checkboxes} to your HTML block field (ID 155)');
                     console.warn('Available placeholders in HTML:', currentHtml.match(/\{[^}]+\}/g) || 'None found');
+                    console.log('🔧 WORKAROUND: Injecting XT4 checkboxes directly into HTML field');
                     htmlBlock.html(html);
                 }
 
@@ -16105,6 +16111,7 @@ $(document).on('click', '.feature-info-icon', function(e) {
 // SIMPLE DESCRIPTION LOOKUP - Shows exactly what's in the CSV files
 function getFeatureDescription(feature, model) {
     var featureUpper = feature.toUpperCase();
+    console.log('🔍 getFeatureDescription called with feature:', feature, 'model:', model);
     
     // 🔧 FIX TYPOS: Correct common misspellings in feature names
     if (featureUpper === 'AUXILIARY TRAILER CAMEREA') {
@@ -16119,6 +16126,7 @@ function getFeatureDescription(feature, model) {
     // If model is specified, try that model's descriptions first
     if (model) {
         var modelDescriptionMap = getModelDescriptionMap(model);
+        console.log('🗺️ Description map for model', model + ':', modelDescriptionMap ? Object.keys(modelDescriptionMap).length + ' descriptions' : 'null/undefined');
         if (modelDescriptionMap && Object.keys(modelDescriptionMap).length > 0) {
             if (modelDescriptionMap[featureUpper]) {
                 description = modelDescriptionMap[featureUpper];
