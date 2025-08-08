@@ -6654,7 +6654,7 @@ function populateXT4Features() {
     var descriptionsUrl = descriptionUrlMap['XT4'];
     console.log('XT4 descriptions URL:', descriptionsUrl);
     
-    return loadFeatureDescriptions('XT4', descriptionsUrl).then(function() {
+    return loadModelDescriptions('XT4', descriptionsUrl).then(function() {
         console.log('✅ XT4 descriptions loaded successfully');
         console.log('XT4 descriptions count:', Object.keys(window.xt4FeatureDescriptions || {}).length);
         console.log('XT4 descriptions sample:', Object.keys(window.xt4FeatureDescriptions || {}).slice(0, 5));
