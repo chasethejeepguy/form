@@ -2350,7 +2350,7 @@ jQuery(document).ready(function($) {
         var xt4DescriptionsUrl = 'https://hutchinsonautoteam.com/cadillacmodels/cadillacxt4descriptions.csv';
         console.log('Loading Cadillac XT4 feature descriptions from:', xt4DescriptionsUrl);
         
-        fetch(xt4DescriptionsUrl)
+        return fetch(xt4DescriptionsUrl)
         .then(function(response) {
             if (!response.ok) {
                 throw new Error('Network response was not ok: ' + response.status);
@@ -6716,7 +6716,16 @@ function populateXT4Features() {
     console.log('XT4 HTML block found:', htmlBlock.attr('id'));
     console.log('XT4 CSV URL:', config.csvUrl);
 
-    return fetchCsvWithRetry(config.csvUrl, 'XT4 CSV', 3, 1000).then(function(csvText) {
+    // Load XT4 descriptions first
+    var descriptionsUrl = descriptionUrlMap['XT4'];
+    console.log('XT4 descriptions URL:', descriptionsUrl);
+    
+    return loadXT4FeatureDescriptions().then(function() {
+        console.log('✅ XT4 descriptions loaded successfully');
+        console.log('XT4 descriptions count:', Object.keys(window.xt4FeatureDescriptions || {}).length);
+        
+        return fetchCsvWithRetry(config.csvUrl, 'XT4 CSV', 3, 1000);
+    }).then(function(csvText) {
         console.log('XT4 CSV fetched successfully, length:', csvText.length, 'characters');
         console.log('XT4 CSV first 200 chars:', csvText.substring(0, 200));
         console.log('XT4 CSV first line:', csvText.split('\n')[0]);
