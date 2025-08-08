@@ -2345,6 +2345,72 @@ jQuery(document).ready(function($) {
         });
     }
 
+    // Load Cadillac XT4 feature descriptions
+    function loadXT4FeatureDescriptions() {
+        var xt4DescriptionsUrl = 'https://hutchinsonautoteam.com/cadillacmodels/cadillacxt4descriptions.csv';
+        console.log('Loading Cadillac XT4 feature descriptions from:', xt4DescriptionsUrl);
+        
+        fetch(xt4DescriptionsUrl)
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.status);
+            }
+            return response.text();
+        })
+        .then(function(csvText) {
+            console.log('Raw XT4 descriptions CSV:', csvText);
+            console.log('Raw XT4 descriptions CSV length:', csvText.length);
+            console.log('Raw XT4 descriptions CSV preview (first 500 chars):', csvText.substring(0, 500));
+            
+            window.xt4FeatureDescriptions = {};
+            
+            // Parse CSV text line by line
+            var lines = csvText.split('\n');
+            console.log('XT4 descriptions total lines:', lines.length);
+            
+            lines.forEach(function(line, index) {
+                if (line.trim() && line.includes('{') && line.includes('}') && line.includes(':')) {
+                    console.log('Processing XT4 description line', index, ':', line.substring(0, 100) + '...');
+                    
+                    // Find the closing brace
+                    var startBrace = line.indexOf('{');
+                    var endBrace = line.lastIndexOf('}');
+                    if (startBrace !== -1 && endBrace !== -1 && endBrace > startBrace) {
+                        var content = line.substring(startBrace + 1, endBrace);
+                        var colonIndex = content.indexOf(':');
+                        if (colonIndex !== -1) {
+                            var feature = content.substring(0, colonIndex).trim();
+                            var description = content.substring(colonIndex + 1).trim();
+                            
+                            if (feature && description) {
+                                var featureUpper = feature.toUpperCase();
+                                window.xt4FeatureDescriptions[featureUpper] = description;
+                                console.log('Added XT4 description:', featureUpper, '=', description.substring(0, 100) + '...');
+                            }
+                        }
+                    }
+                }
+            });
+            
+            console.log('Parsed XT4 feature descriptions:', window.xt4FeatureDescriptions);
+            console.log('Total XT4 descriptions loaded:', Object.keys(window.xt4FeatureDescriptions).length);
+            
+            if (Object.keys(window.xt4FeatureDescriptions).length === 0) {
+                console.warn('WARNING: No XT4 feature descriptions loaded!');
+                console.warn('Sample lines from XT4 descriptions CSV:');
+                lines.slice(0, 5).forEach(function(line, index) {
+                    console.warn('Line', index, ':', line);
+                });
+            } else {
+                console.log('SUCCESS: Cadillac XT4 descriptions loaded successfully at:', new Date().toISOString());
+                console.log('First few XT4 descriptions:', Object.keys(window.xt4FeatureDescriptions).slice(0, 5));
+            }
+        }).catch(function(error) {
+            console.error('Fetch error for Cadillac XT4 Feature Descriptions:', error.message);
+            window.xt4FeatureDescriptions = {};
+        });
+    }
+
     // Removed backup system - using only real descriptions from CSV files
 
     // Exact matching function only - no fuzzy matching
@@ -6650,21 +6716,7 @@ function populateXT4Features() {
     console.log('XT4 HTML block found:', htmlBlock.attr('id'));
     console.log('XT4 CSV URL:', config.csvUrl);
 
-    // Load XT4 descriptions first
-    var descriptionsUrl = descriptionUrlMap['XT4'];
-    console.log('XT4 descriptions URL:', descriptionsUrl);
-    
-    return loadModelDescriptions('XT4', descriptionsUrl).then(function() {
-        console.log('✅ XT4 descriptions loaded successfully');
-        console.log('XT4 descriptions count:', Object.keys(window.xt4FeatureDescriptions || {}).length);
-        console.log('XT4 descriptions sample:', Object.keys(window.xt4FeatureDescriptions || {}).slice(0, 5));
-        
-        return fetchCsvWithRetry(config.csvUrl, 'XT4 CSV', 3, 1000);
-    }).catch(function(error) {
-        console.error('❌ Failed to load XT4 descriptions:', error);
-        console.log('🔄 Continuing without XT4 descriptions...');
-        return fetchCsvWithRetry(config.csvUrl, 'XT4 CSV', 3, 1000);
-    }).then(function(csvText) {
+    return fetchCsvWithRetry(config.csvUrl, 'XT4 CSV', 3, 1000).then(function(csvText) {
         console.log('XT4 CSV fetched successfully, length:', csvText.length, 'characters');
         console.log('XT4 CSV first 200 chars:', csvText.substring(0, 200));
         console.log('XT4 CSV first line:', csvText.split('\n')[0]);
@@ -15602,6 +15654,7 @@ loadCT4VSeriesFeatureDescriptions();
 loadCT5FeatureDescriptions();
 loadCT5VSeriesFeatureDescriptions();
 loadEscaladeFeatureDescriptions();
+loadXT4FeatureDescriptions();
 
 // Load Escalade ESV feature descriptions (wrapper for centralized system)
 function loadEscaladeESVFeatureDescriptions() {
