@@ -2990,6 +2990,10 @@ jQuery(document).ready(function($) {
                 featureDescriptions = window.escaladeFeatureDescriptions;
                 modelName = 'Escalade';
                 break;
+            case 'escaladeesv':
+                featureDescriptions = window.escaladeESVFeatureDescriptions;
+                modelName = 'Escalade ESV';
+                break;
             default:
                 console.warn('Unknown model prefix for trim walk popup:', modelPrefix);
                 return;
@@ -3709,6 +3713,8 @@ jQuery(document).ready(function($) {
                 return 'CT5 V-SERIES';
             case 'ESCALADE':
                 return 'Escalade';
+            case 'ESCALADEESV':
+                return 'Escalade ESV';
             default:
                  return modelName;
          }
@@ -3810,7 +3816,7 @@ jQuery(document).ready(function($) {
             */
             
             // Current Cadillac models
-            'ct4', 'ct4vseries', 'ct4v', 'ct5', 'ct5vseries', 'ct5v', 'xt4', 'xt5', 'xt6', 'escalade',
+            'ct4', 'ct4vseries', 'ct4v', 'ct5', 'ct5vseries', 'ct5v', 'xt4', 'xt5', 'xt6', 'escalade', 'escaladeesv',
              
              // Potential future GMC models
              'silverado', 'tahoe', 'suburban', 'equinox', 'traverse', 'blazer', 'trax',
@@ -6387,10 +6393,10 @@ function populateEscaladeESVFeatures() {
                 });
                 
                 // Now populate the feature-to-trim-levels mapping using Cadillac function
-                populateFeatureTrimLevelsMapCadillac('ESCALADE ESV', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+                populateFeatureTrimLevelsMapCadillac('ESCALADEESV', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
 
                 // Create global mappings for trim walk functionality
-                window.escaladeESVTrimLevelMap = featureToTrimLevelsMap['ESCALADE ESV'];
+                window.escaladeESVTrimLevelMap = featureToTrimLevelsMap['ESCALADEESV'];
                 window.escaladeESVFeatureToCategoryMap = featureToCategoryMap;
 
                 console.log('Building HTML for Escalade ESV features...');
@@ -6442,6 +6448,16 @@ function populateEscaladeESVFeatures() {
                     console.warn('Available placeholders in HTML:', currentHtml.match(/\{[^}]+\}/g) || 'None found');
                     htmlBlock.html(html);
                 }
+
+                // Create feature map for updateTrimLevels function
+                window.escaladeESVFeatureMap = {};
+                htmlBlock.find('input[type="checkbox"]').each(function() {
+                    var checkboxValue = $(this).attr('value') || '';
+                    if (checkboxValue) {
+                        window.escaladeESVFeatureMap[checkboxValue] = checkboxValue;
+                    }
+                });
+                console.log('Created escaladeESVFeatureMap with', Object.keys(window.escaladeESVFeatureMap).length, 'features');
 
                 escaladeESVPopulated = true;
                 console.log('Escalade ESV features populated into 5 columns in field 154');
@@ -14906,6 +14922,14 @@ loadCT4VSeriesFeatureDescriptions();
 loadCT5FeatureDescriptions();
 loadCT5VSeriesFeatureDescriptions();
 loadEscaladeFeatureDescriptions();
+
+// Load Escalade ESV feature descriptions (wrapper for centralized system)
+function loadEscaladeESVFeatureDescriptions() {
+    console.log('Loading Escalade ESV feature descriptions via centralized system...');
+    // The centralized system already loads this via loadAllModelDescriptions()
+    // This function exists for backward compatibility
+}
+loadEscaladeESVFeatureDescriptions();
 initFormBindings();
 updateSelectedName();
 
@@ -15424,6 +15448,7 @@ function getFeatureDescription(feature, model) {
     
     // Fallback: Try all description sources with direct lookup only
     var allDescriptionSources = [
+        { name: 'Escalade ESV', data: typeof window.escaladeESVFeatureDescriptions !== 'undefined' ? window.escaladeESVFeatureDescriptions : {} },
         { name: 'Escalade', data: typeof window.escaladeFeatureDescriptions !== 'undefined' ? window.escaladeFeatureDescriptions : {} },
         { name: 'CT5 V-Series', data: typeof window.ct5VSeriesFeatureDescriptions !== 'undefined' ? window.ct5VSeriesFeatureDescriptions : {} },
         { name: 'CT5', data: typeof window.ct5FeatureDescriptions !== 'undefined' ? window.ct5FeatureDescriptions : {} },
@@ -15538,6 +15563,9 @@ function getModelDescriptionMap(model) {
         case 'ESCALADE':
         case 'Escalade':
             return window.escaladeFeatureDescriptions;
+        case 'ESCALADE ESV':
+        case 'Escalade ESV':
+            return window.escaladeESVFeatureDescriptions;
         case 'CT4':
             return window.ct4FeatureDescriptions;
         case 'CT4 V-SERIES':
