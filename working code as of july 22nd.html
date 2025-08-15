@@ -6940,32 +6940,6 @@ function populateXT4Features() {
 }
 
 
-                // BULLETPROOF: Use global bulletproof handler instead of model-specific logic
-                htmlBlock.find('.feature-info-icon').off('click.featureInfo').on('click.featureInfo', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    var feature = $(this).data('feature');
-                    if (!feature) return;
-                    
-                    console.log('🚀 BULLETPROOF (XT4): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature, 'XT4');
-                    showFeatureDescription(feature, description);
-                });
-                
-                resolve();
-                },
-                error: function(error) {
-                    console.error('Papa Parse error for XT4 population: ' + error);
-                    reject(error);
-                }
-            });
-        });
-    }).catch(function(error) {
-        console.error('Fetch error for XT4 population: ' + error.message);
-        return Promise.reject(error);
-    });
-}
 
 // Cadillac XT5 population function
 function populateXT5Features() {
