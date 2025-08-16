@@ -11561,22 +11561,6 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
                 return;
             }
         });
-            var $input = $(this);
-            var inputId = $input.attr('id');
-            var $label = inputId ? $('label[for="' + inputId + '"]') : $input.next('label');
-            var feature = '';
-            if ($label && $label.length) {
-                feature = $label.contents().filter(function() { return this.nodeType === 3; }).text().trim();
-            }
-            if (!feature || !$input.length) {
-                console.warn('Invalid checkbox structure in field (ID: ' + xt5HtmlBlockFieldId + ')', {
-                    feature: feature,
-                    inputExists: $input.length > 0,
-                    labelText: $label.text().substring(0, 100)
-                });
-                return;
-            }
-        });
     } else {
         // For other models, use existing logic
         checkboxField.find('.gfield_checkbox > div, .gfield-choice-wrapper').each(function() {
