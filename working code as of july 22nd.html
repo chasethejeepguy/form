@@ -1710,10 +1710,6 @@ jQuery(document).ready(function($) {
                 if (!window.xt6FeatureDescriptions) window.xt6FeatureDescriptions = {};
                 window.xt6FeatureDescriptions[featureUpper] = description;
                 break;
-            case 'XT6':
-                if (!window.xt6FeatureDescriptions) window.xt6FeatureDescriptions = {};
-                window.xt6FeatureDescriptions[featureUpper] = description;
-                break;
         }
     }
     
@@ -16886,8 +16882,6 @@ function getModelDescriptionMap(model) {
         case 'ESCALADE ESV':
         case 'Escalade ESV':
             return window.escaladeESVFeatureDescriptions;
-        case 'XT6':
-            return (window.modelDescriptions && window.modelDescriptions['XT6']) ? window.modelDescriptions['XT6'] : (window.xt6FeatureDescriptions || {});
         case 'XT6':
             return (window.modelDescriptions && window.modelDescriptions['XT6']) ? window.modelDescriptions['XT6'] : (window.xt6FeatureDescriptions || {});
         case 'XT5':
