@@ -3901,29 +3901,33 @@ jQuery(document).ready(function($) {
       * @param {string} modelPrefix - The detected model prefix
       * @returns {string} - Properly formatted model name for updateTrimLevels
       */
-     function getUpdateTrimLevelsModelName(modelPrefix) {
-         var modelName = modelPrefix.toUpperCase();
-         
+           function getUpdateTrimLevelsModelName(modelPrefix) {
+          var modelName = modelPrefix.toUpperCase();
+          
                  /*
-        📋 STEP 9B: MODEL NAME FORMATTING - Add your model here if needed
-        =====================================================================================
-        Add cases for models that need special name formatting:
-        case 'YOURMODELPREFIX':
-            return 'YOUR MODEL NAME';
-        */
-        
-        // Handle special cases for model name formatting
-        switch (modelName) {
-             case 'SIERRA1500':
-                 return 'SIERRA 1500';
-             case 'SIERRA2500':
-                 return 'SIERRA 2500';
-             case 'SIERRA3500':
-                 return 'SIERRA 3500';
-                         case 'CT4VSERIES':
-                return 'CT4 V-SERIES';
-            case 'CT5VSERIES':
-                return 'CT5 V-SERIES';
+         📋 STEP 9B: MODEL NAME FORMATTING - Add your model here if needed
+         =====================================================================================
+         Add cases for models that need special name formatting:
+         case 'YOURMODELPREFIX':
+             return 'YOUR MODEL NAME';
+         */
+         
+         // Handle special cases for model name formatting
+         switch (modelName) {
+              case 'SIERRA1500':
+                  return 'SIERRA 1500';
+              case 'SIERRA2500':
+                  return 'SIERRA 2500';
+              case 'SIERRA3500':
+                  return 'SIERRA 3500';
+             case 'CT4VSERIES':
+                 return 'CT4 V-SERIES';
+             case 'CT5VSERIES':
+                 return 'CT5 V-SERIES';
+             case 'XT6':
+                 return 'XT6';
+             case 'XT5':
+                 return 'XT5';
             case 'ESCALADE':
                 return 'Escalade';
             case 'ESCALADEESV':
@@ -12266,6 +12270,20 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
                     feature = checkboxValueXt5;
                 }
             }
+        } else if (model === 'XT6') {
+            // For XT6, prefer the featureMap; fallback to label text
+            var checkboxValueXt6 = $input.attr('value') || '';
+            feature = window.xt6FeatureMap && window.xt6FeatureMap[checkboxValueXt6] ? window.xt6FeatureMap[checkboxValueXt6] : '';
+            if (!feature) {
+                var inputIdXt6 = $input.attr('id');
+                var $labelXt6 = inputIdXt6 ? $('label[for="' + inputIdXt6 + '"]') : $input.next('label');
+                if ($labelXt6 && $labelXt6.length) {
+                    feature = $labelXt6.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+                }
+                if (!feature) {
+                    feature = checkboxValueXt6;
+                }
+            }
         } else {
             // For other models, use the existing logic
             var $div = $input.closest('.gfield_checkbox > div, .gfield-choice-wrapper');
@@ -17296,9 +17314,9 @@ function getModelDescriptionMap(model) {
         var eventName = 'change.' + modelName.replace(/\s+/g, '') + 'CollapsibleFeatures';
         htmlBlock.find('.feature-group-content input[type="checkbox"]').off(eventName).on(eventName, function() {
             console.log(modelName + ' collapsible checkbox changed, updating trim levels');
-            // Convert model name to lowercase for updateTrimLevels function
-            var lowercaseModelName = modelName.toLowerCase().replace(/\s+/g, '').replace(/-/g, '');
-            updateTrimLevels(lowercaseModelName);
+            // Use proper mapping to get correct model name for updateTrimLevels
+            var properModelName = getUpdateTrimLevelsModelName(modelName.toLowerCase().replace(/\s+/g, ''));
+            updateTrimLevels(properModelName);
         });
         
         console.log('✅ Collapsible groups set up for ' + modelName + ' - found ' + htmlBlock.find('.feature-group-toggle').length + ' toggle buttons');
