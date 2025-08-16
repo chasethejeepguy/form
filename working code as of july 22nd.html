@@ -7155,11 +7155,17 @@ function populateXT5Features() {
                     htmlBlock.html(html);
                 }
 
-                // Create feature map for checkbox values to actual feature names
+                // Create feature map for checkbox values to actual feature names (exclude trim-walk checkboxes)
                 window.xt5FeatureMap = {};
-                htmlBlock.find('input[type="checkbox"]').each(function() {
-                    var checkboxValue = $(this).attr('value') || '';
-                    var actualFeature = $(this).next('label').text().trim();
+                htmlBlock.find('input[type="checkbox"]').not('.trim-level-checkbox').each(function() {
+                    var $input = $(this);
+                    var checkboxValue = $input.attr('value') || '';
+                    var inputId = $input.attr('id');
+                    var $label = inputId ? $('label[for="' + inputId + '"]') : $input.next('label');
+                    var actualFeature = '';
+                    if ($label && $label.length) {
+                        actualFeature = $label.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+                    }
                     if (checkboxValue && actualFeature) {
                         window.xt5FeatureMap[checkboxValue] = actualFeature;
                     }
@@ -11468,6 +11474,25 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
             
             console.log('Skipping ESCALADE feature icon addition since ESCALADE already has styled icons from initial HTML building:', feature);
         });
+    } else if (model === 'XT5') {
+        // XT5: read features from labels next to checkboxes (exclude trim-walk checkboxes)
+        checkboxField.find('input[type="checkbox"]').not('.trim-level-checkbox').each(function() {
+            var $input = $(this);
+            var inputId = $input.attr('id');
+            var $label = inputId ? $('label[for="' + inputId + '"]') : $input.next('label');
+            var feature = '';
+            if ($label && $label.length) {
+                feature = $label.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+            }
+            if (!feature || !$input.length) {
+                console.warn('Invalid checkbox structure in field (ID: ' + xt5HtmlBlockFieldId + ')', {
+                    feature: feature,
+                    inputExists: $input.length > 0,
+                    labelText: $label.text().substring(0, 100)
+                });
+                return;
+            }
+        });
     } else {
         // For other models, use existing logic
         checkboxField.find('.gfield_checkbox > div, .gfield-choice-wrapper').each(function() {
@@ -11805,6 +11830,20 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
                 hasFeatureMap: !!window.xt4FeatureMap,
                 featureMapKeys: window.xt4FeatureMap ? Object.keys(window.xt4FeatureMap).slice(0, 5) : []
             });
+        } else if (model === 'XT5') {
+            // For XT5, prefer the featureMap; fallback to label text
+            var checkboxValueXt5 = $input.attr('value') || '';
+            feature = window.xt5FeatureMap && window.xt5FeatureMap[checkboxValueXt5] ? window.xt5FeatureMap[checkboxValueXt5] : '';
+            if (!feature) {
+                var inputId = $input.attr('id');
+                var $label = inputId ? $('label[for="' + inputId + '"]') : $input.next('label');
+                if ($label && $label.length) {
+                    feature = $label.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+                }
+                if (!feature) {
+                    feature = checkboxValueXt5;
+                }
+            }
         } else {
             // For other models, use the existing logic
             var $div = $input.closest('.gfield_checkbox > div, .gfield-choice-wrapper');
