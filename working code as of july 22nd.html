@@ -17314,9 +17314,23 @@ function getModelDescriptionMap(model) {
         var eventName = 'change.' + modelName.replace(/\s+/g, '') + 'CollapsibleFeatures';
         htmlBlock.find('.feature-group-content input[type="checkbox"]').off(eventName).on(eventName, function() {
             console.log(modelName + ' collapsible checkbox changed, updating trim levels');
-            // Use proper mapping to get correct model name for updateTrimLevels
-            var properModelName = getUpdateTrimLevelsModelName(modelName.toLowerCase().replace(/\s+/g, ''));
-            updateTrimLevels(properModelName);
+            try {
+                var checkbox = $(this);
+                var feature = checkbox.next('label').text().trim();
+                var category = checkbox.data('category');
+                var modelPrefix = detectModelPrefix(checkbox) || modelName.toLowerCase().replace(/\s+/g, '');
+                if (typeof processFeatureCheckboxChange === 'function') {
+                    processFeatureCheckboxChange(checkbox, feature, category, modelPrefix);
+                    return;
+                }
+                // Fallback: direct call if helper not available
+                var properModelName = getUpdateTrimLevelsModelName(modelName.toLowerCase().replace(/\s+/g, ''));
+                updateTrimLevels(properModelName);
+            } catch (err) {
+                console.warn('Collapsible checkbox handler fallback due to error:', err);
+                var properModelNameFallback = getUpdateTrimLevelsModelName(modelName.toLowerCase().replace(/\s+/g, ''));
+                updateTrimLevels(properModelNameFallback);
+            }
         });
         
         console.log('✅ Collapsible groups set up for ' + modelName + ' - found ' + htmlBlock.find('.feature-group-toggle').length + ' toggle buttons');
