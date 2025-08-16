@@ -6921,8 +6921,8 @@ function populateXT4Features() {
                 xt4Populated = true;
                 console.log('XT4 features populated into 5 columns in field 155');
 
-                // Bind change events and add info icons
-                htmlBlock.find('input[type="checkbox"]').off('change.XT4Features').on('change.XT4Features', function() {
+                // Bind change events and add info icons (exclude trim-walk checkboxes)
+                htmlBlock.find('input[type="checkbox"]').not('.trim-level-checkbox').off('change.XT4Features').on('change.XT4Features', function() {
                     console.log('XT4 checkbox changed, updating trim levels');
                     updateTrimLevels('XT4');
                 });
@@ -7183,8 +7183,8 @@ function populateXT5Features() {
                 xt5Populated = true;
                 console.log('XT5 features populated into 5 columns in field 156');
 
-                // Bind change events and add info icons
-                htmlBlock.find('input[type="checkbox"]').off('change.XT5Features').on('change.XT5Features', function() {
+                // Bind change events and add info icons (exclude trim-walk checkboxes)
+                htmlBlock.find('input[type="checkbox"]').not('.trim-level-checkbox').off('change.XT5Features').on('change.XT5Features', function() {
                     console.log('XT5 checkbox changed, updating trim levels');
                     updateTrimLevels('XT5');
                 });
@@ -10883,6 +10883,18 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
         console.warn('Model configuration not found for: ' + model);
         return;
     }
+    
+    // If a trim-walk override is active for this model, skip feature-based recompute
+    try {
+        var modelPrefix = (model || '').toString().toLowerCase().replace(/\s+/g, '');
+        var hasTrimWalkActive = $('.trim-level-checkbox[data-model="' + modelPrefix + '"]').is(':checked');
+        if (hasTrimWalkActive) {
+            console.log('⏭️ Skipping updateTrimLevels for', model, 'because trim-walk override is active');
+            return;
+        }
+    } catch (e) {
+        console.warn('Trim-walk guard check failed:', e);
+    }
     var checkboxField, htmlBlock, trimLevelsButtonBlock;
     
     if (model === 'TERRAIN') {
@@ -11609,7 +11621,7 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
         });
     });
     
-    var selectedFeatures = checkboxField.find('input[type="checkbox"]:checked').map(function() {
+    var selectedFeatures = checkboxField.find('input[type="checkbox"]:checked').not('.trim-level-checkbox').map(function() {
         var $input = $(this);
         var feature = '';
         
