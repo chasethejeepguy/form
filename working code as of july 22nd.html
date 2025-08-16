@@ -15986,7 +15986,10 @@ function showVehicleInfo(isKiaField) {
     });
 
     var photos = data['Photos'] && data['Photos'].trim()
-        ? data['Photos'].trim().split('|').filter(function(url) { return url && url.endsWith('.jpg'); }).map(function(url) { return url.replace(/^http:/, 'https:'); })
+        ? data['Photos'].trim().split('|')
+            .map(function(url) { return (url || '').trim(); })
+            .filter(function(url) { return url && /\.(jpg|jpeg|png|gif)(\?.*)?$/i.test(url); })
+            .map(function(url) { return url.replace(/^http:/, 'https:'); })
         : [];
     console.log('Raw Photos for ' + (isKiaField ? 'Kia stock field' : 'stock field') + ': ' + data['Photos']);
     console.log('Photos (HTTPS): ' + photos);
@@ -15994,9 +15997,9 @@ function showVehicleInfo(isKiaField) {
         ? `
             <div class="vehicle-gallery">
                 <div class="swiper-container">
-                    <div class="swiper-wrapper">' +
-                    photos.map(function(url) { return '<div class="swiper-slide"><img src="' + url + '" alt="Vehicle Image" loading="lazy"></div>'; }).join('') +
-                    '</div>
+                    <div class="swiper-wrapper">
+                        ${photos.map(function(url) { return '<div class="swiper-slide"><img src="' + url + '" alt="Vehicle Image" loading="lazy"></div>'; }).join('')}
+                    </div>
                     <div class="swiper-button-prev"></div>
                     <div class="swiper-button-next"></div>
                     <div class="swiper-pagination"></div>
@@ -16077,8 +16080,8 @@ function showVehicleInfo(isKiaField) {
         currentSwiper = new Swiper('.swiper-container', {
             loop: true,
             navigation: {
-                nextEl: '.swiper-button-prev',
-                prevEl: '.swiper-button-next'
+                prevEl: '.swiper-button-prev',
+                nextEl: '.swiper-button-next'
             },
             pagination: {
                 el: '.swiper-pagination',
