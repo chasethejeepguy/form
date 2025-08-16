@@ -7238,6 +7238,360 @@ function populateXT5Features() {
     });
 }
 
+// Cadillac XT6 population function
+function populateXT6Features() {
+    console.log('=== populateXT6Features called ===');
+    
+    // FORCE CLEAR ANY CACHED DATA FOR XT6
+    console.log('🧹 CLEARING XT6 CACHED DATA...');
+    window.xt6FeatureMap = {};
+    window.xt6TrimLevelMap = {};
+    window.xt6FeatureToCategoryMap = {};
+    
+    console.log('Current xt6Populated flag:', xt6Populated);
+    console.log('Form ID:', formId);
+    console.log('xt6HtmlBlockFieldId:', xt6HtmlBlockFieldId);
+    
+    if (xt6Populated) {
+        console.log('XT6 features already populated, skipping');
+        return Promise.resolve();
+    }
+
+    var config = modelConfigs['XT6'];
+    if (!config) {
+        console.warn('XT6 configuration not found');
+        console.log('Available modelConfigs:', Object.keys(modelConfigs));
+        return Promise.reject(new Error('XT6 configuration not found'));
+    }
+    console.log('XT6 config found:', config);
+
+    // Try multiple selectors to find the HTML block field
+    console.log('Searching for HTML block field with multiple selectors...');
+    var htmlBlock = $('#field_' + formId + '_' + xt6HtmlBlockFieldId);
+    console.log('Selector 1 (#field_' + formId + '_' + xt6HtmlBlockFieldId + '):', htmlBlock.length);
+    
+    if (!htmlBlock.length) {
+        htmlBlock = $('#field_' + formId + '_157');
+        console.log('Selector 2 (#field_' + formId + '_157):', htmlBlock.length);
+    }
+    
+    if (!htmlBlock.length) {
+        htmlBlock = $('[id*="157"]').first();
+        console.log('Selector 3 ([id*="157"]):', htmlBlock.length);
+    }
+    
+    if (!htmlBlock.length) {
+        console.error('XT6 HTML block field not found! Tried selectors for field 157');
+        return Promise.reject(new Error('XT6 HTML block field not found'));
+    }
+
+    console.log('XT6 HTML block found:', htmlBlock.attr('id'));
+    console.log('XT6 CSV URL:', config.csvUrl);
+
+    // Load XT6 descriptions first via centralized system
+    var descriptionsUrl = descriptionUrlMap['XT6'];
+    console.log('XT6 descriptions URL:', descriptionsUrl);
+
+    return loadModelDescriptions('XT6', descriptionsUrl).then(function() {
+        console.log('✅ XT6 descriptions loaded successfully');
+        console.log('XT6 descriptions count:', Object.keys((window.modelDescriptions && window.modelDescriptions['XT6']) || {}).length);
+        
+        return fetchCsvWithRetry(config.csvUrl, 'XT6 CSV', 3, 1000);
+    }).then(function(csvText) {
+        console.log('XT6 CSV fetched successfully, length:', csvText.length, 'characters');
+        console.log('XT6 CSV first 200 chars:', csvText.substring(0, 200));
+        console.log('XT6 CSV first line:', csvText.split('\n')[0]);
+        console.log('XT6 CSV second line:', csvText.split('\n')[1]);
+
+        return new Promise(function(resolve, reject) {
+            Papa.parse(csvText, {
+                header: false,
+                skipEmptyLines: true,
+                delimiter: ',',
+                quoteChar: '"',
+                escapeChar: '"',
+                complete: function(results) {
+                console.log('XT6 CSV parsed, rows:', results.data.length);
+                console.log('First 10 rows of parsed data:', results.data.slice(0, 10));
+
+                var csvData = results.data;
+                var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
+                var featureGroups = {};
+                var featureToColumnMap = {};
+                var featureToCategoryMap = {};
+                var trimLevelRowsByCategory = {};
+                var trimLevels = [];
+
+                // Initialize category objects
+                categories.forEach(function(category) {
+                    featureGroups[category] = [];
+                    trimLevelRowsByCategory[category] = {};
+                });
+
+                console.log('🔍 XT6 CSV PARSING: Total rows:', csvData.length);
+                console.log('🔍 XT6 CSV PARSING: First few rows:', csvData.slice(0, 5));
+                
+                var currentCategory = null;
+                
+                csvData.forEach(function(row, rowIndex) {
+                    if (row.length > 0 && row[0]) {
+                        var firstCell = row[0].trim();
+                        console.log('Processing XT6 row', rowIndex, '- First cell:', firstCell, '- Row length:', row.length);
+                        
+                        // Category header
+                        var categoryMatch = firstCell.match(/TRIM LEVELS FOR \{(.+)\}/);
+                        if (categoryMatch) {
+                            currentCategory = categoryMatch[1];
+                            console.log('🎯 Found XT6 category:', currentCategory);
+                            
+                            if (categories.indexOf(currentCategory) !== -1) {
+                                // Extract features for this category (skip first column)
+                                var features = row.slice(1).filter(function(feature) {
+                                    return feature && feature.trim() && feature.trim() !== '';
+                                });
+                                
+                                console.log('🔍 XT6 CSV FEATURES in', currentCategory + ':', features.length, 'features');
+                                console.log('🔍 First 5 features:', features.slice(0, 5));
+                                
+                                featureGroups[currentCategory] = features;
+                                
+                                // Map features to column indices for trim level processing
+                                features.forEach(function(feature, index) {
+                                    var colIndex = index + 1;
+                                    featureToColumnMap[feature] = colIndex;
+                                    featureToCategoryMap[feature] = currentCategory;
+                                });
+                            }
+                        } else if (currentCategory && (firstCell === 'LUXURY' || firstCell === 'PREMIUM LUXURY' || firstCell === 'SPORT')) {
+                            // Trim level row
+                            if (trimLevels.indexOf(firstCell) === -1) {
+                                trimLevels.push(firstCell);
+                                console.log('🎯 Found XT6 trim level:', firstCell);
+                            }
+                            // Store row for this category/trim
+                            if (!trimLevelRowsByCategory[currentCategory]) {
+                                trimLevelRowsByCategory[currentCategory] = {};
+                            }
+                            trimLevelRowsByCategory[currentCategory][firstCell] = row;
+                            console.log('📊 Stored trim data for', firstCell, 'in category', currentCategory);
+                        } else if (firstCell === '' || firstCell.match(/^,+$/)) {
+                            console.log('⏭️ Skipping empty row', rowIndex);
+                        } else {
+                            console.log('❓ Unrecognized row format:', firstCell);
+                        }
+                    }
+                });
+                
+                console.log('🏁 XT6 CSV PARSING COMPLETE:');
+                console.log('📋 Categories found:', Object.keys(featureGroups));
+                console.log('🎯 Trim levels found:', trimLevels);
+                categories.forEach(function(cat) {
+                    console.log('📦', cat, ':', featureGroups[cat] ? featureGroups[cat].length : 0, 'features');
+                });
+
+                console.log('🔍 XT6 FINAL FEATURE MAP:', Object.keys(featureToColumnMap).slice(0, 10));
+                console.log('🔍 XT6 FINAL CATEGORY MAP:', featureToCategoryMap);
+
+                // Populate feature-to-trim-levels mapping for Cadillac
+                populateFeatureTrimLevelsMapCadillac('XT6', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+
+                // Create global mappings for trim walk functionality
+                window.xt6TrimLevelMap = featureToTrimLevelsMap['XT6'];
+                window.xt6FeatureToCategoryMap = featureToCategoryMap;
+
+                console.log('Building HTML for XT6 features...');
+
+                // Build trim level walk buttons (use model prefix xt6)
+                var trimLevelButtons = buildTrimLevelWalkButtons(trimLevels, 'xt6');
+
+                var html = trimLevelButtons + '<div class="feature-groups">';
+                var globalIndex = 0;
+                categories.forEach(function(category) {
+                    var catFeatures = featureGroups[category] || [];
+                    console.log('Building HTML for category: ' + category + ' with ' + catFeatures.length + ' features');
+
+                    // Sort features alphabetically within each category
+                    catFeatures.sort(function(a, b) {
+                        return a.toLowerCase().localeCompare(b.toLowerCase());
+                    });
+
+                    html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
+
+                    // Build collapsible groups and regular features
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'xt6', globalIndex, undefined);
+                    html += categoryHtml.html;
+                    globalIndex = categoryHtml.globalIndex;
+                    html += '</div></div>';
+                });
+                html += '</div>';
+
+                console.log('Generated HTML length (XT6):', html.length);
+                console.log('HTML preview (first 500 chars):', html.substring(0, 500));
+
+                // Replace the placeholder in the HTML block
+                var currentHtml = htmlBlock.html();
+                console.log('Current HTML content:', currentHtml);
+                console.log('🔍 Searching for placeholder: {xt6 feature checkboxes}');
+                console.log('🔍 Searching for placeholder: {XT6 FEATURE CHECKBOXES}');
+
+                if (currentHtml.indexOf('{xt6 feature checkboxes}') !== -1) {
+                    var newHtml = currentHtml.replace('{xt6 feature checkboxes}', html);
+                    htmlBlock.html(newHtml);
+                    console.log('✅ Replaced {xt6 feature checkboxes} with generated HTML');
+                } else if (currentHtml.indexOf('{XT6 FEATURE CHECKBOXES}') !== -1) {
+                    var newHtml = currentHtml.replace('{XT6 FEATURE CHECKBOXES}', html);
+                    htmlBlock.html(newHtml);
+                    console.log('✅ Replaced {XT6 FEATURE CHECKBOXES} with generated HTML');
+                } else {
+                    console.warn('❌ No XT6 placeholder found in HTML block!');
+                    console.warn('📝 SOLUTION: Add {xt6 feature checkboxes} to your HTML block field (ID 157)');
+                    console.warn('Available placeholders in HTML:', currentHtml.match(/\{[^}]+\}/g) || 'None found');
+                    console.log('🔧 WORKAROUND: Injecting XT6 checkboxes directly into HTML field');
+                    htmlBlock.html(html);
+                }
+
+                // Create feature map for checkbox values to actual feature names (exclude trim-walk checkboxes)
+                window.xt6FeatureMap = {};
+                htmlBlock.find('input[type="checkbox"]').not('.trim-level-checkbox').each(function() {
+                    var $input = $(this);
+                    var checkboxValue = $input.attr('value') || '';
+                    var inputId = $input.attr('id');
+                    var $label = inputId ? $('label[for="' + inputId + '"]') : $input.next('label');
+                    var actualFeature = '';
+                    if ($label && $label.length) {
+                        actualFeature = $label.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+                    }
+                    if (checkboxValue && actualFeature) {
+                        window.xt6FeatureMap[checkboxValue] = actualFeature;
+                    }
+                });
+                console.log('Created xt6FeatureMap with', Object.keys(window.xt6FeatureMap).length, 'features');
+                console.log('Sample mapping:', Object.keys(window.xt6FeatureMap).slice(0, 3).map(function(key) {
+                    return key + ' -> ' + window.xt6FeatureMap[key];
+                }));
+
+                xt6Populated = true;
+                console.log('XT6 features populated into 5 columns in field 157');
+
+                // Bind change events and add info icons (exclude trim-walk checkboxes)
+                htmlBlock.find('input[type="checkbox"]').not('.trim-level-checkbox').off('change.XT6Features').on('change.XT6Features', function() {
+                    console.log('XT6 checkbox changed, updating trim levels');
+                    updateTrimLevels('XT6');
+                });
+
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'XT6');
+
+                resolve();
+            },
+            error: function(error) {
+                console.error('Papa Parse error for XT6 population: ' + error);
+                reject(error);
+            }
+            });
+        });
+    }).catch(function(error) {
+        console.error('Fetch error for XT6 population: ' + error.message);
+        return Promise.reject(error);
+    });
+}
+
+// XT6 trim level processing
+function processXT6TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model) {
+	console.log('Processing XT6 trim levels for selected features:', selectedFeatures);
+	var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
+	var trimLevels = discoverTrimLevelsFromCSV(csvData, categories);
+	// Reorder to Cadillac XT6 order
+	var standardOrder = ['LUXURY', 'PREMIUM LUXURY', 'SPORT'];
+	var orderedTrimLevels = [];
+	standardOrder.forEach(function(standardTrim) {
+		if (trimLevels.indexOf(standardTrim) !== -1) orderedTrimLevels.push(standardTrim);
+	});
+	trimLevels.forEach(function(t){ if (orderedTrimLevels.indexOf(t) === -1) orderedTrimLevels.push(t); });
+	trimLevels = orderedTrimLevels;
+	var featureToColumnMap = {};
+	var featureToCategoryMap = {};
+	var trimLevelRowsByCategory = {};
+	var matchingTrimLevels = [];
+	categories.forEach(function(category) { trimLevelRowsByCategory[category] = {}; });
+	var currentCategory = null;
+	csvData.forEach(function(row) {
+		if (row.length > 0 && row[0]) {
+			var firstCell = row[0].trim();
+			var categoryMatch = firstCell.match(/TRIM LEVELS FOR \{(.+)\}/);
+			if (categoryMatch) {
+				currentCategory = categoryMatch[1];
+				if (categories.indexOf(currentCategory) !== -1) {
+					trimLevelRowsByCategory[currentCategory] = {};
+					var features = row.slice(1).filter(function(f){ return f && f.trim() !== ''; }).map(function(f){
+						var cleaned = f.trim();
+						if (cleaned.startsWith('"') && cleaned.endsWith('"')) cleaned = cleaned.slice(1, -1);
+						cleaned = cleaned.replace(/""/g, '"');
+						return cleaned;
+					});
+					features.forEach(function(feature, index){
+						featureToColumnMap[feature] = index + 1;
+						featureToCategoryMap[feature] = currentCategory;
+					});
+				}
+			} else if (currentCategory && trimLevels.includes(firstCell)) {
+				trimLevelRowsByCategory[currentCategory][firstCell] = row;
+			}
+		}
+	});
+	trimLevels.forEach(function(trimLevel){
+		var hasAll = true;
+		selectedFeatures.forEach(function(selectedFeature){
+			var found = false;
+			var cat = featureToCategoryMap[selectedFeature];
+			if (cat && trimLevelRowsByCategory[cat] && trimLevelRowsByCategory[cat][trimLevel]) {
+				var trimRow = trimLevelRowsByCategory[cat][trimLevel];
+				var col = featureToColumnMap[selectedFeature];
+				if (col && trimRow[col]) {
+					var val = ('' + trimRow[col]).toUpperCase();
+					if (val === 'YES') found = true;
+				}
+			}
+			if (!found) hasAll = false;
+		});
+		if (hasAll) matchingTrimLevels.push(trimLevel);
+	});
+	console.log('Final matching XT6 trim levels:', matchingTrimLevels);
+	trimLevelsData['XT6'] = matchingTrimLevels;
+	if (trimLevelsButtonBlock && trimLevelsButtonBlock.length) {
+		var buttonText = matchingTrimLevels.length > 0 ? 'View Available Trim Levels (' + matchingTrimLevels.length + ')' : 'No Matching Trim Levels';
+		trimLevelsButtonBlock.html('<button type="button" id="viewTrimLevelsButton" class="button">' + buttonText + '</button>');
+		$('#viewTrimLevelsButton').off('click').on('click.trimLevels', function(e){
+			e.preventDefault();
+			e.stopImmediatePropagation();
+			if (matchingTrimLevels.length > 0) {
+				var config = modelConfigs[model];
+				var correctModelFilter = config ? config.modelFilter : 'XT6';
+				showTrimLevelsPopup(model, matchingTrimLevels, correctModelFilter);
+			} else {
+				alert('No matching trim levels found for the selected features.');
+			}
+		});
+	}
+
+	// Update field 69 with trim levels
+	if (htmlBlock && htmlBlock.length) {
+		var trimLevelsText = matchingTrimLevels.length > 0 ? matchingTrimLevels.join(', ') : 'No matching trim levels found';
+		var message = 'Wonderful, it sounds like the ' + trimLevelsText + ' would be the best fit, which has all of these features and it is available! One moment while I plug this car in.';
+		htmlBlock.find('p').text(message);
+		console.log('✅ HTML block (ID: 69) updated for XT6 with:', message);
+	} else {
+		console.warn('❌ HTML block (ID: 69) not found for XT6');
+	}
+
+	// Populate feature-to-trim-levels mapping for display
+	populateFeatureTrimLevelsMapCadillac('XT6', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+
+	// Create global mappings for trim walk functionality
+	window.xt6TrimLevelMap = featureToTrimLevelsMap['XT6'];
+	window.xt6FeatureToCategoryMap = featureToCategoryMap;
+}
+
 var acadiaPopulated = false;
 
 function populateAcadiaFeatures() {
