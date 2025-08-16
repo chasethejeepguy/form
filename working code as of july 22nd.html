@@ -1,8 +1,8 @@
 /*
- * FUTURE-PROOF GMC MODEL SYSTEM
- * ==============================
+ * FUTURE-PROOF GMC & CADILLAC MODEL SYSTEM
+ * =======================================
  * 
- * This system is designed to automatically work with any future GMC models that are added.
+ * This system is designed to automatically work with any future GMC or Cadillac models that are added.
  * 
  * FEATURES THAT WORK AUTOMATICALLY FOR ALL MODELS:
  * 1. Feature checkboxes automatically update field ID 69 with matching trim levels
@@ -10,20 +10,31 @@
  * 3. Model detection works dynamically from checkbox IDs/names
  * 4. "View Trim Levels" functionality works for all models
  * 5. Trim walk popups with navigation work for all models
+ * 6. Feature descriptions (the blue "i" icon) load from model-specific CSVs
+ * 7. Image gallery popup and stock lookup are shared, model-agnostic
  * 
- * TO ADD A NEW MODEL (e.g., "SILVERADO"):
- * 1. Add 'silverado' to the baseModels array in getPossibleGMCModels()
- * 2. Add the model to modelConfigs with CSV URL
- * 3. Create populateSilveradoFeatures() function
- * 4. Create processSilveradoTrimLevels() function  
- * 5. Add model-specific feature descriptions object (silveradoFeatureDescriptions)
- * 6. Everything else (checkboxes, field 69 updates, trim walks) works automatically!
+ * TO ADD A NEW MODEL (e.g., GMC "SILVERADO" or Cadillac "XT7"):
+ * 1. Add the lowercase model key to getPossibleGMCModels() if needed (list drives auto-detection)
+ * 2. Add an entry to modelConfigs with:
+ *    - fieldId: The destination HTML block field ID for feature checkboxes
+ *    - csvUrl: The model’s trim/feature CSV URL
+ *    - modelFilter: The trim filter string used by View Trim Levels table (e.g., 'XT6')
+ *    - isGmc / isCadillac: Set the appropriate brand flag
+ * 3. Create populate<Model>Features() using any existing model as a guide (XT4/XT5/XT6 are good Cadillac templates):
+ *    - Fetch/parse the CSV, build 5-column grouped checkbox HTML, replace {<model> feature checkboxes}
+ *    - Build <model>FeatureMap for human-readable labels
+ *    - Bind checkbox change events (exclude .trim-level-checkbox)
+ *    - Call setupCollapsibleGroups(htmlBlock, '<MODEL NAME>') to wire the buttons
+ * 4. Create process<Model>TrimLevels() using any existing model’s process...TrimLevels() (handles CSV matching and ID 69 updates)
+ * 5. Point descriptionUrlMap['<MODEL>'] to the descriptions CSV; update updateLegacyDescriptionVariable/getModelDescriptionMap if required
+ * 6. Ensure getUpdateTrimLevelsModelName maps the prefix (e.g., 'xt6' -> 'XT6') if the display name differs
  * 
  * The system uses these utility functions for future-proofing:
  * - detectModelPrefix(): Dynamically detects model from checkbox elements
  * - getPossibleGMCModels(): Maintains list of all possible models
- * - getUpdateTrimLevelsModelName(): Handles model name formatting
+ * - getUpdateTrimLevelsModelName(): Handles model name formatting (e.g., SIERRA1500 -> SIERRA 1500)
  * - buildTrimLevelWalkButtons(): Creates trim walk UI for any model
+ * - buildCollapsibleFeatureGroups(): Builds grouped, collapsible features across categories
  * 
  * No hardcoded model lists in event handlers - everything is dynamic!
  */
