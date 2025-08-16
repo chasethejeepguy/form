@@ -3112,6 +3112,11 @@ jQuery(document).ready(function($) {
                 modelName = 'XT4';
                 console.log('🔍 TRIM WALK: XT4 descriptions found:', Object.keys(featureDescriptions || {}).length, 'descriptions');
                 break;
+            case 'xt5':
+                featureDescriptions = (window.modelDescriptions && window.modelDescriptions['XT5']) ? window.modelDescriptions['XT5'] : window.xt5FeatureDescriptions;
+                modelName = 'XT5';
+                console.log('🔍 TRIM WALK: XT5 descriptions found:', Object.keys(featureDescriptions || {}).length, 'descriptions');
+                break;
             default:
                 console.warn('Unknown model prefix for trim walk popup:', modelPrefix);
                 return;
