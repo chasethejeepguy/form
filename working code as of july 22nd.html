@@ -14246,19 +14246,29 @@ function initFormBindings() {
          });
          
          // Separate function to handle the heavy processing
-         function processFeatureCheckboxChange(checkbox, feature, category, modelPrefix) {
+                   window.processFeatureCheckboxChange = function(checkbox, feature, category, modelPrefix) {
              // Allow multiple simultaneous processing for better responsiveness
              // Removed isProcessingCheckbox check to prevent blocking
              
              // Find all checked feature checkboxes for this model
-             var modelCheckboxes = $('input[type="checkbox"][id*="' + modelPrefix + '"]:checked');
-             var selectedFeatures = [];
-             modelCheckboxes.each(function() {
-                 var featureText = $(this).next('label').text().trim();
-                 if (featureText) {
-                     selectedFeatures.push(featureText);
-                 }
-             });
+                           var modelCheckboxes = $('input[type="checkbox"][id*="' + modelPrefix + '"]:checked').not('.trim-level-checkbox');
+              var selectedFeatures = [];
+              modelCheckboxes.each(function() {
+                  var $cb = $(this);
+                  // Prefer feature maps when available
+                  var value = $cb.attr('value') || '';
+                  var id = $cb.attr('id');
+                  var label = id ? $('label[for="' + id + '"]') : $cb.next('label');
+                  var text = '';
+                  if (label && label.length) {
+                      text = label.contents().filter(function(){ return this.nodeType === 3; }).text().trim();
+                  }
+                  var mapped = '';
+                  if (modelPrefix === 'xt6' && window.xt6FeatureMap) mapped = window.xt6FeatureMap[value] || '';
+                  if (!mapped && modelPrefix === 'xt5' && window.xt5FeatureMap) mapped = window.xt5FeatureMap[value] || '';
+                  var featureText = mapped || text || value;
+                  if (featureText) selectedFeatures.push(featureText);
+              });
              
              console.log('All selected features for ' + modelPrefix + ':', selectedFeatures);
              
