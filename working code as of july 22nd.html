@@ -723,6 +723,11 @@ jQuery(document).ready(function($) {
             margin-bottom: 4% !important;
             padding-bottom: 4px;
         }
+        /* Cadillac Escalade IQ checkbox spacing */
+        .gchoice[class*="gchoice_escaladeiq_"] {
+            margin-bottom: 4% !important;
+            padding-bottom: 4px;
+        }
         /* Trim levels left alignment - force override any parent centering */
         .trim-levels-display {
             text-align: left !important;
@@ -970,6 +975,10 @@ jQuery(document).ready(function($) {
     var xt6CheckboxFieldId = 157;
     var xt6HtmlBlockFieldId = 157;
 
+    // Cadillac Escalade IQ Model Field IDs
+    var escaladeIQCheckboxFieldId = 159;
+    var escaladeIQHtmlBlockFieldId = 159;
+
     /*
     📋 STEP 1B: POPULATED FLAGS - Add your model's populated flag here
     =====================================================================================
@@ -1001,6 +1010,8 @@ jQuery(document).ready(function($) {
     var xt4Populated = false;
     var xt5Populated = false;
     var xt6Populated = false;
+    var escaladeIQPopulated = false;
+    var escaladeIQPopulated = false;
     
     // Function to find best description match with fuzzy matching for typos
     function findBestDescriptionMatch(searchFeature, descriptionMap) {
@@ -1197,6 +1208,8 @@ jQuery(document).ready(function($) {
         'XT4': { fieldId: xt4CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/xt4.csv', modelFilter: 'XT4', isCadillac: true },
         'XT5': { fieldId: xt5CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/xt5.csv', modelFilter: 'XT5', isCadillac: true },
         'XT6': { fieldId: xt6CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/xt6.csv', modelFilter: 'XT6', isCadillac: true }
+
+        'Escalade IQ': { fieldId: escaladeIQCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/escaladeiq.csv', modelFilter: 'Escalade IQ', isCadillac: true }
     };
 
     // Email mappings
@@ -1586,6 +1599,7 @@ jQuery(document).ready(function($) {
         'XT4': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacxt4descriptions.csv',
         'XT5': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacxt5descriptions.csv',
          'XT6': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacxt6descriptions.csv',
+        'Escalade IQ': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacescaladeiqdescriptions.csv',
         
         // Kia Models (using generic pattern - can be customized per model)
         'K4': 'https://hutchinsonautoteam.com/kiamodels/KIAMODELDESCRIPTIONS.CSV',
@@ -3423,6 +3437,9 @@ jQuery(document).ready(function($) {
             switch(modelPrefix.toLowerCase()) {
                 case 'escaladeesv':
                     alternativeNames.unshift('escaladeESVTrimLevelMap');
+                    break;
+                case 'escaladeiq':
+                    alternativeNames.unshift('escaladeiqTrimLevelMap');
                     break;
                 case 'xt4':
                     alternativeNames.unshift('xt4TrimLevelMap');
@@ -6731,6 +6748,214 @@ function populateEscaladeESVFeatures() {
         });
     }).catch(function(error) {
         console.error('Fetch error for Escalade ESV population: ' + error.message);
+    });
+}
+
+
+
+// Cadillac Escalade IQ population function
+function populateEscaladeIQFeatures() {
+    console.log('=== populateEscaladeIQFeatures called ===');
+    
+    // FORCE CLEAR ANY CACHED DATA FOR ESCALADE IQ
+    console.log('🧹 CLEARING ESCALADE IQ CACHED DATA...');
+    window.escaladeiqFeatureMap = {};
+    window.escaladeiqTrimLevelMap = {};
+    window.escaladeIQFeatureToCategoryMap = {};
+    
+    console.log('Current escaladeIQPopulated flag:', typeof escaladeIQPopulated !== 'undefined' ? escaladeIQPopulated : 'undefined');
+    console.log('Form ID:', formId);
+    console.log('escaladeIQHtmlBlockFieldId:', escaladeIQHtmlBlockFieldId);
+    
+    if (typeof escaladeIQPopulated !== 'undefined' && escaladeIQPopulated) {
+        console.log('Escalade IQ features already populated, skipping');
+        return Promise.resolve();
+    }
+
+    var config = modelConfigs['Escalade IQ'];
+    if (!config) {
+        console.warn('Escalade IQ configuration not found');
+        console.log('Available modelConfigs:', Object.keys(modelConfigs));
+        return Promise.reject(new Error('Escalade IQ configuration not found'));
+    }
+    console.log('Escalade IQ config found:', config);
+
+    // Try multiple selectors to find the HTML block field
+    console.log('Searching for HTML block field with multiple selectors...');
+    var htmlBlock = $('#field_' + formId + '_' + escaladeIQHtmlBlockFieldId);
+    console.log('Selector 1 (#field_' + formId + '_' + escaladeIQHtmlBlockFieldId + '):', htmlBlock.length);
+    
+    if (!htmlBlock.length) {
+        htmlBlock = $('#field_' + formId + '_159');
+        console.log('Selector 2 (#field_' + formId + '_159):', htmlBlock.length);
+    }
+    
+    if (!htmlBlock.length) {
+        htmlBlock = $('[id*="159"]').first();
+        console.log('Selector 3 ([id*="159"]):', htmlBlock.length);
+    }
+    
+    if (!htmlBlock.length) {
+        console.error('Escalade IQ HTML block field not found! Tried selectors for field 159');
+        return Promise.reject(new Error('Escalade IQ HTML block field not found'));
+    }
+
+    console.log('Escalade IQ HTML block found:', htmlBlock.attr('id'));
+    console.log('Escalade IQ CSV URL:', config.csvUrl);
+
+    // Load Escalade IQ descriptions first via centralized system
+    var descriptionsUrl = descriptionUrlMap['Escalade IQ'];
+    console.log('Escalade IQ descriptions URL:', descriptionsUrl);
+
+    return loadModelDescriptions('Escalade IQ', descriptionsUrl).then(function() {
+        console.log('✅ Escalade IQ descriptions loaded successfully');
+        console.log('Escalade IQ descriptions count:', Object.keys((window.modelDescriptions && window.modelDescriptions['Escalade IQ']) || {}).length);
+        
+        return fetchCsvWithRetry(config.csvUrl, 'Escalade IQ CSV', 3, 1000);
+    }).then(function(csvText) {
+        console.log('Escalade IQ CSV fetched successfully, length:', csvText.length);
+        console.log('CSV preview (first 500 chars):', csvText.substring(0, 500));
+        
+        return new Promise(function(resolve, reject) {
+            Papa.parse(csvText, {
+                header: false,
+                skipEmptyLines: true,
+                delimiter: ',',
+                quoteChar: '"',
+                escapeChar: '"',
+                complete: function(results) {
+                    console.log('Escalade IQ CSV parsed for population, rows: ' + results.data.length);
+                    console.log('First few rows:', results.data.slice(0, 3));
+                    
+                    var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
+                    var featureGroups = {};
+                    var featureToColumnMap = {};
+                    var featureToCategoryMap = {};
+                    var trimLevelRowsByCategory = {};
+                    var trimLevels = [];
+
+                    // Initialize category objects
+                    categories.forEach(function(category) {
+                        featureGroups[category] = [];
+                        trimLevelRowsByCategory[category] = {};
+                    });
+
+                    var csvData = results.data;
+                    var currentCategory = null;
+
+                    csvData.forEach(function(row, rowIndex) {
+                        if (row && row.length > 0) {
+                            var firstCell = (row[0] || '').trim();
+                            if (firstCell.startsWith('TRIM LEVELS FOR {')) {
+                                var match = firstCell.match(/TRIM LEVELS FOR \{(.+)\}/);
+                                if (match && categories.indexOf(match[1]) !== -1) {
+                                    currentCategory = match[1];
+                                    var features = row.slice(1).filter(function(f) { return f && f.trim() !== ''; }).map(function(f) {
+                                        var cleaned = f.trim();
+                                        if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+                                            cleaned = cleaned.slice(1, -1);
+                                        }
+                                        cleaned = cleaned.replace(/""/g, '"');
+                                        return cleaned;
+                                    });
+                                    featureGroups[currentCategory] = features;
+                                    features.forEach(function(feature, index) {
+                                        featureToColumnMap[feature] = index + 1;
+                                        featureToCategoryMap[feature] = currentCategory;
+                                    });
+                                }
+                            } else if (currentCategory && (row[0] || '').trim()) {
+                                var trimName = (row[0] || '').trim();
+                                // Trim level rows look like LUXURY, SPORT, PREMIUM LUXURY, PREMIUM SPORT, etc.
+                                if (['LUXURY','SPORT','PREMIUM LUXURY','PREMIUM SPORT','PREMIUM LUXURY PLATINUM','SPORT PLATINUM'].indexOf(trimName.toUpperCase()) !== -1) {
+                                    if (trimLevels.indexOf(trimName) === -1) trimLevels.push(trimName);
+                                    trimLevelRowsByCategory[currentCategory][trimName] = row;
+                                }
+                            }
+                        }
+                    });
+
+                    console.log('Feature groups summary (Escalade IQ):', Object.keys(featureGroups).map(function(cat) {return cat + ': ' + featureGroups[cat].length + ' features';}));
+                    console.log('Escalade IQ discovered trims:', trimLevels);
+
+                    // Populate mapping for trim walk and View Trim Levels
+                    populateFeatureTrimLevelsMapCadillac('ESCALADEIQ', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+                    window.escaladeiqTrimLevelMap = featureToTrimLevelsMap['ESCALADEIQ'];
+                    window.escaladeIQFeatureToCategoryMap = featureToCategoryMap;
+
+                    console.log('Building HTML for Escalade IQ features...');
+                    var trimLevelButtons = buildTrimLevelWalkButtons(trimLevels, 'escaladeiq');
+
+                    var html = trimLevelButtons + '<div class="feature-groups">';
+                    var globalIndex = 0;
+                    categories.forEach(function(category) {
+                        var catFeatures = featureGroups[category] || [];
+                        catFeatures.sort(function(a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); });
+                        html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
+                        var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'escaladeiq', globalIndex, undefined);
+                        html += categoryHtml.html;
+                        globalIndex = categoryHtml.globalIndex;
+                        html += '</div></div>';
+                    });
+                    html += '</div>';
+
+                    console.log('Generated HTML length (Escalade IQ):', html.length);
+
+                    // Replace placeholder
+                    var currentHtml = htmlBlock.html() || '';
+                    if (currentHtml.indexOf('{escalade iq feature checkboxes}') !== -1) {
+                        htmlBlock.html(currentHtml.replace('{escalade iq feature checkboxes}', html));
+                        console.log('✅ Replaced {escalade iq feature checkboxes} with generated HTML');
+                    } else if (currentHtml.indexOf('{ESCALADE IQ FEATURE CHECKBOXES}') !== -1) {
+                        htmlBlock.html(currentHtml.replace('{ESCALADE IQ FEATURE CHECKBOXES}', html));
+                        console.log('✅ Replaced {ESCALADE IQ FEATURE CHECKBOXES} with generated HTML');
+                    } else {
+                        console.warn('❌ No Escalade IQ placeholder found in HTML block!');
+                        console.warn('📝 SOLUTION: Add {escalade iq feature checkboxes} to your HTML block field (ID 159)');
+                        console.warn('Available placeholders in HTML:', currentHtml.match(/\{[^}]+\}/g) || 'None found');
+                        htmlBlock.html(html);
+                    }
+
+                    // Create featureMap for updateTrimLevels (exclude trim-walk)
+                    window.escaladeiqFeatureMap = {};
+                    htmlBlock.find('input[type="checkbox"]').not('.trim-level-checkbox').each(function() {
+                        var $input = $(this);
+                        var checkboxValue = $input.attr('value') || '';
+                        var inputId = $input.attr('id');
+                        var $label = inputId ? $('label[for="' + inputId + '"]') : $input.next('label');
+                        var actualFeature = '';
+                        if ($label && $label.length) {
+                            actualFeature = $label.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+                        }
+                        if (checkboxValue && actualFeature) {
+                            window.escaladeiqFeatureMap[checkboxValue] = actualFeature;
+                        }
+                    });
+                    console.log('Created escaladeiqFeatureMap with', Object.keys(window.escaladeiqFeatureMap).length, 'features');
+
+                    escaladeIQPopulated = true;
+                    console.log('Escalade IQ features populated into 5 columns in field 159');
+
+                    // Bind change events (exclude trim-walk checkboxes)
+                    htmlBlock.find('input[type="checkbox"]').not('.trim-level-checkbox').off('change.EscaladeIQFeatures').on('change.EscaladeIQFeatures', function() {
+                        console.log('Escalade IQ checkbox changed, updating trim levels');
+                        updateTrimLevels('ESCALADE IQ');
+                    });
+
+                    // Collapsible groups
+                    setupCollapsibleGroups(htmlBlock, 'Escalade IQ');
+
+                    resolve();
+                },
+                error: function(error) {
+                    console.error('Papa Parse error for Escalade IQ population: ' + error);
+                    reject(error);
+                }
+            });
+        });
+    }).catch(function(error) {
+        console.error('Fetch error for Escalade IQ population: ' + error.message);
+        return Promise.reject(error);
     });
 }
 
@@ -10983,6 +11208,97 @@ function processEscaladeESVTrimLevels(csvData, selectedFeatures, htmlBlock, trim
 	window.escaladeESVFeatureToCategoryMap = featureToCategoryMap;
 }
 
+
+function processEscaladeIQTrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model) {
+    console.log('Processing Escalade IQ trim levels for selected features:', selectedFeatures);
+    
+    var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
+    var trimLevels = discoverTrimLevelsFromCSV(csvData, categories);
+    
+    // Custom ordering for Escalade IQ
+    var desiredOrder = ['LUXURY', 'PREMIUM LUXURY', 'SPORT', 'PREMIUM SPORT', 'PREMIUM LUXURY PLATINUM', 'SPORT PLATINUM'];
+    var orderedTrimLevels = [];
+    desiredOrder.forEach(function(t){ if (trimLevels.indexOf(t) !== -1) orderedTrimLevels.push(t); });
+    trimLevels.forEach(function(t){ if (orderedTrimLevels.indexOf(t) === -1) orderedTrimLevels.push(t); });
+    trimLevels = orderedTrimLevels;
+
+    var matchingTrimLevels = [];
+    var featureToColumnMap = {};
+    var featureToCategoryMap = {};
+    var trimLevelRowsByCategory = {};
+    var currentCategory = null;
+
+    // Map features and rows
+    csvData.forEach(function(row){
+        if (row && row.length > 0) {
+            var firstCell = row[0];
+            if (firstCell && firstCell.indexOf('TRIM LEVELS FOR {') !== -1) {
+                currentCategory = categories.find(function(cat){ return firstCell.indexOf(cat) !== -1; });
+                if (currentCategory) {
+                    trimLevelRowsByCategory[currentCategory] = {};
+                    var features = row.slice(1).filter(function(f){ return f && f.trim() !== ''; }).map(function(f){
+                        var cleaned = f.trim();
+                        if (cleaned.startsWith('"') && cleaned.endsWith('"')) cleaned = cleaned.slice(1, -1);
+                        cleaned = cleaned.replace(/""/g, '"');
+                        return cleaned;
+                    });
+                    features.forEach(function(feature, idx){
+                        featureToColumnMap[feature] = idx + 1;
+                        featureToCategoryMap[feature] = currentCategory;
+                    });
+                }
+            } else if (currentCategory && trimLevels.indexOf(firstCell) !== -1) {
+                trimLevelRowsByCategory[currentCategory][firstCell] = row;
+            }
+        }
+    });
+
+    // Check selected features against rows
+    trimLevels.forEach(function(trim){
+        var ok = true;
+        selectedFeatures.forEach(function(sel){
+            var cat = featureToCategoryMap[sel];
+            var rows = cat && trimLevelRowsByCategory[cat];
+            var row = rows && rows[trim];
+            var col = featureToColumnMap[sel];
+            var val = row && row[col] ? String(row[col]).trim().toUpperCase() : '';
+            if (val !== 'YES') ok = false;
+        });
+        if (ok) matchingTrimLevels.push(trim);
+    });
+
+    console.log('Final matching Escalade IQ trim levels:', matchingTrimLevels);
+    trimLevelsData['ESCALADE IQ'] = matchingTrimLevels;
+
+    // Update View Trim Levels button
+    if (trimLevelsButtonBlock && trimLevelsButtonBlock.length) {
+        var buttonText = matchingTrimLevels.length > 0 ? 'View Available Trim Levels (' + matchingTrimLevels.length + ')' : 'No Matching Trim Levels';
+        trimLevelsButtonBlock.html('<button type="button" id="viewTrimLevelsButton" class="button">' + buttonText + '</button>');
+        $('#viewTrimLevelsButton').off('click').on('click.trimLevels', function(e){
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            var config = modelConfigs[model];
+            var correctModelFilter = config ? config.modelFilter : 'Escalade IQ';
+            console.log('🔵 Opening Escalade IQ trim popup for:', correctModelFilter);
+            showTrimLevelsPopup(model, matchingTrimLevels, correctModelFilter);
+        });
+    }
+
+    // Update field 69 content
+    if (htmlBlock && htmlBlock.length) {
+        var trimLevelsText = matchingTrimLevels.length > 0 ? matchingTrimLevels.join(', ') : 'No matching trim levels found';
+        var message = 'Wonderful, it sounds like the ' + trimLevelsText + ' would be the best fit, which has all of these features and it is available! One moment while I plug this car in.';
+        htmlBlock.find('p').text(message);
+        console.log('✅ HTML block (ID: 69) updated for Escalade IQ with:', message);
+    }
+
+    // Populate global maps for trim walk
+    populateFeatureTrimLevelsMapCadillac('ESCALADEIQ', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+    window.escaladeiqTrimLevelMap = featureToTrimLevelsMap['ESCALADEIQ'];
+    window.escaladeIQFeatureToCategoryMap = featureToCategoryMap;
+}
+
+
 function processXT5TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model) {
 	console.log('Processing XT5 trim levels for selected features:', selectedFeatures);
 	var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
@@ -11911,7 +12227,26 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
                 return;
             }
         });
-    } else if (model === 'XT6') {
+    } else if (model === 'ESCALADE IQ') {
+        // Escalade IQ: read features from labels next to checkboxes (exclude trim-walk checkboxes)
+        checkboxField.find('input[type="checkbox"]').not('.trim-level-checkbox').each(function() {
+            var $input = $(this);
+            var inputId = $input.attr('id');
+            var $label = inputId ? $('label[for="' + inputId + '"]') : $input.next('label');
+            var feature = '';
+            if ($label && $label.length) {
+                feature = $label.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+            }
+            if (!feature || !$input.length) {
+                console.warn('Invalid checkbox structure in field (ID: ' + escaladeIQHtmlBlockFieldId + ')', {
+                    feature: feature,
+                    inputExists: $input.length > 0,
+                    labelText: $label.text().substring(0, 100)
+                });
+                return;
+            }
+        });
+} else if (model === 'XT6') {
         // XT6: read features from labels next to checkboxes (exclude trim-walk checkboxes)
         checkboxField.find('input[type="checkbox"]').not('.trim-level-checkbox').each(function() {
             var $input = $(this);
@@ -12281,7 +12616,26 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
                     feature = checkboxValueXt5;
                 }
             }
-        } else if (model === 'XT6') {
+        } else if (model === 'ESCALADE IQ') {
+        // Escalade IQ: read features from labels next to checkboxes (exclude trim-walk checkboxes)
+        checkboxField.find('input[type="checkbox"]').not('.trim-level-checkbox').each(function() {
+            var $input = $(this);
+            var inputId = $input.attr('id');
+            var $label = inputId ? $('label[for="' + inputId + '"]') : $input.next('label');
+            var feature = '';
+            if ($label && $label.length) {
+                feature = $label.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+            }
+            if (!feature || !$input.length) {
+                console.warn('Invalid checkbox structure in field (ID: ' + escaladeIQHtmlBlockFieldId + ')', {
+                    feature: feature,
+                    inputExists: $input.length > 0,
+                    labelText: $label.text().substring(0, 100)
+                });
+                return;
+            }
+        });
+} else if (model === 'XT6') {
             // For XT6, prefer the featureMap; fallback to label text
             var checkboxValueXt6 = $input.attr('value') || '';
             feature = window.xt6FeatureMap && window.xt6FeatureMap[checkboxValueXt6] ? window.xt6FeatureMap[checkboxValueXt6] : '';
@@ -12597,6 +12951,22 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
             return;
         }
         
+        // Special handling for ESCALADE IQ model
+        if (model === 'ESCALADE IQ') {
+            console.log('=== FULL ESCALADE IQ CSV CONTENT ===');
+            console.log(csvText);
+            console.log('=== END ESCALADE IQ CSV CONTENT ===');
+            Papa.parse(csvText, {
+                skipEmptyLines: true,
+                complete: function(results) {
+                    console.log(model + ' CSV parsed, rows: ' + results.data.length);
+                    console.log('First 10 rows of parsed data:', results.data.slice(0, 10));
+                    processEscaladeIQTrimLevels(results.data, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model);
+                }
+            });
+            return;
+        }
+
         // Special handling for XT6 model
         if (model === 'XT6') {
             // Log the full CSV content to debug data issues
@@ -17211,7 +17581,8 @@ function convertModelPrefixToDescriptionKey(modelPrefix) {
         'ct5v': 'CT5 V-SERIES',
         'xt4': 'XT4',
         'xt5': 'XT5',
-        'xt6': 'XT6'
+        'xt6': 'XT6',
+        'escaladeiq': 'ESCALADE IQ'
     };
     
     // Check if we have a direct mapping
@@ -17286,6 +17657,9 @@ function getModelDescriptionMap(model) {
         case 'SIERRA 3500':
         case 'SIERRA 3500HD':
             return window.sierra3500FeatureDescriptions;
+        case 'ESCALADE IQ':
+        case 'ESCALADEIQ':
+            return (window.modelDescriptions and window.modelDescriptions.get('ESCALADE IQ')) or (window.escaladeIQFeatureDescriptions if 'escaladeIQFeatureDescriptions' in globals() else {});
         default:
             return null;
     }
