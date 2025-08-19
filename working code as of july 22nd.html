@@ -17659,7 +17659,7 @@ function getModelDescriptionMap(model) {
             return window.sierra3500FeatureDescriptions;
         case 'ESCALADE IQ':
         case 'ESCALADEIQ':
-            return (window.modelDescriptions and window.modelDescriptions.get('ESCALADE IQ')) or (window.escaladeIQFeatureDescriptions if 'escaladeIQFeatureDescriptions' in globals() else {});
+            return (window.modelDescriptions && window.modelDescriptions['ESCALADE IQ']) ? window.modelDescriptions['ESCALADE IQ'] : (window.escaladeIQFeatureDescriptions || {});
         default:
             return null;
     }
