@@ -1,8 +1,8 @@
 /*
- * FUTURE-PROOF GMC MODEL SYSTEM
- * ==============================
+ * FUTURE-PROOF GMC & CADILLAC MODEL SYSTEM
+ * =======================================
  * 
- * This system is designed to automatically work with any future GMC models that are added.
+ * This system is designed to automatically work with any future GMC or Cadillac models that are added.
  * 
  * FEATURES THAT WORK AUTOMATICALLY FOR ALL MODELS:
  * 1. Feature checkboxes automatically update field ID 69 with matching trim levels
@@ -10,20 +10,31 @@
  * 3. Model detection works dynamically from checkbox IDs/names
  * 4. "View Trim Levels" functionality works for all models
  * 5. Trim walk popups with navigation work for all models
+ * 6. Feature descriptions (the blue "i" icon) load from model-specific CSVs
+ * 7. Image gallery popup and stock lookup are shared, model-agnostic
  * 
- * TO ADD A NEW MODEL (e.g., "SILVERADO"):
- * 1. Add 'silverado' to the baseModels array in getPossibleGMCModels()
- * 2. Add the model to modelConfigs with CSV URL
- * 3. Create populateSilveradoFeatures() function
- * 4. Create processSilveradoTrimLevels() function  
- * 5. Add model-specific feature descriptions object (silveradoFeatureDescriptions)
- * 6. Everything else (checkboxes, field 69 updates, trim walks) works automatically!
+ * TO ADD A NEW MODEL (e.g., GMC "SILVERADO" or Cadillac "XT7"):
+ * 1. Add the lowercase model key to getPossibleGMCModels() if needed (list drives auto-detection)
+ * 2. Add an entry to modelConfigs with:
+ *    - fieldId: The destination HTML block field ID for feature checkboxes
+ *    - csvUrl: The model’s trim/feature CSV URL
+ *    - modelFilter: The trim filter string used by View Trim Levels table (e.g., 'XT6')
+ *    - isGmc / isCadillac: Set the appropriate brand flag
+ * 3. Create populate<Model>Features() using any existing model as a guide (XT4/XT5/XT6 are good Cadillac templates):
+ *    - Fetch/parse the CSV, build 5-column grouped checkbox HTML, replace {<model> feature checkboxes}
+ *    - Build <model>FeatureMap for human-readable labels
+ *    - Bind checkbox change events (exclude .trim-level-checkbox)
+ *    - Call setupCollapsibleGroups(htmlBlock, '<MODEL NAME>') to wire the buttons
+ * 4. Create process<Model>TrimLevels() using any existing model’s process...TrimLevels() (handles CSV matching and ID 69 updates)
+ * 5. Point descriptionUrlMap['<MODEL>'] to the descriptions CSV; update updateLegacyDescriptionVariable/getModelDescriptionMap if required
+ * 6. Ensure getUpdateTrimLevelsModelName maps the prefix (e.g., 'xt6' -> 'XT6') if the display name differs
  * 
  * The system uses these utility functions for future-proofing:
  * - detectModelPrefix(): Dynamically detects model from checkbox elements
  * - getPossibleGMCModels(): Maintains list of all possible models
- * - getUpdateTrimLevelsModelName(): Handles model name formatting
+ * - getUpdateTrimLevelsModelName(): Handles model name formatting (e.g., SIERRA1500 -> SIERRA 1500)
  * - buildTrimLevelWalkButtons(): Creates trim walk UI for any model
+ * - buildCollapsibleFeatureGroups(): Builds grouped, collapsible features across categories
  * 
  * No hardcoded model lists in event handlers - everything is dynamic!
  */
@@ -702,6 +713,16 @@ jQuery(document).ready(function($) {
             margin-bottom: 4% !important;
             padding-bottom: 4px;
         }
+        /* Cadillac XT5 checkbox spacing */
+        .gchoice[class*="gchoice_xt5_"] {
+            margin-bottom: 4% !important;
+            padding-bottom: 4px;
+        }
+        /* Cadillac XT6 checkbox spacing */
+        .gchoice[class*="gchoice_xt6_"] {
+            margin-bottom: 4% !important;
+            padding-bottom: 4px;
+        }
         /* Trim levels left alignment - force override any parent centering */
         .trim-levels-display {
             text-align: left !important;
@@ -940,6 +961,14 @@ jQuery(document).ready(function($) {
     // Cadillac XT4 Model Field IDs
     var xt4CheckboxFieldId = 155;
     var xt4HtmlBlockFieldId = 155;
+    
+    // Cadillac XT5 Model Field IDs
+    var xt5CheckboxFieldId = 156;
+    var xt5HtmlBlockFieldId = 156;
+    
+    // Cadillac XT6 Model Field IDs
+    var xt6CheckboxFieldId = 157;
+    var xt6HtmlBlockFieldId = 157;
 
     /*
     📋 STEP 1B: POPULATED FLAGS - Add your model's populated flag here
@@ -970,6 +999,8 @@ jQuery(document).ready(function($) {
     var escaladePopulated = false;
     var escaladeESVPopulated = false;
     var xt4Populated = false;
+    var xt5Populated = false;
+    var xt6Populated = false;
     
     // Function to find best description match with fuzzy matching for typos
     function findBestDescriptionMatch(searchFeature, descriptionMap) {
@@ -1068,7 +1099,7 @@ jQuery(document).ready(function($) {
         var bestMatch = null;
         var highestSimilarity = 0;
         // Use lower threshold for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, CT5, CT5 V-Series, Escalade, Escalade ESV, and XT4 descriptions (0.4 vs 0.7)
-        var threshold = (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions || descriptionMap === window.ct5VSeriesFeatureDescriptions || descriptionMap === window.escaladeFeatureDescriptions || descriptionMap === window.escaladeESVFeatureDescriptions || descriptionMap === window.xt4FeatureDescriptions) ? 0.4 : 0.7;
+                    var threshold = (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions || descriptionMap === window.ct5VSeriesFeatureDescriptions || descriptionMap === window.escaladeFeatureDescriptions || descriptionMap === window.escaladeESVFeatureDescriptions || descriptionMap === window.xt4FeatureDescriptions || descriptionMap === window.xt5FeatureDescriptions) ? 0.4 : 0.7;
         
         for (var key in descriptionMap) {
             var similarity = calculateSimilarity(correctedFeature, key);
@@ -1082,8 +1113,8 @@ jQuery(document).ready(function($) {
         }
         
         // If no match found for Canyon, Sierra 1500, Sierra 2500, CT4, CT4 V-Series, CT5, CT5 V-Series, Escalade, Escalade ESV, or XT4 and threshold was lowered, try partial word matching
-        if (!bestMatch && (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions || descriptionMap === window.ct5VSeriesFeatureDescriptions || descriptionMap === window.escaladeFeatureDescriptions || descriptionMap === window.escaladeESVFeatureDescriptions || descriptionMap === window.xt4FeatureDescriptions)) {
-            var modelName = descriptionMap === window.canyonFeatureDescriptions ? 'Canyon' : (descriptionMap === window.sierra1500FeatureDescriptions ? 'Sierra 1500' : (descriptionMap === window.sierra2500FeatureDescriptions ? 'Sierra 2500' : (descriptionMap === window.sierra3500FeatureDescriptions ? 'Sierra 3500' : (descriptionMap === window.ct4FeatureDescriptions ? 'CT4' : (descriptionMap === window.ct4VSeriesFeatureDescriptions ? 'CT4 V-Series' : (descriptionMap === window.ct5FeatureDescriptions ? 'CT5' : (descriptionMap === window.ct5VSeriesFeatureDescriptions ? 'CT5 V-Series' : (descriptionMap === window.escaladeFeatureDescriptions ? 'Escalade' : (descriptionMap === window.escaladeESVFeatureDescriptions ? 'Escalade ESV' : 'XT4')))))))));
+        if (!bestMatch && (descriptionMap === window.canyonFeatureDescriptions || descriptionMap === window.sierra1500FeatureDescriptions || descriptionMap === window.sierra2500FeatureDescriptions || descriptionMap === window.sierra3500FeatureDescriptions || descriptionMap === window.ct4FeatureDescriptions || descriptionMap === window.ct4VSeriesFeatureDescriptions || descriptionMap === window.ct5FeatureDescriptions || descriptionMap === window.ct5VSeriesFeatureDescriptions || descriptionMap === window.escaladeFeatureDescriptions || descriptionMap === window.escaladeESVFeatureDescriptions || descriptionMap === window.xt4FeatureDescriptions || descriptionMap === window.xt5FeatureDescriptions)) {
+            var modelName = descriptionMap === window.canyonFeatureDescriptions ? 'Canyon' : (descriptionMap === window.sierra1500FeatureDescriptions ? 'Sierra 1500' : (descriptionMap === window.sierra2500FeatureDescriptions ? 'Sierra 2500' : (descriptionMap === window.sierra3500FeatureDescriptions ? 'Sierra 3500' : (descriptionMap === window.ct4FeatureDescriptions ? 'CT4' : (descriptionMap === window.ct4VSeriesFeatureDescriptions ? 'CT4 V-Series' : (descriptionMap === window.ct5FeatureDescriptions ? 'CT5' : (descriptionMap === window.ct5VSeriesFeatureDescriptions ? 'CT5 V-Series' : (descriptionMap === window.escaladeFeatureDescriptions ? 'Escalade' : (descriptionMap === window.escaladeESVFeatureDescriptions ? 'Escalade ESV' : (descriptionMap === window.xt5FeatureDescriptions ? 'XT5' : 'XT4'))))))))));
             console.log('🔍 Trying partial word matching for ' + modelName + ' feature:', correctedFeature);
             var featureWords = correctedFeature.split(' ').filter(function(w) { return w.length > 3; });
             
@@ -1163,7 +1194,9 @@ jQuery(document).ready(function($) {
         'CT5 V-SERIES': { fieldId: ct5VSeriesCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/ct5v.csv', modelFilter: 'CT5', isCadillac: true },
         'Escalade': { fieldId: escaladeCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/escalade.csv', modelFilter: 'Escalade', isCadillac: true },
         'Escalade ESV': { fieldId: escaladeESVCheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/escaladeesv.csv', modelFilter: 'Escalade ESV', isCadillac: true },
-        'XT4': { fieldId: xt4CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/xt4.csv', modelFilter: 'XT4', isCadillac: true }
+        'XT4': { fieldId: xt4CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/xt4.csv', modelFilter: 'XT4', isCadillac: true },
+        'XT5': { fieldId: xt5CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/xt5.csv', modelFilter: 'XT5', isCadillac: true },
+        'XT6': { fieldId: xt6CheckboxFieldId, csvUrl: 'https://hutchinsonautoteam.com/cadillacmodels/xt6.csv', modelFilter: 'XT6', isCadillac: true }
     };
 
     // Email mappings
@@ -1510,6 +1543,9 @@ jQuery(document).ready(function($) {
     // Global variable for Cadillac XT4 feature descriptions
     window.xt4FeatureDescriptions = {};
     
+    // Global variable for Cadillac XT5 feature descriptions
+    window.xt5FeatureDescriptions = {};
+    
     // ============================================================================
     // FUTURE-PROOF DESCRIPTION SYSTEM
     // ============================================================================
@@ -1548,6 +1584,8 @@ jQuery(document).ready(function($) {
         'Escalade': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacescaladedescriptions.csv',
         'Escalade ESV': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacescaladeesvdescriptions.csv',
         'XT4': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacxt4descriptions.csv',
+        'XT5': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacxt5descriptions.csv',
+         'XT6': 'https://hutchinsonautoteam.com/cadillacmodels/cadillacxt6descriptions.csv',
         
         // Kia Models (using generic pattern - can be customized per model)
         'K4': 'https://hutchinsonautoteam.com/kiamodels/KIAMODELDESCRIPTIONS.CSV',
@@ -1675,6 +1713,13 @@ jQuery(document).ready(function($) {
                 break;
             case 'XT4':
                 window.xt4FeatureDescriptions[featureUpper] = description;
+                break;
+            case 'XT5':
+                window.xt5FeatureDescriptions[featureUpper] = description;
+                break;
+            case 'XT6':
+                if (!window.xt6FeatureDescriptions) window.xt6FeatureDescriptions = {};
+                window.xt6FeatureDescriptions[featureUpper] = description;
                 break;
         }
     }
@@ -3094,6 +3139,21 @@ jQuery(document).ready(function($) {
                 modelName = 'XT4';
                 console.log('🔍 TRIM WALK: XT4 descriptions found:', Object.keys(featureDescriptions || {}).length, 'descriptions');
                 break;
+            case 'xt6':
+                featureDescriptions = (window.modelDescriptions && window.modelDescriptions['XT6']) ? window.modelDescriptions['XT6'] : (window.xt6FeatureDescriptions || {});
+                modelName = 'XT6';
+                console.log('🔍 TRIM WALK: XT6 descriptions found:', Object.keys(featureDescriptions || {}).length, 'descriptions');
+                break;
+            case 'xt5':
+                featureDescriptions = (window.modelDescriptions && window.modelDescriptions['XT5']) ? window.modelDescriptions['XT5'] : window.xt5FeatureDescriptions;
+                modelName = 'XT5';
+                console.log('🔍 TRIM WALK: XT5 descriptions found:', Object.keys(featureDescriptions || {}).length, 'descriptions');
+                break;
+            case 'xt6':
+                featureDescriptions = (window.modelDescriptions && window.modelDescriptions['XT6']) ? window.modelDescriptions['XT6'] : (window.xt6FeatureDescriptions || {});
+                modelName = 'XT6';
+                console.log('🔍 TRIM WALK: XT6 descriptions found:', Object.keys(featureDescriptions || {}).length, 'descriptions');
+                break;
             default:
                 console.warn('Unknown model prefix for trim walk popup:', modelPrefix);
                 return;
@@ -3366,6 +3426,9 @@ jQuery(document).ready(function($) {
                     break;
                 case 'xt4':
                     alternativeNames.unshift('xt4TrimLevelMap');
+                    break;
+                case 'xt6':
+                    alternativeNames.unshift('xt6TrimLevelMap');
                     break;
                 case 'ct4vseries':
                     alternativeNames.unshift('ct4VSeriesTrimLevelMap');
@@ -3849,29 +3912,33 @@ jQuery(document).ready(function($) {
       * @param {string} modelPrefix - The detected model prefix
       * @returns {string} - Properly formatted model name for updateTrimLevels
       */
-     function getUpdateTrimLevelsModelName(modelPrefix) {
-         var modelName = modelPrefix.toUpperCase();
-         
+           function getUpdateTrimLevelsModelName(modelPrefix) {
+          var modelName = modelPrefix.toUpperCase();
+          
                  /*
-        📋 STEP 9B: MODEL NAME FORMATTING - Add your model here if needed
-        =====================================================================================
-        Add cases for models that need special name formatting:
-        case 'YOURMODELPREFIX':
-            return 'YOUR MODEL NAME';
-        */
-        
-        // Handle special cases for model name formatting
-        switch (modelName) {
-             case 'SIERRA1500':
-                 return 'SIERRA 1500';
-             case 'SIERRA2500':
-                 return 'SIERRA 2500';
-             case 'SIERRA3500':
-                 return 'SIERRA 3500';
-                         case 'CT4VSERIES':
-                return 'CT4 V-SERIES';
-            case 'CT5VSERIES':
-                return 'CT5 V-SERIES';
+         📋 STEP 9B: MODEL NAME FORMATTING - Add your model here if needed
+         =====================================================================================
+         Add cases for models that need special name formatting:
+         case 'YOURMODELPREFIX':
+             return 'YOUR MODEL NAME';
+         */
+         
+         // Handle special cases for model name formatting
+         switch (modelName) {
+              case 'SIERRA1500':
+                  return 'SIERRA 1500';
+              case 'SIERRA2500':
+                  return 'SIERRA 2500';
+              case 'SIERRA3500':
+                  return 'SIERRA 3500';
+             case 'CT4VSERIES':
+                 return 'CT4 V-SERIES';
+             case 'CT5VSERIES':
+                 return 'CT5 V-SERIES';
+             case 'XT6':
+                 return 'XT6';
+             case 'XT5':
+                 return 'XT5';
             case 'ESCALADE':
                 return 'Escalade';
             case 'ESCALADEESV':
@@ -6898,8 +6965,8 @@ function populateXT4Features() {
                 xt4Populated = true;
                 console.log('XT4 features populated into 5 columns in field 155');
 
-                // Bind change events and add info icons
-                htmlBlock.find('input[type="checkbox"]').off('change.XT4Features').on('change.XT4Features', function() {
+                // Bind change events and add info icons (exclude trim-walk checkboxes)
+                htmlBlock.find('input[type="checkbox"]').not('.trim-level-checkbox').off('change.XT4Features').on('change.XT4Features', function() {
                     console.log('XT4 checkbox changed, updating trim levels');
                     updateTrimLevels('XT4');
                 });
@@ -6907,31 +6974,637 @@ function populateXT4Features() {
                 // Set up collapsible group functionality
                 setupCollapsibleGroups(htmlBlock, 'XT4');
 
-                // BULLETPROOF: Use global bulletproof handler instead of model-specific logic
-                htmlBlock.find('.feature-info-icon').off('click.featureInfo').on('click.featureInfo', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    var feature = $(this).data('feature');
-                    if (!feature) return;
-                    
-                    console.log('🚀 BULLETPROOF (XT4): Feature icon clicked:', feature);
-                    var description = getFeatureDescription(feature, 'XT4');
-                    showFeatureDescription(feature, description);
-                });
-                
                 resolve();
-                },
-                error: function(error) {
-                    console.error('Papa Parse error for XT4 population: ' + error);
-                    reject(error);
-                }
+            },
+            error: function(error) {
+                console.error('Papa Parse error for XT4 population: ' + error);
+                reject(error);
+            }
             });
         });
     }).catch(function(error) {
         console.error('Fetch error for XT4 population: ' + error.message);
         return Promise.reject(error);
     });
+}
+
+
+
+// Cadillac XT5 population function
+function populateXT5Features() {
+    console.log('=== populateXT5Features called ===');
+    
+    // FORCE CLEAR ANY CACHED DATA FOR XT5
+    console.log('🧹 CLEARING XT5 CACHED DATA...');
+    window.xt5FeatureMap = {};
+    window.xt5TrimLevelMap = {};
+    window.xt5FeatureToCategoryMap = {};
+    
+    console.log('Current xt5Populated flag:', xt5Populated);
+    console.log('Form ID:', formId);
+    console.log('xt5HtmlBlockFieldId:', xt5HtmlBlockFieldId);
+    
+    if (xt5Populated) {
+        console.log('XT5 features already populated, skipping');
+        return Promise.resolve();
+    }
+
+    var config = modelConfigs['XT5'];
+    if (!config) {
+        console.warn('XT5 configuration not found');
+        console.log('Available modelConfigs:', Object.keys(modelConfigs));
+        return Promise.reject(new Error('XT5 configuration not found'));
+    }
+    console.log('XT5 config found:', config);
+
+    // Try multiple selectors to find the HTML block field
+    console.log('Searching for HTML block field with multiple selectors...');
+    var htmlBlock = $('#field_' + formId + '_' + xt5HtmlBlockFieldId);
+    console.log('Selector 1 (#field_' + formId + '_' + xt5HtmlBlockFieldId + '):', htmlBlock.length);
+    
+    if (!htmlBlock.length) {
+        htmlBlock = $('#field_' + formId + '_156');
+        console.log('Selector 2 (#field_' + formId + '_156):', htmlBlock.length);
+    }
+    
+    if (!htmlBlock.length) {
+        htmlBlock = $('[id*="156"]').first();
+        console.log('Selector 3 ([id*="156"]):', htmlBlock.length);
+    }
+    
+    if (!htmlBlock.length) {
+        console.error('XT5 HTML block field not found! Tried selectors for field 156');
+        return Promise.reject(new Error('XT5 HTML block field not found'));
+    }
+
+    console.log('XT5 HTML block found:', htmlBlock.attr('id'));
+    console.log('XT5 CSV URL:', config.csvUrl);
+
+    // Load XT5 descriptions first
+    var descriptionsUrl = descriptionUrlMap['XT5'];
+    console.log('XT5 descriptions URL:', descriptionsUrl);
+    
+    return loadModelDescriptions('XT5', descriptionsUrl).then(function() {
+        console.log('✅ XT5 descriptions loaded successfully');
+        console.log('XT5 descriptions count:', Object.keys(window.modelDescriptions['XT5'] || {}).length);
+        
+        return fetchCsvWithRetry(config.csvUrl, 'XT5 CSV', 3, 1000);
+    }).then(function(csvText) {
+        console.log('XT5 CSV fetched successfully, length:', csvText.length, 'characters');
+        console.log('XT5 CSV first 200 chars:', csvText.substring(0, 200));
+        console.log('XT5 CSV first line:', csvText.split('\n')[0]);
+        console.log('XT5 CSV second line:', csvText.split('\n')[1]);
+
+        return new Promise(function(resolve, reject) {
+            Papa.parse(csvText, {
+                header: false,
+                skipEmptyLines: true,
+                delimiter: ',',
+                quoteChar: '"',
+                escapeChar: '"',
+                complete: function(results) {
+                console.log('XT5 CSV parsed, rows:', results.data.length);
+                console.log('First 10 rows of parsed data:', results.data.slice(0, 10));
+
+                var csvData = results.data;
+                var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
+                var featureGroups = {};
+                var featureToColumnMap = {};
+                var featureToCategoryMap = {};
+                var trimLevelRowsByCategory = {};
+                var trimLevels = [];
+
+                // Initialize category objects
+                categories.forEach(function(category) {
+                    featureGroups[category] = [];
+                    trimLevelRowsByCategory[category] = {};
+                });
+
+                console.log('🔍 XT5 CSV PARSING: Total rows:', csvData.length);
+                console.log('🔍 XT5 CSV PARSING: First few rows:', csvData.slice(0, 5));
+                
+                var currentCategory = null;
+                
+                csvData.forEach(function(row, rowIndex) {
+                    if (row.length > 0 && row[0]) {
+                        var firstCell = row[0].trim();
+                        console.log('Processing XT5 row', rowIndex, '- First cell:', firstCell, '- Row length:', row.length);
+                        
+                        // Check if this is a category header row: "TRIM LEVELS FOR {EXTERIOR}"
+                        var categoryMatch = firstCell.match(/TRIM LEVELS FOR \{(.+)\}/);
+                        if (categoryMatch) {
+                            currentCategory = categoryMatch[1];
+                            console.log('🎯 Found XT5 category:', currentCategory);
+                            
+                            if (categories.indexOf(currentCategory) !== -1) {
+                                // Extract features for this category (skip first column which is the header)
+                                var features = row.slice(1).filter(function(feature) {
+                                    return feature && feature.trim() && feature.trim() !== '';
+                                });
+                                
+                                console.log('🔍 XT5 CSV FEATURES in', currentCategory + ':', features.length, 'features');
+                                console.log('🔍 First 5 features:', features.slice(0, 5));
+                                
+                                featureGroups[currentCategory] = features;
+                                
+                                // Map features to their column indices for trim level processing
+                                features.forEach(function(feature, index) {
+                                    var colIndex = index + 1; // +1 because first column is category header
+                                    featureToColumnMap[feature] = colIndex;
+                                    featureToCategoryMap[feature] = currentCategory;
+                                });
+                            }
+                        } else if (currentCategory && (firstCell === 'LUXURY' || firstCell === 'PREMIUM LUXURY' || firstCell === 'SPORT')) {
+                            // This is a trim level row
+                            if (trimLevels.indexOf(firstCell) === -1) {
+                                trimLevels.push(firstCell);
+                                console.log('🎯 Found XT5 trim level:', firstCell);
+                            }
+                            
+                            // Store the entire row for this trim level and category
+                            if (!trimLevelRowsByCategory[currentCategory]) {
+                                trimLevelRowsByCategory[currentCategory] = {};
+                            }
+                            trimLevelRowsByCategory[currentCategory][firstCell] = row;
+                            console.log('📊 Stored trim data for', firstCell, 'in category', currentCategory);
+                        } else if (firstCell === '' || firstCell.match(/^,+$/)) {
+                            // Skip empty rows or rows with just commas
+                            console.log('⏭️ Skipping empty row', rowIndex);
+                        } else {
+                            console.log('❓ Unrecognized row format:', firstCell);
+                        }
+                    }
+                });
+                
+                console.log('🏁 XT5 CSV PARSING COMPLETE:');
+                console.log('📋 Categories found:', Object.keys(featureGroups));
+                console.log('🎯 Trim levels found:', trimLevels);
+                categories.forEach(function(cat) {
+                    console.log('📦', cat, ':', featureGroups[cat] ? featureGroups[cat].length : 0, 'features');
+                });
+                
+                console.log('🔍 XT5 FINAL FEATURE MAP:', Object.keys(featureToColumnMap).slice(0, 10));
+                console.log('🔍 XT5 FINAL CATEGORY MAP:', featureToCategoryMap);
+                
+                // Now populate the feature-to-trim-levels mapping using Cadillac function
+                populateFeatureTrimLevelsMapCadillac('XT5', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+
+                // Create global mappings for trim walk functionality
+                window.xt5TrimLevelMap = featureToTrimLevelsMap['XT5'];
+                window.xt5FeatureToCategoryMap = featureToCategoryMap;
+
+                console.log('Building HTML for XT5 features...');
+                
+                // Build trim level walk buttons
+                var trimLevelButtons = buildTrimLevelWalkButtons(trimLevels, 'xt5');
+                
+                var html = trimLevelButtons + '<div class="feature-groups">';
+                
+                // Mirror for XT6 when needed
+
+                var globalIndex = 0;
+                categories.forEach(function(category) {
+                    var catFeatures = featureGroups[category] || [];
+                    console.log('Building HTML for category: ' + category + ' with ' + catFeatures.length + ' features');
+                    
+                    // Sort features alphabetically within each category
+                    catFeatures.sort(function(a, b) {
+                        return a.toLowerCase().localeCompare(b.toLowerCase());
+                    });
+                    
+                    html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
+                    
+                    // Build collapsible groups and regular features
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'xt5', globalIndex, undefined);
+                    html += categoryHtml.html;
+                    globalIndex = categoryHtml.globalIndex;
+                    html += '</div></div>';
+                });
+                html += '</div>';
+
+                console.log('Generated HTML length (XT5):', html.length);
+                console.log('HTML preview (first 500 chars):', html.substring(0, 500));
+
+                // Replace the placeholder in the HTML block
+                var currentHtml = htmlBlock.html();
+                console.log('Current HTML content:', currentHtml);
+                console.log('🔍 Searching for placeholder: {xt5 feature checkboxes}');
+                console.log('🔍 Searching for placeholder: {XT5 FEATURE CHECKBOXES}');
+                
+                if (currentHtml.indexOf('{xt5 feature checkboxes}') !== -1) {
+                    var newHtml = currentHtml.replace('{xt5 feature checkboxes}', html);
+                    htmlBlock.html(newHtml);
+                    console.log('✅ Replaced {xt5 feature checkboxes} with generated HTML');
+                } else if (currentHtml.indexOf('{XT5 FEATURE CHECKBOXES}') !== -1) {
+                    var newHtml = currentHtml.replace('{XT5 FEATURE CHECKBOXES}', html);
+                    htmlBlock.html(newHtml);
+                    console.log('✅ Replaced {XT5 FEATURE CHECKBOXES} with generated HTML');
+                } else {
+                    console.warn('❌ No XT5 placeholder found in HTML block!');
+                    console.warn('📝 SOLUTION: Add {xt5 feature checkboxes} to your HTML block field (ID 156)');
+                    console.warn('Available placeholders in HTML:', currentHtml.match(/\{[^}]+\}/g) || 'None found');
+                    console.log('🔧 WORKAROUND: Injecting XT5 checkboxes directly into HTML field');
+                    htmlBlock.html(html);
+                }
+
+                // Create feature map for checkbox values to actual feature names (exclude trim-walk checkboxes)
+                window.xt5FeatureMap = {};
+                htmlBlock.find('input[type="checkbox"]').not('.trim-level-checkbox').each(function() {
+                    var $input = $(this);
+                    var checkboxValue = $input.attr('value') || '';
+                    var inputId = $input.attr('id');
+                    var $label = inputId ? $('label[for="' + inputId + '"]') : $input.next('label');
+                    var actualFeature = '';
+                    if ($label && $label.length) {
+                        actualFeature = $label.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+                    }
+                    if (checkboxValue && actualFeature) {
+                        window.xt5FeatureMap[checkboxValue] = actualFeature;
+                    }
+                });
+                console.log('Created xt5FeatureMap with', Object.keys(window.xt5FeatureMap).length, 'features');
+                console.log('Sample mapping:', Object.keys(window.xt5FeatureMap).slice(0, 3).map(function(key) {
+                    return key + ' -> ' + window.xt5FeatureMap[key];
+                }));
+
+                xt5Populated = true;
+                console.log('XT5 features populated into 5 columns in field 156');
+
+                // Bind change events and add info icons (exclude trim-walk checkboxes)
+                htmlBlock.find('input[type="checkbox"]').not('.trim-level-checkbox').off('change.XT5Features').on('change.XT5Features', function() {
+                    console.log('XT5 checkbox changed, updating trim levels');
+                    updateTrimLevels('XT5');
+                });
+
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'XT5');
+
+                resolve();
+            },
+            error: function(error) {
+                console.error('Papa Parse error for XT5 population: ' + error);
+                reject(error);
+            }
+            });
+        });
+    }).catch(function(error) {
+        console.error('Fetch error for XT5 population: ' + error.message);
+        return Promise.reject(error);
+    });
+}
+
+// Cadillac XT6 population function
+function populateXT6Features() {
+    console.log('=== populateXT6Features called ===');
+    
+    // FORCE CLEAR ANY CACHED DATA FOR XT6
+    console.log('🧹 CLEARING XT6 CACHED DATA...');
+    window.xt6FeatureMap = {};
+    window.xt6TrimLevelMap = {};
+    window.xt6FeatureToCategoryMap = {};
+    
+    console.log('Current xt6Populated flag:', xt6Populated);
+    console.log('Form ID:', formId);
+    console.log('xt6HtmlBlockFieldId:', xt6HtmlBlockFieldId);
+    
+    if (xt6Populated) {
+        console.log('XT6 features already populated, skipping');
+        return Promise.resolve();
+    }
+
+    var config = modelConfigs['XT6'];
+    if (!config) {
+        console.warn('XT6 configuration not found');
+        console.log('Available modelConfigs:', Object.keys(modelConfigs));
+        return Promise.reject(new Error('XT6 configuration not found'));
+    }
+    console.log('XT6 config found:', config);
+
+    // Try multiple selectors to find the HTML block field
+    console.log('Searching for HTML block field with multiple selectors...');
+    var htmlBlock = $('#field_' + formId + '_' + xt6HtmlBlockFieldId);
+    console.log('Selector 1 (#field_' + formId + '_' + xt6HtmlBlockFieldId + '):', htmlBlock.length);
+    
+    if (!htmlBlock.length) {
+        htmlBlock = $('#field_' + formId + '_157');
+        console.log('Selector 2 (#field_' + formId + '_157):', htmlBlock.length);
+    }
+    
+    if (!htmlBlock.length) {
+        htmlBlock = $('[id*="157"]').first();
+        console.log('Selector 3 ([id*="157"]):', htmlBlock.length);
+    }
+    
+    if (!htmlBlock.length) {
+        console.error('XT6 HTML block field not found! Tried selectors for field 157');
+        return Promise.reject(new Error('XT6 HTML block field not found'));
+    }
+
+    console.log('XT6 HTML block found:', htmlBlock.attr('id'));
+    console.log('XT6 CSV URL:', config.csvUrl);
+
+    // Load XT6 descriptions first via centralized system
+    var descriptionsUrl = descriptionUrlMap['XT6'];
+    console.log('XT6 descriptions URL:', descriptionsUrl);
+
+    return loadModelDescriptions('XT6', descriptionsUrl).then(function() {
+        console.log('✅ XT6 descriptions loaded successfully');
+        console.log('XT6 descriptions count:', Object.keys((window.modelDescriptions && window.modelDescriptions['XT6']) || {}).length);
+        
+        return fetchCsvWithRetry(config.csvUrl, 'XT6 CSV', 3, 1000);
+    }).then(function(csvText) {
+        console.log('XT6 CSV fetched successfully, length:', csvText.length, 'characters');
+        console.log('XT6 CSV first 200 chars:', csvText.substring(0, 200));
+        console.log('XT6 CSV first line:', csvText.split('\n')[0]);
+        console.log('XT6 CSV second line:', csvText.split('\n')[1]);
+
+        return new Promise(function(resolve, reject) {
+            Papa.parse(csvText, {
+                header: false,
+                skipEmptyLines: true,
+                delimiter: ',',
+                quoteChar: '"',
+                escapeChar: '"',
+                complete: function(results) {
+                console.log('XT6 CSV parsed, rows:', results.data.length);
+                console.log('First 10 rows of parsed data:', results.data.slice(0, 10));
+
+                var csvData = results.data;
+                var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
+                var featureGroups = {};
+                var featureToColumnMap = {};
+                var featureToCategoryMap = {};
+                var trimLevelRowsByCategory = {};
+                var trimLevels = [];
+
+                // Initialize category objects
+                categories.forEach(function(category) {
+                    featureGroups[category] = [];
+                    trimLevelRowsByCategory[category] = {};
+                });
+
+                console.log('🔍 XT6 CSV PARSING: Total rows:', csvData.length);
+                console.log('🔍 XT6 CSV PARSING: First few rows:', csvData.slice(0, 5));
+                
+                var currentCategory = null;
+                
+                csvData.forEach(function(row, rowIndex) {
+                    if (row.length > 0 && row[0]) {
+                        var firstCell = row[0].trim();
+                        console.log('Processing XT6 row', rowIndex, '- First cell:', firstCell, '- Row length:', row.length);
+                        
+                        // Category header
+                        var categoryMatch = firstCell.match(/TRIM LEVELS FOR \{(.+)\}/);
+                        if (categoryMatch) {
+                            currentCategory = categoryMatch[1];
+                            console.log('🎯 Found XT6 category:', currentCategory);
+                            
+                            if (categories.indexOf(currentCategory) !== -1) {
+                                // Extract features for this category (skip first column)
+                                var features = row.slice(1).filter(function(feature) {
+                                    return feature && feature.trim() && feature.trim() !== '';
+                                });
+                                
+                                console.log('🔍 XT6 CSV FEATURES in', currentCategory + ':', features.length, 'features');
+                                console.log('🔍 First 5 features:', features.slice(0, 5));
+                                
+                                featureGroups[currentCategory] = features;
+                                
+                                // Map features to column indices for trim level processing
+                                features.forEach(function(feature, index) {
+                                    var colIndex = index + 1;
+                                    featureToColumnMap[feature] = colIndex;
+                                    featureToCategoryMap[feature] = currentCategory;
+                                });
+                            }
+                        } else if (currentCategory && (firstCell === 'LUXURY' || firstCell === 'PREMIUM LUXURY' || firstCell === 'SPORT')) {
+                            // Trim level row
+                            if (trimLevels.indexOf(firstCell) === -1) {
+                                trimLevels.push(firstCell);
+                                console.log('🎯 Found XT6 trim level:', firstCell);
+                            }
+                            // Store row for this category/trim
+                            if (!trimLevelRowsByCategory[currentCategory]) {
+                                trimLevelRowsByCategory[currentCategory] = {};
+                            }
+                            trimLevelRowsByCategory[currentCategory][firstCell] = row;
+                            console.log('📊 Stored trim data for', firstCell, 'in category', currentCategory);
+                        } else if (firstCell === '' || firstCell.match(/^,+$/)) {
+                            console.log('⏭️ Skipping empty row', rowIndex);
+                        } else {
+                            console.log('❓ Unrecognized row format:', firstCell);
+                        }
+                    }
+                });
+                
+                console.log('🏁 XT6 CSV PARSING COMPLETE:');
+                console.log('📋 Categories found:', Object.keys(featureGroups));
+                console.log('🎯 Trim levels found:', trimLevels);
+                categories.forEach(function(cat) {
+                    console.log('📦', cat, ':', featureGroups[cat] ? featureGroups[cat].length : 0, 'features');
+                });
+
+                console.log('🔍 XT6 FINAL FEATURE MAP:', Object.keys(featureToColumnMap).slice(0, 10));
+                console.log('🔍 XT6 FINAL CATEGORY MAP:', featureToCategoryMap);
+
+                // Populate feature-to-trim-levels mapping for Cadillac
+                populateFeatureTrimLevelsMapCadillac('XT6', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+
+                // Create global mappings for trim walk functionality
+                window.xt6TrimLevelMap = featureToTrimLevelsMap['XT6'];
+                window.xt6FeatureToCategoryMap = featureToCategoryMap;
+
+                console.log('Building HTML for XT6 features...');
+
+                // Build trim level walk buttons (use model prefix xt6)
+                var trimLevelButtons = buildTrimLevelWalkButtons(trimLevels, 'xt6');
+
+                var html = trimLevelButtons + '<div class="feature-groups">';
+                var globalIndex = 0;
+                categories.forEach(function(category) {
+                    var catFeatures = featureGroups[category] || [];
+                    console.log('Building HTML for category: ' + category + ' with ' + catFeatures.length + ' features');
+
+                    // Sort features alphabetically within each category
+                    catFeatures.sort(function(a, b) {
+                        return a.toLowerCase().localeCompare(b.toLowerCase());
+                    });
+
+                    html += '<div class="feature-column"><h4>' + category + '</h4><div class="gfield_checkbox">';
+
+                    // Build collapsible groups and regular features
+                    var categoryHtml = buildCollapsibleFeatureGroups(catFeatures, category, 'xt6', globalIndex, undefined);
+                    html += categoryHtml.html;
+                    globalIndex = categoryHtml.globalIndex;
+                    html += '</div></div>';
+                });
+                html += '</div>';
+
+                console.log('Generated HTML length (XT6):', html.length);
+                console.log('HTML preview (first 500 chars):', html.substring(0, 500));
+
+                // Replace the placeholder in the HTML block
+                var currentHtml = htmlBlock.html();
+                console.log('Current HTML content:', currentHtml);
+                console.log('🔍 Searching for placeholder: {xt6 feature checkboxes}');
+                console.log('🔍 Searching for placeholder: {XT6 FEATURE CHECKBOXES}');
+
+                if (currentHtml.indexOf('{xt6 feature checkboxes}') !== -1) {
+                    var newHtml = currentHtml.replace('{xt6 feature checkboxes}', html);
+                    htmlBlock.html(newHtml);
+                    console.log('✅ Replaced {xt6 feature checkboxes} with generated HTML');
+                } else if (currentHtml.indexOf('{XT6 FEATURE CHECKBOXES}') !== -1) {
+                    var newHtml = currentHtml.replace('{XT6 FEATURE CHECKBOXES}', html);
+                    htmlBlock.html(newHtml);
+                    console.log('✅ Replaced {XT6 FEATURE CHECKBOXES} with generated HTML');
+                } else {
+                    console.warn('❌ No XT6 placeholder found in HTML block!');
+                    console.warn('📝 SOLUTION: Add {xt6 feature checkboxes} to your HTML block field (ID 157)');
+                    console.warn('Available placeholders in HTML:', currentHtml.match(/\{[^}]+\}/g) || 'None found');
+                    console.log('🔧 WORKAROUND: Injecting XT6 checkboxes directly into HTML field');
+                    htmlBlock.html(html);
+                }
+
+                // Create feature map for checkbox values to actual feature names (exclude trim-walk checkboxes)
+                window.xt6FeatureMap = {};
+                htmlBlock.find('input[type="checkbox"]').not('.trim-level-checkbox').each(function() {
+                    var $input = $(this);
+                    var checkboxValue = $input.attr('value') || '';
+                    var inputId = $input.attr('id');
+                    var $label = inputId ? $('label[for="' + inputId + '"]') : $input.next('label');
+                    var actualFeature = '';
+                    if ($label && $label.length) {
+                        actualFeature = $label.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+                    }
+                    if (checkboxValue && actualFeature) {
+                        window.xt6FeatureMap[checkboxValue] = actualFeature;
+                    }
+                });
+                console.log('Created xt6FeatureMap with', Object.keys(window.xt6FeatureMap).length, 'features');
+                console.log('Sample mapping:', Object.keys(window.xt6FeatureMap).slice(0, 3).map(function(key) {
+                    return key + ' -> ' + window.xt6FeatureMap[key];
+                }));
+
+                xt6Populated = true;
+                console.log('XT6 features populated into 5 columns in field 157');
+
+                // Bind change events and add info icons (exclude trim-walk checkboxes)
+                htmlBlock.find('input[type="checkbox"]').not('.trim-level-checkbox').off('change.XT6Features').on('change.XT6Features', function() {
+                    console.log('XT6 checkbox changed, updating trim levels');
+                    updateTrimLevels('XT6');
+                });
+
+                // Set up collapsible group functionality
+                setupCollapsibleGroups(htmlBlock, 'XT6');
+
+                resolve();
+            },
+            error: function(error) {
+                console.error('Papa Parse error for XT6 population: ' + error);
+                reject(error);
+            }
+            });
+        });
+    }).catch(function(error) {
+        console.error('Fetch error for XT6 population: ' + error.message);
+        return Promise.reject(error);
+    });
+}
+
+// XT6 trim level processing
+function processXT6TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model) {
+	console.log('Processing XT6 trim levels for selected features:', selectedFeatures);
+	var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
+	var trimLevels = discoverTrimLevelsFromCSV(csvData, categories);
+	// Reorder to Cadillac XT6 order
+	var standardOrder = ['LUXURY', 'PREMIUM LUXURY', 'SPORT'];
+	var orderedTrimLevels = [];
+	standardOrder.forEach(function(standardTrim) {
+		if (trimLevels.indexOf(standardTrim) !== -1) orderedTrimLevels.push(standardTrim);
+	});
+	trimLevels.forEach(function(t){ if (orderedTrimLevels.indexOf(t) === -1) orderedTrimLevels.push(t); });
+	trimLevels = orderedTrimLevels;
+	var featureToColumnMap = {};
+	var featureToCategoryMap = {};
+	var trimLevelRowsByCategory = {};
+	var matchingTrimLevels = [];
+	categories.forEach(function(category) { trimLevelRowsByCategory[category] = {}; });
+	var currentCategory = null;
+	csvData.forEach(function(row) {
+		if (row.length > 0 && row[0]) {
+			var firstCell = row[0].trim();
+			var categoryMatch = firstCell.match(/TRIM LEVELS FOR \{(.+)\}/);
+			if (categoryMatch) {
+				currentCategory = categoryMatch[1];
+				if (categories.indexOf(currentCategory) !== -1) {
+					trimLevelRowsByCategory[currentCategory] = {};
+					var features = row.slice(1).filter(function(f){ return f && f.trim() !== ''; }).map(function(f){
+						var cleaned = f.trim();
+						if (cleaned.startsWith('"') && cleaned.endsWith('"')) cleaned = cleaned.slice(1, -1);
+						cleaned = cleaned.replace(/""/g, '"');
+						return cleaned;
+					});
+					features.forEach(function(feature, index){
+						featureToColumnMap[feature] = index + 1;
+						featureToCategoryMap[feature] = currentCategory;
+					});
+				}
+			} else if (currentCategory && trimLevels.includes(firstCell)) {
+				trimLevelRowsByCategory[currentCategory][firstCell] = row;
+			}
+		}
+	});
+	trimLevels.forEach(function(trimLevel){
+		var hasAll = true;
+		selectedFeatures.forEach(function(selectedFeature){
+			var found = false;
+			var cat = featureToCategoryMap[selectedFeature];
+			if (cat && trimLevelRowsByCategory[cat] && trimLevelRowsByCategory[cat][trimLevel]) {
+				var trimRow = trimLevelRowsByCategory[cat][trimLevel];
+				var col = featureToColumnMap[selectedFeature];
+				if (col && trimRow[col]) {
+					var val = ('' + trimRow[col]).toUpperCase();
+					if (val === 'YES') found = true;
+				}
+			}
+			if (!found) hasAll = false;
+		});
+		if (hasAll) matchingTrimLevels.push(trimLevel);
+	});
+	console.log('Final matching XT6 trim levels:', matchingTrimLevels);
+	trimLevelsData['XT6'] = matchingTrimLevels;
+	if (trimLevelsButtonBlock && trimLevelsButtonBlock.length) {
+		var buttonText = matchingTrimLevels.length > 0 ? 'View Available Trim Levels (' + matchingTrimLevels.length + ')' : 'No Matching Trim Levels';
+		trimLevelsButtonBlock.html('<button type="button" id="viewTrimLevelsButton" class="button">' + buttonText + '</button>');
+		$('#viewTrimLevelsButton').off('click').on('click.trimLevels', function(e){
+			e.preventDefault();
+			e.stopImmediatePropagation();
+			if (matchingTrimLevels.length > 0) {
+				var config = modelConfigs[model];
+				var correctModelFilter = config ? config.modelFilter : 'XT6';
+				showTrimLevelsPopup(model, matchingTrimLevels, correctModelFilter);
+			} else {
+				alert('No matching trim levels found for the selected features.');
+			}
+		});
+	}
+
+	// Update field 69 with trim levels
+	if (htmlBlock && htmlBlock.length) {
+		var trimLevelsText = matchingTrimLevels.length > 0 ? matchingTrimLevels.join(', ') : 'No matching trim levels found';
+		var message = 'Wonderful, it sounds like the ' + trimLevelsText + ' would be the best fit, which has all of these features and it is available! One moment while I plug this car in.';
+		htmlBlock.find('p').text(message);
+		console.log('✅ HTML block (ID: 69) updated for XT6 with:', message);
+	} else {
+		console.warn('❌ HTML block (ID: 69) not found for XT6');
+	}
+
+	// Populate feature-to-trim-levels mapping for display
+	populateFeatureTrimLevelsMapCadillac('XT6', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+
+	// Create global mappings for trim walk functionality
+	window.xt6TrimLevelMap = featureToTrimLevelsMap['XT6'];
+	window.xt6FeatureToCategoryMap = featureToCategoryMap;
 }
 
 var acadiaPopulated = false;
@@ -10310,6 +10983,95 @@ function processEscaladeESVTrimLevels(csvData, selectedFeatures, htmlBlock, trim
 	window.escaladeESVFeatureToCategoryMap = featureToCategoryMap;
 }
 
+function processXT5TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model) {
+	console.log('Processing XT5 trim levels for selected features:', selectedFeatures);
+	var categories = ['EXTERIOR', 'INTERIOR', 'MECHANICAL', 'SAFETY', 'PACKAGES'];
+	var trimLevels = discoverTrimLevelsFromCSV(csvData, categories);
+	// Reorder to Cadillac XT5 order
+	var standardOrder = ['LUXURY', 'PREMIUM LUXURY', 'SPORT'];
+	var orderedTrimLevels = [];
+	standardOrder.forEach(function(standardTrim) {
+		if (trimLevels.indexOf(standardTrim) !== -1) orderedTrimLevels.push(standardTrim);
+	});
+	trimLevels.forEach(function(t){ if (orderedTrimLevels.indexOf(t) === -1) orderedTrimLevels.push(t); });
+	trimLevels = orderedTrimLevels;
+	var featureToColumnMap = {};
+	var featureToCategoryMap = {};
+	var trimLevelRowsByCategory = {};
+	var matchingTrimLevels = [];
+	categories.forEach(function(category) { trimLevelRowsByCategory[category] = {}; });
+	var currentCategory = null;
+	csvData.forEach(function(row) {
+		if (row.length > 0 && row[0]) {
+			var firstCell = row[0].trim();
+			var categoryMatch = firstCell.match(/TRIM LEVELS FOR \{(.+)\}/);
+			if (categoryMatch) {
+				currentCategory = categoryMatch[1];
+				if (categories.indexOf(currentCategory) !== -1) {
+					trimLevelRowsByCategory[currentCategory] = {};
+					var features = row.slice(1).filter(function(f){ return f && f.trim() !== ''; }).map(function(f){
+						var cleaned = f.trim();
+						if (cleaned.startsWith('"') && cleaned.endsWith('"')) cleaned = cleaned.slice(1, -1);
+						cleaned = cleaned.replace(/""/g, '"');
+						return cleaned;
+					});
+					features.forEach(function(feature, index){
+						featureToColumnMap[feature] = index + 1;
+						featureToCategoryMap[feature] = currentCategory;
+					});
+				}
+			} else if (currentCategory && trimLevels.includes(firstCell)) {
+				trimLevelRowsByCategory[currentCategory][firstCell] = row;
+			}
+		}
+	});
+	trimLevels.forEach(function(trimLevel){
+		var hasAll = true;
+		selectedFeatures.forEach(function(selectedFeature){
+			var found = false;
+			var cat = featureToCategoryMap[selectedFeature];
+			if (cat && trimLevelRowsByCategory[cat] && trimLevelRowsByCategory[cat][trimLevel]) {
+				var trimRow = trimLevelRowsByCategory[cat][trimLevel];
+				var col = featureToColumnMap[selectedFeature];
+				if (col && trimRow[col]) {
+					var val = ('' + trimRow[col]).toUpperCase();
+					if (val === 'YES') found = true;
+				}
+			}
+			if (!found) hasAll = false;
+		});
+		if (hasAll) matchingTrimLevels.push(trimLevel);
+	});
+	console.log('Final matching XT5 trim levels:', matchingTrimLevels);
+	trimLevelsData['XT5'] = matchingTrimLevels;
+	if (trimLevelsButtonBlock && trimLevelsButtonBlock.length) {
+		var buttonText = matchingTrimLevels.length > 0 ? 'View Available Trim Levels (' + matchingTrimLevels.length + ')' : 'No Matching Trim Levels';
+		trimLevelsButtonBlock.html('<button type="button" id="viewTrimLevelsButton" class="button">' + buttonText + '</button>');
+		$('#viewTrimLevelsButton').off('click').on('click.trimLevels', function(e){
+			e.preventDefault();
+			e.stopImmediatePropagation();
+			if (matchingTrimLevels.length > 0) {
+				var config = modelConfigs[model];
+				var correctModelFilter = config ? config.modelFilter : 'XT5';
+				showTrimLevelsPopup(model, matchingTrimLevels, correctModelFilter);
+			} else {
+				alert('No matching trim levels found for the selected features.');
+			}
+		});
+	}
+	if (htmlBlock && htmlBlock.length) {
+		var trimLevelsText = matchingTrimLevels.length > 0 ? matchingTrimLevels.join(', ') : 'No matching trim levels found';
+		var message = 'Wonderful, it sounds like the ' + trimLevelsText + ' would be the best fit, which has all of these features and it is available! One moment while I plug this car in.';
+		htmlBlock.find('p').text(message);
+		console.log('✅ HTML block (ID: 69) updated for XT5 with:', message);
+	} else {
+		console.warn('❌ HTML block (ID: 69) not found for XT5');
+	}
+	populateFeatureTrimLevelsMapCadillac('XT5', featureToColumnMap, featureToCategoryMap, trimLevelRowsByCategory, trimLevels);
+	window.xt5TrimLevelMap = featureToTrimLevelsMap['XT5'];
+	window.xt5FeatureToCategoryMap = featureToCategoryMap;
+}
+
 function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model) {
 	console.log('Processing XT4 trim levels for selected features:', selectedFeatures);
 	console.log('🔍 XT4 DEBUG: csvData rows:', csvData.length);
@@ -10521,6 +11283,18 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
     if (!config) {
         console.warn('Model configuration not found for: ' + model);
         return;
+    }
+    
+    // If a trim-walk override is active for this model, skip feature-based recompute
+    try {
+        var modelPrefix = (model || '').toString().toLowerCase().replace(/\s+/g, '');
+        var hasTrimWalkActive = $('.trim-level-checkbox[data-model="' + modelPrefix + '"]').is(':checked');
+        if (hasTrimWalkActive) {
+            console.log('⏭️ Skipping updateTrimLevels for', model, 'because trim-walk override is active');
+            return;
+        }
+    } catch (e) {
+        console.warn('Trim-walk guard check failed:', e);
     }
     var checkboxField, htmlBlock, trimLevelsButtonBlock;
     
@@ -10823,7 +11597,7 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
         
         htmlBlock = $('#field_' + formId + '_' + htmlBlockFieldId);
         trimLevelsButtonBlock = $('#field_' + formId + '_' + trimLevelsButtonFieldId);
-    } else if (model === 'XT4') {
+    } else     if (model === 'XT4') {
         // For XT4, checkboxes are in field 155 (HTML block)
         checkboxField = $('#field_' + formId + '_' + xt4HtmlBlockFieldId);
         if (!checkboxField.length) {
@@ -10839,6 +11613,29 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
             xt4HtmlBlockFieldId: xt4HtmlBlockFieldId,
             selector1: '#field_' + formId + '_' + xt4HtmlBlockFieldId,
             selector2: '#field_' + formId + '_155',
+            found: checkboxField.length,
+            actualId: checkboxField.attr('id'),
+            hasCheckboxes: checkboxField.find('input[type="checkbox"]').length
+        });
+        
+        htmlBlock = $('#field_' + formId + '_' + htmlBlockFieldId);
+        trimLevelsButtonBlock = $('#field_' + formId + '_' + trimLevelsButtonFieldId);
+    } else if (model === 'XT5') {
+        // For XT5, checkboxes are in field 156 (HTML block)
+        checkboxField = $('#field_' + formId + '_' + xt5HtmlBlockFieldId);
+        if (!checkboxField.length) {
+            checkboxField = $('#field_' + formId + '_156');
+        }
+        if (!checkboxField.length) {
+            checkboxField = $('[id*="156"]').filter(function() {
+                return $(this).attr('id').includes('field') || $(this).attr('id').includes('input');
+            });
+        }
+        
+        console.log('XT5 checkboxField debug:', {
+            xt5HtmlBlockFieldId: xt5HtmlBlockFieldId,
+            selector1: '#field_' + formId + '_' + xt5HtmlBlockFieldId,
+            selector2: '#field_' + formId + '_156',
             found: checkboxField.length,
             actualId: checkboxField.attr('id'),
             hasCheckboxes: checkboxField.find('input[type="checkbox"]').length
@@ -11095,6 +11892,44 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
             
             console.log('Skipping ESCALADE feature icon addition since ESCALADE already has styled icons from initial HTML building:', feature);
         });
+    } else if (model === 'XT5') {
+        // XT5: read features from labels next to checkboxes (exclude trim-walk checkboxes)
+        checkboxField.find('input[type="checkbox"]').not('.trim-level-checkbox').each(function() {
+            var $input = $(this);
+            var inputId = $input.attr('id');
+            var $label = inputId ? $('label[for="' + inputId + '"]') : $input.next('label');
+            var feature = '';
+            if ($label && $label.length) {
+                feature = $label.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+            }
+            if (!feature || !$input.length) {
+                console.warn('Invalid checkbox structure in field (ID: ' + xt5HtmlBlockFieldId + ')', {
+                    feature: feature,
+                    inputExists: $input.length > 0,
+                    labelText: $label.text().substring(0, 100)
+                });
+                return;
+            }
+        });
+    } else if (model === 'XT6') {
+        // XT6: read features from labels next to checkboxes (exclude trim-walk checkboxes)
+        checkboxField.find('input[type="checkbox"]').not('.trim-level-checkbox').each(function() {
+            var $input = $(this);
+            var inputId = $input.attr('id');
+            var $label = inputId ? $('label[for="' + inputId + '"]') : $input.next('label');
+            var feature = '';
+            if ($label && $label.length) {
+                feature = $label.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+            }
+            if (!feature || !$input.length) {
+                console.warn('Invalid checkbox structure in field (ID: ' + xt6HtmlBlockFieldId + ')', {
+                    feature: feature,
+                    inputExists: $input.length > 0,
+                    labelText: $label.text().substring(0, 100)
+                });
+                return;
+            }
+        });
     } else {
         // For other models, use existing logic
         checkboxField.find('.gfield_checkbox > div, .gfield-choice-wrapper').each(function() {
@@ -11206,7 +12041,7 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
         });
     });
     
-    var selectedFeatures = checkboxField.find('input[type="checkbox"]:checked').map(function() {
+    var selectedFeatures = checkboxField.find('input[type="checkbox"]:checked').not('.trim-level-checkbox').map(function() {
         var $input = $(this);
         var feature = '';
         
@@ -11432,6 +12267,34 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
                 hasFeatureMap: !!window.xt4FeatureMap,
                 featureMapKeys: window.xt4FeatureMap ? Object.keys(window.xt4FeatureMap).slice(0, 5) : []
             });
+        } else if (model === 'XT5') {
+            // For XT5, prefer the featureMap; fallback to label text
+            var checkboxValueXt5 = $input.attr('value') || '';
+            feature = window.xt5FeatureMap && window.xt5FeatureMap[checkboxValueXt5] ? window.xt5FeatureMap[checkboxValueXt5] : '';
+            if (!feature) {
+                var inputId = $input.attr('id');
+                var $label = inputId ? $('label[for="' + inputId + '"]') : $input.next('label');
+                if ($label && $label.length) {
+                    feature = $label.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+                }
+                if (!feature) {
+                    feature = checkboxValueXt5;
+                }
+            }
+        } else if (model === 'XT6') {
+            // For XT6, prefer the featureMap; fallback to label text
+            var checkboxValueXt6 = $input.attr('value') || '';
+            feature = window.xt6FeatureMap && window.xt6FeatureMap[checkboxValueXt6] ? window.xt6FeatureMap[checkboxValueXt6] : '';
+            if (!feature) {
+                var inputIdXt6 = $input.attr('id');
+                var $labelXt6 = inputIdXt6 ? $('label[for="' + inputIdXt6 + '"]') : $input.next('label');
+                if ($labelXt6 && $labelXt6.length) {
+                    feature = $labelXt6.contents().filter(function() { return this.nodeType === 3; }).text().trim();
+                }
+                if (!feature) {
+                    feature = checkboxValueXt6;
+                }
+            }
         } else {
             // For other models, use the existing logic
             var $div = $input.closest('.gfield_checkbox > div, .gfield-choice-wrapper');
@@ -11729,6 +12592,42 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
                     console.log(model + ' CSV parsed, rows: ' + results.data.length);
                     console.log('First 10 rows of parsed data:', results.data.slice(0, 10));
                     processXT4TrimLevels(results.data, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model);
+                }
+            });
+            return;
+        }
+        
+        // Special handling for XT6 model
+        if (model === 'XT6') {
+            // Log the full CSV content to debug data issues
+            console.log('=== FULL XT6 CSV CONTENT ===');
+            console.log(csvText);
+            console.log('=== END XT6 CSV CONTENT ===');
+            
+            Papa.parse(csvText, {
+                skipEmptyLines: true,
+                complete: function(results) {
+                    console.log(model + ' CSV parsed, rows: ' + results.data.length);
+                    console.log('First 10 rows of parsed data:', results.data.slice(0, 10));
+                    processXT6TrimLevels(results.data, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model);
+                }
+            });
+            return;
+        }
+        
+        // Special handling for XT5 model
+        if (model === 'XT5') {
+            // Log the full CSV content to debug data issues
+            console.log('=== FULL XT5 CSV CONTENT ===');
+            console.log(csvText);
+            console.log('=== END XT5 CSV CONTENT ===');
+            
+            Papa.parse(csvText, {
+                skipEmptyLines: true,
+                complete: function(results) {
+                    console.log(model + ' CSV parsed, rows: ' + results.data.length);
+                    console.log('First 10 rows of parsed data:', results.data.slice(0, 10));
+                    processXT5TrimLevels(results.data, selectedFeatures, htmlBlock, trimLevelsButtonBlock, model);
                 }
             });
             return;
@@ -13358,19 +14257,29 @@ function initFormBindings() {
          });
          
          // Separate function to handle the heavy processing
-         function processFeatureCheckboxChange(checkbox, feature, category, modelPrefix) {
+                   window.processFeatureCheckboxChange = function(checkbox, feature, category, modelPrefix) {
              // Allow multiple simultaneous processing for better responsiveness
              // Removed isProcessingCheckbox check to prevent blocking
              
              // Find all checked feature checkboxes for this model
-             var modelCheckboxes = $('input[type="checkbox"][id*="' + modelPrefix + '"]:checked');
-             var selectedFeatures = [];
-             modelCheckboxes.each(function() {
-                 var featureText = $(this).next('label').text().trim();
-                 if (featureText) {
-                     selectedFeatures.push(featureText);
-                 }
-             });
+                           var modelCheckboxes = $('input[type="checkbox"][id*="' + modelPrefix + '"]:checked').not('.trim-level-checkbox');
+              var selectedFeatures = [];
+              modelCheckboxes.each(function() {
+                  var $cb = $(this);
+                  // Prefer feature maps when available
+                  var value = $cb.attr('value') || '';
+                  var id = $cb.attr('id');
+                  var label = id ? $('label[for="' + id + '"]') : $cb.next('label');
+                  var text = '';
+                  if (label && label.length) {
+                      text = label.contents().filter(function(){ return this.nodeType === 3; }).text().trim();
+                  }
+                  var mapped = '';
+                  if (modelPrefix === 'xt6' && window.xt6FeatureMap) mapped = window.xt6FeatureMap[value] || '';
+                  if (!mapped && modelPrefix === 'xt5' && window.xt5FeatureMap) mapped = window.xt5FeatureMap[value] || '';
+                  var featureText = mapped || text || value;
+                  if (featureText) selectedFeatures.push(featureText);
+              });
              
              console.log('All selected features for ' + modelPrefix + ':', selectedFeatures);
              
@@ -15539,7 +16448,10 @@ function showVehicleInfo(isKiaField) {
     });
 
     var photos = data['Photos'] && data['Photos'].trim()
-        ? data['Photos'].trim().split('|').filter(function(url) { return url && url.endsWith('.jpg'); }).map(function(url) { return url.replace(/^http:/, 'https:'); })
+        ? data['Photos'].trim().split('|')
+            .map(function(url) { return (url || '').trim(); })
+            .filter(function(url) { return url && /\.(jpg|jpeg|png|gif)(\?.*)?$/i.test(url); })
+            .map(function(url) { return url.replace(/^http:/, 'https:'); })
         : [];
     console.log('Raw Photos for ' + (isKiaField ? 'Kia stock field' : 'stock field') + ': ' + data['Photos']);
     console.log('Photos (HTTPS): ' + photos);
@@ -15547,9 +16459,9 @@ function showVehicleInfo(isKiaField) {
         ? `
             <div class="vehicle-gallery">
                 <div class="swiper-container">
-                    <div class="swiper-wrapper">' +
-                    photos.map(function(url) { return '<div class="swiper-slide"><img src="' + url + '" alt="Vehicle Image" loading="lazy"></div>'; }).join('') +
-                    '</div>
+                    <div class="swiper-wrapper">
+                        ${photos.map(function(url) { return '<div class="swiper-slide"><img src="' + url + '" alt="Vehicle Image" loading="lazy"></div>'; }).join('')}
+                    </div>
                     <div class="swiper-button-prev"></div>
                     <div class="swiper-button-next"></div>
                     <div class="swiper-pagination"></div>
@@ -15630,8 +16542,8 @@ function showVehicleInfo(isKiaField) {
         currentSwiper = new Swiper('.swiper-container', {
             loop: true,
             navigation: {
-                nextEl: '.swiper-button-prev',
-                prevEl: '.swiper-button-next'
+                prevEl: '.swiper-button-prev',
+                nextEl: '.swiper-button-next'
             },
             pagination: {
                 el: '.swiper-pagination',
@@ -16124,6 +17036,22 @@ $(document).on('change', 'input[type="radio"]', function() {
         }).catch(function(error) {
             console.error('❌ XT4 population failed from global listener:', error);
         });
+    } else if ($(this).val() === 'XT5' && $(this).is(':checked')) {
+        console.log('🚨 XT5 DETECTED IN GLOBAL LISTENER - FORCING POPULATE');
+        xt5Populated = false;
+        populateXT5Features().then(function() {
+            console.log('✅ XT5 population completed from global listener');
+        }).catch(function(error) {
+            console.error('❌ XT5 population failed from global listener:', error);
+        });
+    } else if ($(this).val() === 'XT6' && $(this).is(':checked')) {
+        console.log('🚨 XT6 DETECTED IN GLOBAL LISTENER - FORCING POPULATE');
+        xt6Populated = false;
+        populateXT6Features().then(function() {
+            console.log('✅ XT6 population completed from global listener');
+        }).catch(function(error) {
+            console.error('❌ XT6 population failed from global listener:', error);
+        });
     /*
     📋 STEP 10: GLOBAL RADIO BUTTON LISTENER - Add your model here
     =====================================================================================
@@ -16206,7 +17134,9 @@ function getFeatureDescription(feature, model) {
     
     // Fallback: Try all description sources with direct lookup only
     var allDescriptionSources = [
-        { name: 'XT4', data: typeof window.xt4FeatureDescriptions !== 'undefined' ? window.xt4FeatureDescriptions : {} },
+        { name: 'XT6', data: typeof window.modelDescriptions !== 'undefined' && window.modelDescriptions['XT6'] ? window.modelDescriptions['XT6'] : (typeof window.xt6FeatureDescriptions !== 'undefined' ? window.xt6FeatureDescriptions : {}) },
+        { name: 'XT5', data: typeof window.modelDescriptions !== 'undefined' && window.modelDescriptions['XT5'] ? window.modelDescriptions['XT5'] : (typeof window.xt5FeatureDescriptions !== 'undefined' ? window.xt5FeatureDescriptions : {}) },
+        { name: 'XT4', data: typeof window.modelDescriptions !== 'undefined' && window.modelDescriptions['XT4'] ? window.modelDescriptions['XT4'] : (typeof window.xt4FeatureDescriptions !== 'undefined' ? window.xt4FeatureDescriptions : {}) },
         { name: 'Escalade ESV', data: typeof window.escaladeESVFeatureDescriptions !== 'undefined' ? window.escaladeESVFeatureDescriptions : {} },
         { name: 'Escalade', data: typeof window.escaladeFeatureDescriptions !== 'undefined' ? window.escaladeFeatureDescriptions : {} },
         { name: 'CT5 V-Series', data: typeof window.ct5VSeriesFeatureDescriptions !== 'undefined' ? window.ct5VSeriesFeatureDescriptions : {} },
@@ -16278,7 +17208,10 @@ function convertModelPrefixToDescriptionKey(modelPrefix) {
         'ct4': 'CT4',
         'ct5': 'CT5',
         'ct4v': 'CT4 V-SERIES',
-        'ct5v': 'CT5 V-SERIES'
+        'ct5v': 'CT5 V-SERIES',
+        'xt4': 'XT4',
+        'xt5': 'XT5',
+        'xt6': 'XT6'
     };
     
     // Check if we have a direct mapping
@@ -16326,8 +17259,12 @@ function getModelDescriptionMap(model) {
         case 'ESCALADE ESV':
         case 'Escalade ESV':
             return window.escaladeESVFeatureDescriptions;
+        case 'XT6':
+            return (window.modelDescriptions && window.modelDescriptions['XT6']) ? window.modelDescriptions['XT6'] : (window.xt6FeatureDescriptions || {});
+        case 'XT5':
+            return (window.modelDescriptions && window.modelDescriptions['XT5']) ? window.modelDescriptions['XT5'] : window.xt5FeatureDescriptions;
         case 'XT4':
-            return window.xt4FeatureDescriptions;
+            return (window.modelDescriptions && window.modelDescriptions['XT4']) ? window.modelDescriptions['XT4'] : window.xt4FeatureDescriptions;
         case 'CT4':
             return window.ct4FeatureDescriptions;
         case 'CT4 V-SERIES':
@@ -16398,9 +17335,23 @@ function getModelDescriptionMap(model) {
         var eventName = 'change.' + modelName.replace(/\s+/g, '') + 'CollapsibleFeatures';
         htmlBlock.find('.feature-group-content input[type="checkbox"]').off(eventName).on(eventName, function() {
             console.log(modelName + ' collapsible checkbox changed, updating trim levels');
-            // Convert model name to lowercase for updateTrimLevels function
-            var lowercaseModelName = modelName.toLowerCase().replace(/\s+/g, '').replace(/-/g, '');
-            updateTrimLevels(lowercaseModelName);
+            try {
+                var checkbox = $(this);
+                var feature = checkbox.next('label').text().trim();
+                var category = checkbox.data('category');
+                var modelPrefix = detectModelPrefix(checkbox) || modelName.toLowerCase().replace(/\s+/g, '');
+                if (typeof processFeatureCheckboxChange === 'function') {
+                    processFeatureCheckboxChange(checkbox, feature, category, modelPrefix);
+                    return;
+                }
+                // Fallback: direct call if helper not available
+                var properModelName = getUpdateTrimLevelsModelName(modelName.toLowerCase().replace(/\s+/g, ''));
+                updateTrimLevels(properModelName);
+            } catch (err) {
+                console.warn('Collapsible checkbox handler fallback due to error:', err);
+                var properModelNameFallback = getUpdateTrimLevelsModelName(modelName.toLowerCase().replace(/\s+/g, ''));
+                updateTrimLevels(properModelNameFallback);
+            }
         });
         
         console.log('✅ Collapsible groups set up for ' + modelName + ' - found ' + htmlBlock.find('.feature-group-toggle').length + ' toggle buttons');
