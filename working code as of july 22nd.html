@@ -6941,7 +6941,7 @@ function populateEscaladeIQFeatures() {
                     // Bind change events (exclude trim-walk checkboxes)
                     htmlBlock.find('input[type="checkbox"]').not('.trim-level-checkbox').off('change.EscaladeIQFeatures').on('change.EscaladeIQFeatures', function() {
                         console.log('Escalade IQ checkbox changed, updating trim levels');
-                        updateTrimLevels('ESCALADE IQ');
+                        updateTrimLevels('Escalade IQ');
                     });
 
                     // Collapsible groups
@@ -11270,7 +11270,7 @@ function processEscaladeIQTrimLevels(csvData, selectedFeatures, htmlBlock, trimL
     });
 
     console.log('Final matching Escalade IQ trim levels:', matchingTrimLevels);
-    trimLevelsData['ESCALADE IQ'] = matchingTrimLevels;
+    trimLevelsData['Escalade IQ'] = matchingTrimLevels;
 
     // Update View Trim Levels button
     if (trimLevelsButtonBlock && trimLevelsButtonBlock.length) {
@@ -12229,7 +12229,7 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
                 return;
             }
         });
-    } else if (model === 'ESCALADE IQ') {
+    } else if (model === 'Escalade IQ') {
         // Escalade IQ: read features from labels next to checkboxes (exclude trim-walk checkboxes)
         checkboxField.find('input[type="checkbox"]').not('.trim-level-checkbox').each(function() {
             var $input = $(this);
@@ -12618,7 +12618,7 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
                     feature = checkboxValueXt5;
                 }
             }
-        } else if (model === 'ESCALADE IQ') {
+        } else if (model === 'Escalade IQ') {
         // Escalade IQ: read features from labels next to checkboxes (exclude trim-walk checkboxes)
         checkboxField.find('input[type="checkbox"]').not('.trim-level-checkbox').each(function() {
             var $input = $(this);
@@ -12954,7 +12954,7 @@ function processXT4TrimLevels(csvData, selectedFeatures, htmlBlock, trimLevelsBu
         }
         
         // Special handling for ESCALADE IQ model
-        if (model === 'ESCALADE IQ') {
+        if (model === 'Escalade IQ') {
             console.log('=== FULL ESCALADE IQ CSV CONTENT ===');
             console.log(csvText);
             console.log('=== END ESCALADE IQ CSV CONTENT ===');
@@ -17421,6 +17421,19 @@ $(document).on('change', 'input[type="radio"]', function() {
         xt6Populated = false;
         populateXT6Features().then(function() {
             console.log('✅ XT6 population completed from global listener');
+        }).catch(function(error) {
+            console.error('❌ XT6 population failed from global listener:', error);
+        });
+    } else if ($(this).val() === 'Escalade IQ' && $(this).is(':checked')) {
+        console.log('🚨 ESCALADE IQ DETECTED IN GLOBAL LISTENER - FORCING POPULATE');
+        escaladeIQPopulated = false;
+        populateEscaladeIQFeatures().then(function() {
+            console.log('✅ ESCALADE IQ population completed from global listener');
+            updateTrimLevels('Escalade IQ');
+        }).catch(function(error) {
+            console.error('❌ ESCALADE IQ population failed from global listener:', error);
+        });
+    }
         }).catch(function(error) {
             console.error('❌ XT6 population failed from global listener:', error);
         });
